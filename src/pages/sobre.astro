@@ -2,14 +2,14 @@
 import Base from '../layouts/Base.astro';
 
 const team = [
-  { name: 'Davi Medeiros da Silva',                   initials: 'DM', instagram: null },
-  { name: 'Hierro Cunha Braga',                       initials: 'HB', instagram: null },
-  { name: 'João Carlos Nascimento de Souza',          initials: 'JC', instagram: null },
-  { name: 'João Guilherme Fernandes da Silva',        initials: 'JG', instagram: null },
-  { name: 'Maria Eduarda Maia Furtado Marins',        initials: 'ME', instagram: null },
-  { name: 'Maria Heloisa Mendes de Souza',            initials: 'MH', instagram: null },
-  { name: 'Milena Cellos Andrade',                    initials: 'MC', instagram: null },
-  { name: 'Simone Sanches da Silva Ferreira',         initials: 'SS', instagram: null },
+  { name: 'Davi Medeiros da Silva',                   initials: 'DM', instagram: 'sdeiros', photo: null, role: 'Estudante de Psicologia, Artista e Técnico de Informática' },
+  { name: 'Hierro Cunha Braga',                       initials: 'HB', instagram: 'hierrobraga', photo: null, role: 'Estudante de Psicologia' },
+  { name: 'João Carlos Nascimento de Souza',          initials: 'JC', instagram: 'xjoka_', photo: null, role: 'Estudante de Psicologia' },
+  { name: 'João Guilherme Fernandes da Silva',        initials: 'JG', instagram: null, photo: null, role: 'Estudante de Psicologia' },
+  { name: 'Maria Eduarda Maia Furtado Marins',        initials: 'ME', instagram: 'maia.madu', photo: null, role: 'Estudante de Psicologia e Mediadora' },
+  { name: 'Maria Heloisa Mendes de Souza',            initials: 'MH', instagram: 'mhelo__mendes', photo: null, role: 'Estudante de Psicologia' },
+  { name: 'Milena Cellos Andrade',                    initials: 'MC', instagram: 'mi_cellos', photo: null, role: 'Estudante de Psicologia e Influenciadora' },
+  { name: 'Simone Sanches da Silva Ferreira',         initials: 'SS', instagram: 'simonesanchesferreira', photo: null, role: 'Estudante de Psicologia' },
 ];
 
 // Gera uma cor de fundo para o avatar a partir das iniciais
@@ -42,27 +42,27 @@ const avatarColors = [
           <p>O objetivo é reunir, em um único lugar, conteúdo científico acessível sobre o autismo e ferramentas práticas que apoiem crianças com dificuldades na comunicação verbal — e as pessoas que cuidam delas: famílias, educadores e terapeutas.</p>
           <p>Tudo funciona diretamente no navegador, sem cadastro, sem custo e com privacidade total — nenhum dado é enviado para servidores externos.</p>
           <div class="about-tags">
-            <span class="tag">100% gratuito</span>
-            <span class="tag">Sem cadastro</span>
-            <span class="tag">Funciona offline</span>
-            <span class="tag">Privacidade total</span>
+            <span class="tag">100% Gratuito</span>
+            <span class="tag">Sem Cadastro</span>
+            <span class="tag">Funciona Offline</span>
+            <span class="tag">Privacidade Total</span>
             <span class="tag">WCAG 2.2</span>
           </div>
         </div>
         <div class="about-values reveal">
           <div class="value-card">
             <span class="value-icon">🧠</span>
-            <h3>Embasamento científico</h3>
+            <h3>Embasamento Científico</h3>
             <p>Conteúdo baseado em literatura especializada em TEA, CAA e educação inclusiva.</p>
           </div>
           <div class="value-card">
             <span class="value-icon">♿</span>
-            <h3>Acessibilidade real</h3>
+            <h3>Acessibilidade Real</h3>
             <p>Alto contraste, fonte ajustável, leitor de tela e design inclusivo por padrão.</p>
           </div>
           <div class="value-card">
             <span class="value-icon">🤝</span>
-            <h3>Foco na prática</h3>
+            <h3>Foco na Prática</h3>
             <p>Ferramentas que educadores e famílias podem usar imediatamente, sem treinamento complexo.</p>
           </div>
         </div>
@@ -75,11 +75,11 @@ const avatarColors = [
     <div class="container">
       <div class="team-header reveal">
         <span class="eyebrow">A equipe</span>
-        <h2 class="section-title">Estudantes de Psicologia</h2>
+        <h2 class="section-title">Nossa equipe multi-perfil</h2>
         <p class="section-lead">
-          Todos os membros são estudantes de Psicologia do
+          Além de estudantes de Psicologia do
           <strong>Instituto Brasileiro de Medicina e Reabilitação (IBMR)</strong>,
-          campus Barra da Tijuca, Rio de Janeiro.
+          alguns membros também atuam como mediador, artista, técnico de informática e influenciador.
         </p>
       </div>
 
@@ -87,15 +87,20 @@ const avatarColors = [
         {team.map((member, i) => (
           <div class="member-card reveal">
             <div class="member-avatar" style={`background:${avatarColors[i % avatarColors.length]}`}>
-              {/* Placeholder — troque por <img> quando tiver a foto */}
-              <span class="member-initials">{member.initials}</span>
-              <div class="avatar-overlay">
-                <span class="photo-hint">Foto em breve</span>
-              </div>
+              {member.photo ? (
+                <img class="member-photo" src={member.photo} alt={`Foto de ${member.name}`} />
+              ) : (
+                <>
+                  <span class="member-initials">{member.initials}</span>
+                  <div class="avatar-overlay">
+                    <span class="photo-hint">Foto em breve</span>
+                  </div>
+                </>
+              )}
             </div>
             <div class="member-info">
               <h3 class="member-name">{member.name}</h3>
-              <p class="member-role">Estudante de Psicologia</p>
+              <p class="member-role">{member.role || 'Estudante de Psicologia'}</p>
               <p class="member-inst">IBMR — Barra da Tijuca, RJ</p>
               {member.instagram && (
                 <a
@@ -134,20 +139,6 @@ const avatarColors = [
           <p class="inst-note">
             Campus Barra da Tijuca · Rio de Janeiro, RJ
           </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section class="section">
-    <div class="container">
-      <div class="cta-box reveal">
-        <h2>Toda criança tem algo a dizer.</h2>
-        <p>Explore as ferramentas do NeuroVoz e contribua para uma comunicação mais inclusiva.</p>
-        <div class="cta-btns">
-          <a href="/tablet" class="btn btn-mint btn-lg">Abrir Tablet Comunicador</a>
-          <a href="/recursos" class="btn btn-ghost btn-lg" style="color:#fff;border-color:rgba(255,255,255,0.4)">Ver Recursos</a>
         </div>
       </div>
     </div>
@@ -196,6 +187,13 @@ const avatarColors = [
     align-items: center;
     justify-content: center;
     overflow: hidden;
+  }
+  .member-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
   }
   .member-initials {
     font-family: var(--font-head);

@@ -96,7 +96,7 @@ import Base from '../layouts/Base.astro';
 
         <div class="field">
           <label for="observacoes">Observações pedagógicas</label>
-          <textarea id="observacoes" name="observacoes" placeholder="Anotações adicionais..."></textarea>
+          <textarea id="observacoes" name="observacoes" placeholder="Anotações adicionais, como cor de pelo, cabelo e roupa para melhor identificação"></textarea>
         </div>
 
         <div class="form-actions">
@@ -136,9 +136,9 @@ import Base from '../layouts/Base.astro';
   function val(id: string) { return (document.getElementById(id) as HTMLInputElement)?.value.trim() || ''; }
   function or(id: string, fallback: string) { return val(id) || fallback; }
 
-  const TEMPLATE = () => `Você é um especialista em Comunicação Aumentativa e Alternativa (CAA), educação inclusiva, pedagogia e desenvolvimento infantil.
+  const TEMPLATE = () => `Você é um especialista em Comunicação Aumentativa e Alternativa (CAA), educação inclusiva, pedagogia, neurodesenvolvimento e design de materiais acessíveis. Crie imediatamente uma prancha de comunicação visual totalmente personalizada para uma criança como uma única imagem em A4 horizontal pronta para impressão em alta resolução, uso imediato e plastificação. Responda apenas com o conteúdo final da prancha, sem explicações, sem etapas, sem instruções, sem análises, sem tabelas e sem qualquer texto adicional. Não mencione limitações do modelo ou a necessidade de software externo. Use apenas a descrição visual direta da prancha, como se estivesse gerando a imagem agora. Gere diretamente a prancha visual final.
 
-Crie um tablet comunicador personalizado para uma criança com as seguintes características:
+Utilize as seguintes informações para personalizar completamente a prancha:
 
 Nome: ${or('nome', '[não informado]')}
 Idade: ${or('idade', '[não informada]')}
@@ -154,20 +154,16 @@ Necessidades comunicativas frequentes: ${or('necessidades', '[não informadas]')
 Contexto de utilização: ${or('contexto', '[não informado]')}
 Observações pedagógicas: ${or('observacoes', '[não informadas]')}
 
-Com base nessas informações:
+A prancha deve apresentar design infantil, acolhedor, organizado, moderno e altamente acessível, com cores suaves, excelente contraste, bordas arredondadas, pictogramas grandes, textos legíveis e disposição intuitiva. Organize os elementos em uma grade visual equilibrada, facilitando a autonomia e a identificação rápida dos símbolos.
 
-1. Personalize totalmente a interface do tablet comunicador.
-2. Sugira categorias prioritárias.
-3. Sugira os primeiros botões que devem aparecer na tela inicial.
-4. Crie frases úteis para a rotina da criança.
-5. Sugira pictogramas adequados.
-6. Adapte o vocabulário ao nível de suporte informado.
-7. Inclua elementos relacionados aos interesses da criança para aumentar o engajamento.
-8. Sugira estratégias para ampliação gradual do repertório comunicativo.
-9. Organize a interface para facilitar a autonomia.
-10. Explique brevemente as escolhas realizadas.
+Adapte toda a identidade visual aos interesses da criança. Se ela gosta de dinossauros, utilize elementos gráficos inspirados em dinossauros. Se gosta de ônibus, utilize elementos relacionados a ônibus. Se gosta de princesas, super-heróis, carros, animais ou qualquer outro tema, incorpore esses elementos visualmente para aumentar o engajamento e o interesse pela comunicação.
 
-Apresente o resultado em formato organizado e pronto para implementação.`;
+Inclua obrigatoriamente categorias relacionadas a necessidades básicas, alimentação, emoções, comunicação social, rotina, brincadeiras e atividades. Os botões devem contemplar itens como água, comida, banheiro, ajuda, descansar, brincar, feliz, triste, bravo, ansioso, sim, não, olá, tchau, obrigado e outras palavras relevantes para a realidade da criança. Adicione também botões específicos relacionados aos interesses, hiperfocos, brincadeiras favoritas e necessidades comunicativas frequentes informadas nos dados acima.
+
+Cada botão deve conter uma ilustração clara, um pictograma intuitivo e a palavra correspondente escrita de forma legível. O vocabulário, a quantidade de botões e a complexidade da prancha devem ser ajustados automaticamente à idade, ao nível de suporte e à forma de comunicação atual da criança.
+
+O resultado final deve ser uma única imagem de prancha de comunicação personalizada, visualmente profissional, pronta para impressão em papel A4, pronta para plastificação e uso imediato, sem qualquer texto explicativo adicional fora da própria prancha.
+`;
 
   document.getElementById('btn-gerar-prompt')!.addEventListener('click', () => {
     if (!val('nome')) { alert('Informe ao menos o nome da criança.'); return; }

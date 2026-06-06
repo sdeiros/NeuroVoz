@@ -1,0 +1,52 @@
+---
+const { alphabet } = Astro.props;
+---
+
+<div class="nv-word-builder">
+  <div class="builder-display" aria-live="polite"> <strong id="wb-word"> </strong> </div>
+  <div class="builder-letters" id="wb-letters">
+    {alphabet.map((l) => (
+      <button type="button" class="wb-letter" data-letter={l.letter}>{l.letter}</button>
+    ))}
+  </div>
+  <div class="builder-actions">
+    <button id="wb-say" class="btn btn-primary">🔊 Ler palavra</button>
+    <button id="wb-clear" class="btn btn-ghost">Limpar</button>
+  </div>
+
+  <script type="module">
+    const letters = [];
+    const out = document.getElementById('wb-word');
+    const btnSay = document.getElementById('wb-say');
+    const btnClear = document.getElementById('wb-clear');
+    document.getElementById('wb-letters').addEventListener('click', (ev) => {
+      const b = ev.target.closest('.wb-letter');
+      if (!b) return;
+      const ch = b.dataset.letter;
+      letters.push(ch);
+      out.textContent = letters.join('');
+      b.classList.add('selected');
+      window.recordLearningEvent && window.recordLearningEvent({ type: 'wordbuilder', action: 'add', letter: ch, time: Date.now() });
+    });
+    btnSay.addEventListener('click', () => {
+      const word = letters.join('');
+      if (!word) return;
+      window.nvSpeak ? window.nvSpeak(word) : alert(word);
+      window.recordLearningEvent && window.recordLearningEvent({ type: 'wordbuilder', action: 'say', word, time: Date.now() });
+    });
+    btnClear.addEventListener('click', () => {
+      letters.length = 0;
+      out.textContent = '';
+      document.querySelectorAll('.wb-letter.selected').forEach((el) => el.classList.remove('selected'));
+    });
+  </script>
+
+  <style>
+    .nv-word-builder { padding:12px; border-radius:12px; background:var(--surface); border:1px solid var(--border); }
+    .builder-display { min-height:44px; display:flex; align-items:center; justify-content:center; font-family:var(--font-head); font-weight:900; font-size:1.4rem; }
+    .builder-letters { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px }
+    .wb-letter { width:44px; height:44px; border-radius:8px; display:grid; place-items:center; font-weight:800; }
+    .wb-letter.selected { background:var(--blue); color:#fff }
+    .builder-actions { display:flex; gap:8px; margin-top:10px; justify-content:flex-end }
+  </style>
+</div>

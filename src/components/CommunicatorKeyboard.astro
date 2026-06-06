@@ -1,0 +1,30 @@
+---
+const { onSendEventName = 'nv-comm-send' } = Astro.props;
+---
+
+<div class="nv-comm-kb">
+  <textarea id="comm-input" placeholder="Escreva aqui..." rows="3"></textarea>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+    <button id="comm-say" class="btn btn-primary">🔊 Falar</button>
+    <button id="comm-send" class="btn btn-ghost">➕ Inserir no Comunicador</button>
+  </div>
+
+  <script type="module">
+    const inEl = document.getElementById('comm-input');
+    document.getElementById('comm-say').addEventListener('click', () => {
+      const t = inEl.value.trim(); if (!t) return; window.nvSpeak ? window.nvSpeak(t) : alert(t);
+      window.recordLearningEvent && window.recordLearningEvent({ type: 'commkb', action: 'say', text: t, time: Date.now() });
+    });
+    document.getElementById('comm-send').addEventListener('click', () => {
+      const t = inEl.value.trim(); if (!t) return;
+      // dispatch a global event so the Tablet Comunicador can pick it up
+      window.dispatchEvent(new CustomEvent(onSendEventName, { detail: { text: t } }));
+      window.recordLearningEvent && window.recordLearningEvent({ type: 'commkb', action: 'send', text: t, time: Date.now() });
+      alert('Mensagem enviada ao Comunicador (se aberto).');
+    });
+  </script>
+
+  <style>
+    .nv-comm-kb textarea { width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); }
+  </style>
+</div>

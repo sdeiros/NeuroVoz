@@ -41,6 +41,37 @@ const {
     </main>
     {!fullbleed && <Footer />}
 
+    <button id="nv-timer-widget" class="nv-timer-widget" hidden aria-label="Abrir temporizador" type="button">
+      <span id="nv-timer-widget-icon">⏱️</span>
+    </button>
+
+    <div id="nv-timer-modal" class="nv-timer-modal" hidden aria-hidden="true">
+      <div class="nv-timer-backdrop" data-close="true"></div>
+      <div class="nv-timer-dialog" role="dialog" aria-modal="true" aria-labelledby="nv-timer-modal-title">
+        <div class="nv-timer-dialog-head">
+          <div>
+            <span class="eyebrow">Temporizador</span>
+            <h2 id="nv-timer-modal-title">Atividade em andamento</h2>
+          </div>
+          <button type="button" class="close-btn" data-close="true" aria-label="Fechar modal">✕</button>
+        </div>
+        <div class="nv-timer-modal-body">
+          <div class="nv-timer-meta">
+            <span class="nv-timer-meta-icon" id="nv-timer-modal-icon">⏱️</span>
+            <div>
+              <p id="nv-timer-modal-activity">Atividade</p>
+              <span id="nv-timer-modal-theme">Tema: —</span>
+            </div>
+          </div>
+          <div class="nv-timer-big-time" id="nv-timer-modal-remaining">00:00:00</div>
+          <div class="nv-timer-bar"><div class="nv-timer-bar-fill" id="nv-timer-bar-fill"></div></div>
+          <div class="nv-timer-state" id="nv-timer-status-text">Preparando...</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="nv-timer-celebration" class="nv-timer-celebration" hidden aria-live="polite"></div>
+
     <script>
       // Reveal on scroll
       const io = new IntersectionObserver((entries) => {
@@ -54,6 +85,290 @@ const {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js').catch(() => {});
       }
+    </script>
+
+    <script>
+      // @ts-nocheck
+      const NV_TIMER_KEY = 'nv-timer';
+      const NV_HISTORY_KEY = 'nv-timer-history';
+
+      const widget = document.getElementById('nv-timer-widget');
+      const widgetIcon = document.getElementById('nv-timer-widget-icon');
+      const modal = document.getElementById('nv-timer-modal');
+      const modalIcon = document.getElementById('nv-timer-modal-icon');
+      const modalActivity = document.getElementById('nv-timer-modal-activity');
+      const modalTheme = document.getElementById('nv-timer-modal-theme');
+      const modalRemaining = document.getElementById('nv-timer-modal-remaining');
+      const modalStatus = document.getElementById('nv-timer-status-text');
+      const barFill = document.getElementById('nv-timer-bar-fill');
+      const pauseButton = document.getElementById('nv-timer-pause');
+      const resumeButton = document.getElementById('nv-timer-resume');
+      const resetButton = document.getElementById('nv-timer-reset');
+      const endButton = document.getElementById('nv-timer-end');
+      const celebration = document.getElementById('nv-timer-celebration');
+
+      function loadTimer() {
+        try { return JSON.parse(localStorage.getItem(NV_TIMER_KEY) || 'null'); } catch (e) { return null; }
+      }
+
+      function saveTimer(timer) {
+        localStorage.setItem(NV_TIMER_KEY, JSON.stringify(timer));
+        updateTimerUI();
+      }
+
+      function clearTimer() {
+        localStorage.removeItem(NV_TIMER_KEY);
+        updateTimerUI();
+      }
+
+      function loadHistory() {
+        try { return JSON.parse(localStorage.getItem(NV_HISTORY_KEY) || '[]'); } catch (e) { return []; }
+      }
+
+      function saveHistory(history) {
+        localStorage.setItem(NV_HISTORY_KEY, JSON.stringify(history));
+      }
+
+      function setHistoryEntry(timer) {
+        const history = loadHistory();
+        history.unshift({
+          id: timer.id,
+          name: timer.name,
+          icon: timer.icon,
+          theme: timer.theme,
+          finishedAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          duration: formatTime(timer.duration),
+        });
+        saveHistory(history.slice(0, 20));
+      }
+
+      function formatTime(ms) {
+        const total = Math.max(0, Math.ceil(ms / 1000));
+        const h = Math.floor(total / 3600).toString().padStart(2, '0');
+        const m = Math.floor((total % 3600) / 60).toString().padStart(2, '0');
+        const s = (total % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+      }
+
+      function formatShort(ms) {
+        const total = Math.max(0, Math.ceil(ms / 1000));
+        const m = Math.floor(total / 60).toString().padStart(2, '0');
+        const s = (total % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+      }
+
+      function getRemaining(timer) {
+        if (!timer) return 0;
+        if (timer.status === 'paused') return timer.pausedRemaining || 0;
+        if (timer.status === 'running') {
+          return Math.max(0, timer.duration - (Date.now() - timer.startAt));
+        }
+        return 0;
+      }
+
+      function getProgress(timer) {
+        if (!timer || !timer.duration) return 0;
+        const remaining = getRemaining(timer);
+        return Math.min(100, Math.max(0, 100 * (1 - remaining / timer.duration)));
+      }
+
+      function getColorTone(timer) {
+        const remaining = getRemaining(timer);
+        if (!timer) return 'var(--blue)';
+        if (remaining >= timer.duration * 0.6) return '#34d399';
+        if (remaining >= timer.duration * 0.25) return '#f59e0b';
+        return '#ef4444';
+      }
+
+      // ensure widget starts hidden until we verify an active timer
+      widget?.setAttribute('hidden', '');
+      modal?.setAttribute('hidden', '');
+
+      function updateTimerUI() {
+        const timer = loadTimer();
+        console.log('NVTimer.updateTimerUI -> timer:', timer);
+        if (!timer) {
+          widget?.setAttribute('hidden', '');
+          modal?.setAttribute('hidden', '');
+          return;
+        }
+
+        const status = (timer.status || '').toString().toLowerCase();
+        const remaining = getRemaining(timer);
+        const duration = Number(timer.duration) || 0;
+        const pausedRemaining = Number(timer.pausedRemaining) || 0;
+
+        // If timer expired while page was inactive, finalize it
+        if (status === 'running' && remaining <= 0) {
+          finishTimer();
+          return;
+        }
+
+        const isRunningActive = status === 'running' && remaining > 0 && duration > 0;
+        const isPausedActive = status === 'paused' && pausedRemaining > 0;
+        const isWaitingState = status === 'aguardando' || status === 'waiting' || status === 'idle' || status === 'pending';
+        console.log('NVTimer.state', { status, remaining, duration, pausedRemaining, isRunningActive, isPausedActive, isWaitingState });
+
+        // Only show the widget/modal when there is an actually active timer
+        if (!isRunningActive && !isPausedActive) {
+          console.log('NVTimer: hiding widget (no active timer)');
+          widget?.setAttribute('hidden', '');
+          modal?.setAttribute('hidden', '');
+          return;
+        }
+
+        const progress = getProgress(timer);
+        const tone = getColorTone(timer);
+
+        widget?.removeAttribute('hidden');
+        widgetIcon.textContent = timer.icon || '⏱️';
+        if (timer.color) {
+          widget.style.background = timer.color;
+          if (widgetIcon) widgetIcon.style.color = '#fff';
+        } else {
+          widget.style.background = 'linear-gradient(135deg, var(--blue), var(--mint))';
+          if (widgetIcon) widgetIcon.style.color = '#fff';
+        }
+        widget.style.boxShadow = '0 18px 36px rgba(16,24,40,0.24)';
+
+        modalIcon.textContent = timer.icon || '⏱️';
+        modalActivity.textContent = timer.name || 'Atividade';
+        modalTheme.textContent = `Tema: ${timer.theme.replace(/-/g, ' ')}`;
+        modalRemaining.textContent = formatTime(remaining);
+        modalStatus.textContent = timer.status === 'running' ? 'Em andamento' : 'Pausado';
+        barFill.style.width = `${progress}%`;
+        barFill.style.background = tone;
+
+        pauseButton?.classList.toggle('hidden', timer.status !== 'running');
+        resumeButton?.classList.toggle('hidden', timer.status !== 'paused');
+      }
+
+      function finishTimer() {
+        const timer = loadTimer();
+        if (!timer) return;
+        timer.status = 'finished';
+        saveTimer(timer);
+        setHistoryEntry(timer);
+        showCelebration(timer);
+        // ensure widget and modal are hidden for finished timers
+        widget?.setAttribute('hidden', '');
+        modal?.setAttribute('hidden', '');
+      }
+
+      function showCelebration(timer) {
+        if (!celebration) return;
+        celebration.innerHTML = '';
+        celebration.style.setProperty('--celebration-color', timer.color || 'var(--blue)');
+        celebration.removeAttribute('hidden');
+        celebration.classList.add('active');
+
+        const icons = {
+          dinossauros: '🦖',
+          carros: '🚗',
+          flores: '🌸',
+          estrelas: '⭐',
+          confetes: '🎉',
+          unicornio: '🦄',
+          espaco: '🚀',
+          animais: '🐶',
+        };
+        const symbol = icons[timer.theme] || '🎉';
+        for (let i = 0; i < 16; i += 1) {
+          const drop = document.createElement('span');
+          drop.className = 'rain-item';
+          drop.textContent = symbol;
+          drop.style.left = `${Math.random() * 90}%`;
+          drop.style.animationDelay = `${Math.random() * 1.2}s`;
+          drop.style.fontSize = `${14 + Math.random() * 18}px`;
+          celebration.appendChild(drop);
+        }
+
+        const message = document.createElement('div');
+        message.className = 'celebration-message';
+        message.innerHTML = `
+          <strong>🎉 Muito bem!</strong>
+          <p>O tempo acabou. Atividade concluída com sucesso.</p>
+        `;
+        celebration.appendChild(message);
+
+        setTimeout(() => {
+          celebration.classList.remove('active');
+          celebration.setAttribute('hidden', '');
+          celebration.innerHTML = '';
+          widget?.setAttribute('hidden', '');
+        }, 7000);
+      }
+
+      function sync() {
+        const timer = loadTimer();
+        if (timer && timer.status === 'running' && getRemaining(timer) <= 0) {
+          finishTimer();
+          return;
+        }
+        updateTimerUI();
+      }
+
+      widget?.addEventListener('click', () => {
+        if (!modal) return;
+        modal.removeAttribute('hidden');
+      });
+
+      document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => {
+        modal?.setAttribute('hidden', '');
+      }));
+
+      pauseButton?.addEventListener('click', () => {
+        const timer = loadTimer();
+        if (!timer) return;
+        timer.status = 'paused';
+        timer.pausedRemaining = getRemaining(timer);
+        saveTimer(timer);
+      });
+
+      resumeButton?.addEventListener('click', () => {
+        const timer = loadTimer();
+        if (!timer || timer.status !== 'paused') return;
+        timer.startAt = Date.now();
+        timer.status = 'running';
+        timer.pausedRemaining = null;
+        saveTimer(timer);
+      });
+
+      resetButton?.addEventListener('click', () => {
+        const timer = loadTimer();
+        if (!timer) return;
+        timer.startAt = Date.now();
+        timer.status = 'running';
+        timer.pausedRemaining = null;
+        saveTimer(timer);
+      });
+
+      endButton?.addEventListener('click', () => {
+        const timer = loadTimer();
+        if (!timer) return;
+        timer.status = 'finished';
+        saveTimer(timer);
+        setHistoryEntry(timer);
+        modal?.setAttribute('hidden', '');
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') modal?.setAttribute('hidden', '');
+      });
+
+      window.NVTimer = {
+        setTimer(timer) { saveTimer(timer); },
+        refreshUI() { updateTimerUI(); },
+        getTimer() { return loadTimer(); },
+      };
+
+      setInterval(sync, 500);
+      document.addEventListener('DOMContentLoaded', updateTimerUI);
+
+      // When another tab/page updates the timer in localStorage, refresh UI
+      window.addEventListener('storage', (ev) => {
+        if (ev.key === NV_TIMER_KEY) updateTimerUI();
+      });
     </script>
   </body>
 </html>

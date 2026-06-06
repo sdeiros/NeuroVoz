@@ -31,6 +31,7 @@ export const vocabulary: VocabItem[] = [
   { id: 'nao', label: 'Não', icon: '❌', category: 'nucleo' },
   { id: 'ajuda', label: 'Ajuda', icon: '🆘', phrase: 'Preciso de ajuda', category: 'nucleo' },
   { id: 'mais', label: 'Mais', icon: '➕', category: 'nucleo' },
+  { id: 'menos', label: 'Menos', icon: '➖', category: 'nucleo' },
   { id: 'acabou', label: 'Acabou', icon: '🏁', category: 'nucleo' },
   { id: 'por-favor', label: 'Por favor', icon: '🙏', category: 'nucleo', type: 'social' },
   { id: 'obrigado', label: 'Obrigado', icon: '💖', category: 'nucleo', type: 'social' },

@@ -1,0 +1,48 @@
+---
+const { sounds = [] }: { sounds: Array<{ icon: string; label: string; src?: string }> } = Astro.props as {
+  sounds?: Array<{ icon: string; label: string; src?: string }>;
+};
+---
+
+<div class="nv-sound-bank">
+  <div class="sb-grid">
+    {sounds.map((s) => (
+      <div class="sb-item">
+        <div class="sb-emoji">{s.icon}</div>
+        <div class="sb-label">{s.label}</div>
+        <button class="btn btn-ghost sb-play" data-src={s.src}>▶️</button>
+      </div>
+    ))}
+  </div>
+
+  <script type="module">
+    document.querySelectorAll('.sb-play').forEach((btn) => {
+      btn.addEventListener('click', async (ev) => {
+        const src = btn.dataset.src;
+        const label = btn.previousElementSibling?.textContent || btn.dataset.label || 'Som';
+        if (!src) {
+          // fallback to TTS
+          window.nvSpeak ? window.nvSpeak(label) : alert(label);
+          window.recordLearningEvent && window.recordLearningEvent({ type: 'soundbank', action: 'play-fallback-tts', label, time: Date.now() });
+          return;
+        }
+        try {
+          const a = new Audio(src);
+          await a.play();
+          window.recordLearningEvent && window.recordLearningEvent({ type: 'soundbank', action: 'play', src, time: Date.now() });
+        } catch (e) {
+          console.warn('Sound playback failed, falling back to TTS', src, e);
+          window.nvSpeak ? window.nvSpeak(label) : alert(label);
+          window.recordLearningEvent && window.recordLearningEvent({ type: 'soundbank', action: 'play-fallback-tts', src, label, error: String(e), time: Date.now() });
+        }
+      });
+    });
+  </script>
+
+  <style>
+    .sb-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap:10px }
+    .sb-item { padding:10px; border-radius:12px; background:var(--surface); border:1px solid var(--border); display:flex; flex-direction:column; align-items:center; gap:8px }
+    .sb-emoji { font-size:28px }
+    .sb-label { font-weight:700 }
+  </style>
+</div>

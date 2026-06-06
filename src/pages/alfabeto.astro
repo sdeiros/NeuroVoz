@@ -1,0 +1,109 @@
+---
+import Base from "../layouts/Base.astro";
+import AlphabetLetter from "../components/AlphabetLetter.astro";
+import WordBuilder from "../components/WordBuilder.astro";
+import SoundBank from "../components/SoundBank.astro";
+import ALPHABET from "../data/alphabet";
+---
+
+<Base
+    title="Alfabeto — NeuroVoz"
+    description="Módulo de alfabetização interativo e acessível."
+>
+    <section class="section-sm">
+        <div class="container">
+            <h1 class="page-title">Alfabeto Interativo</h1>
+            <p class="page-lead">
+                Explore letras, ouça pronúncias e monte palavras.
+            </p>
+
+            <div class="alphabet-grid">
+                {
+                    ALPHABET.map((it) => (
+                        <AlphabetLetter
+                            letter={it.letter}
+                            lower={it.lower}
+                            word={it.word}
+                            examplePronunciation={it.examplePronunciation}
+                            emoji={it.emoji}
+                            client:load
+                        />
+                    ))
+                }
+            </div>
+
+            <div style="margin-top:28px">
+                <h2>Formação de Palavras</h2>
+                <WordBuilder alphabet={ALPHABET} client:load />
+            </div>
+
+            <div style="margin-top:28px">
+                <h2>Banco de Sons</h2>
+                <SoundBank
+                    sounds={[
+                        {
+                            icon: "🐶",
+                            label: "Cachorro",
+                            src: "/sounds/dog.mp3",
+                        },
+                        { icon: "🚗", label: "Carro", src: "/sounds/car.mp3" },
+                        { icon: "🌧️", label: "Chuva", src: "/sounds/rain.mp3" },
+                        { icon: "🏠", label: "Casa" },
+                        { icon: "⚽", label: "Futebol" },
+                        { icon: "🚲", label: "Bicicleta" },
+                        { icon: "🇧🇷", label: "Brasil" },
+
+                        { icon: "🌸", label: "Flor" },
+                        { icon: "🦁", label: "Leão" },
+                        { icon: "🐱", label: "Gato" },
+                        { icon: "📚", label: "Livro" },
+                        { icon: "💺", label: "Cadeira" },
+                        { icon: "🚽", label: "Banheiro" },
+                        { icon: "🍎", label: "Maçã" },
+                        { icon: "🥁", label: "Bateria" },
+                        { icon: "✈️", label: "Avião" },
+                        { icon: "🐦", label: "Pássaro" },
+                        { icon: "🌊", label: "Mar" },
+                        { icon: "⚡", label: "Trovão" },
+                        { icon: "🍃", label: "Vento" },
+                        { icon: "🎹", label: "Piano" },
+                        { icon: "🎸", label: "Violão" },
+                        { icon: "🥁", label: "Bateria" },
+                        { icon: "🚒", label: "Bombeiros" },
+                        { icon: "🚂", label: "Trem" },
+                        { icon: "🏥", label: "Hospital" },
+                    ]}
+                    client:load
+                />
+            </div>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .alphabet-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 18px;
+        margin-top: 20px;
+        align-items: start;
+    }
+    @media (min-width: 1100px) {
+        .alphabet-grid {
+            grid-template-columns: repeat(6, 1fr);
+        }
+    }
+    @media (max-width: 640px) {
+        .alphabet-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    .page-lead {
+        color: var(--text-soft);
+    }
+
+    /* Ensure the word builder doesn't overflow */
+    .nv-word-builder {
+        overflow: hidden;
+    }
+</style>

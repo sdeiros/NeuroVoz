@@ -1,0 +1,25 @@
+---
+---
+<div class="nv-speller">
+  <label class="ctrl"><span>Escrever</span><input id="sp-input" placeholder="Digite para soletrar..." /></label>
+  <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+    <button id="sp-say" class="btn btn-primary">🔊 Soletrar</button>
+    <button id="sp-clear" class="btn btn-ghost">Limpar</button>
+  </div>
+
+  <script type="module">
+    const inEl = document.getElementById('sp-input');
+    document.getElementById('sp-say').addEventListener('click', () => {
+      const v = inEl.value.trim();
+      if (!v) return;
+      const spelled = v.split('').join(' ');
+      window.nvSpeak ? window.nvSpeak(v) : alert(v);
+      window.recordLearningEvent && window.recordLearningEvent({ type: 'speller', action: 'say', text: v, spelled, time: Date.now() });
+    });
+    document.getElementById('sp-clear').addEventListener('click', () => { inEl.value = ''; });
+  </script>
+
+  <style>
+    .nv-speller .ctrl input { width: 100%; }
+  </style>
+</div>
