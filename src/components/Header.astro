@@ -1,161 +1,1075 @@
 ---
 const nav = [
-  { href: '/autismo', label: 'Entendendo o Autismo' },
-  { href: '/pedagogos', label: 'Guia para Pedagogos' },
-  { href: '/pranchas', label: 'Criar Prancha' },
-  { href: '/assistente', label: 'Assistente IA' },
-  { href: '/temporizador', label: 'Temporizador' },
-  { href: '/tablet', label: 'Tablet Comunicador' },
-  { href: '/alfabeto', label: 'Alfabeto' },
-  { href: '/historico', label: 'Histórico' },
-  { href: '/recursos', label: 'Recursos' },
-  { href: '/sobre', label: 'Sobre' },
+  { href: "/autismo", label: "Autismo", icon: "🧠" },
+  { href: "/pedagogos", label: "Pedagogos", icon: "📚" },
+  { href: "/pranchas", label: "Pranchas", icon: "🧩" },
+  { href: "/assistente", label: "Assistente IA", icon: "🤖" },
+  { href: "/temporizador", label: "Temporizador", icon: "⏱️" },
+  { href: "/tablet", label: "Tablet", icon: "📱" },
+  { href: "/alfabeto", label: "Alfabeto", icon: "🔤" },
+  { href: "/historico", label: "Histórico", icon: "📊" },
+  { href: "/recursos", label: "Recursos", icon: "✨" },
+  { href: "/sobre", label: "Sobre", icon: "ℹ️" },
 ];
 const path = Astro.url.pathname;
+const featuredLinks = ["/tablet", "/alfabeto"];
+const mobileNav = [
+  ...nav.filter((item) => featuredLinks.includes(item.href)),
+  ...nav.filter((item) => !featuredLinks.includes(item.href)),
+];
 ---
 
-<header class="nav">
-  <div class="container nav-inner">
-    <a href="/" class="brand" aria-label="NeuroVoz - página inicial">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+<header class="nv-header" id="nv-header">
+  <div class="container nv-header-inner">
+    <a href="/" class="nv-brand" aria-label="NeuroVoz - página inicial">
+      <span class="nv-brand-mark" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          width="22"
+          height="22"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+          ></path>
         </svg>
       </span>
-      <span class="brand-text">Neuro<strong>Voz</strong></span>
+      <span class="nv-brand-text">Neuro<strong>Voz</strong></span>
     </a>
 
-    <nav class="nav-links" aria-label="Navegação principal">
-      {nav.map((item) => (
-        <a href={item.href} class={`nav-link ${path === item.href ? 'active' : ''}`}>{item.label}</a>
-      ))}
+    <nav class="nv-links" aria-label="Navegação principal">
+      {
+        nav.map((item) => (
+          <a
+            href={item.href}
+            class={`nv-link ${featuredLinks.includes(item.href) ? "featured" : ""} ${path === item.href ? "active" : ""}`}
+            aria-current={path === item.href ? "page" : undefined}
+          >
+            {item.label}
+          </a>
+        ))
+      }
     </nav>
 
-    <div class="nav-tools">
-      <button id="a11y-toggle" class="tool-btn" aria-expanded="false" aria-controls="a11y-panel" title="Acessibilidade">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4" r="2"/><path d="M19 13c-1.5.5-3.5 1-7 1s-5.5-.5-7-1"/><path d="M12 6v9m0 0l-3 6m3-6l3 6"/></svg>
-        <span class="sr-only">Opções de acessibilidade</span>
+    <div class="nv-tools">
+      <button
+        id="a11y-toggle"
+        class="nv-tool"
+        aria-expanded="false"
+        aria-controls="a11y-panel"
+        title="Acessibilidade"
+        type="button"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          ><circle cx="12" cy="4" r="2"></circle><path
+            d="M19 13c-1.5.5-3.5 1-7 1s-5.5-.5-7-1"></path><path
+            d="M12 6v9m0 0l-3 6m3-6l3 6"></path></svg
+        >
+        <span class="sr-only">Acessibilidade</span>
       </button>
-      <button id="menu-toggle" class="tool-btn menu-only" aria-expanded="false" aria-controls="mobile-nav" title="Menu">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <button
+        id="menu-toggle"
+        class="nv-tool nv-menu-only"
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+        title="Menu"
+        type="button"
+      >
+        <span class="nv-burger" aria-hidden="true"
+          ><span></span><span></span><span></span></span
+        >
         <span class="sr-only">Abrir menu</span>
       </button>
     </div>
   </div>
 
   <!-- Painel de acessibilidade -->
-  <div id="a11y-panel" class="a11y-panel" hidden>
-    <div class="container a11y-inner">
-      <div class="a11y-group">
-        <span class="a11y-label">Tamanho do texto</span>
-        <div class="a11y-buttons">
-          <button data-font="normal" class="chip">A</button>
-          <button data-font="lg" class="chip">A+</button>
-          <button data-font="xl" class="chip">A++</button>
+  <div id="a11y-panel" class="nv-a11y-panel" hidden>
+    <div class="container nv-a11y-inner">
+      <div class="nv-a11y-group">
+        <span class="nv-a11y-label">Tamanho do texto</span>
+        <div class="nv-a11y-buttons">
+          <button data-font="normal" class="nv-chip" type="button">A</button>
+          <button data-font="lg" class="nv-chip" type="button">A+</button>
+          <button data-font="xl" class="nv-chip" type="button">A++</button>
         </div>
       </div>
-      <div class="a11y-group">
-        <span class="a11y-label">Contraste</span>
-        <div class="a11y-buttons">
-          <button data-contrast="normal" class="chip">Normal</button>
-          <button data-contrast="high" class="chip">Alto contraste</button>
+      <div class="nv-a11y-group">
+        <span class="nv-a11y-label">Contraste</span>
+        <div class="nv-a11y-buttons">
+          <button data-contrast="normal" class="nv-chip" type="button"
+            >Normal</button
+          >
+          <button data-contrast="high" class="nv-chip" type="button"
+            >Alto contraste</button
+          >
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Navegação mobile -->
-  <nav id="mobile-nav" class="mobile-nav" aria-label="Navegação mobile" hidden>
-    {nav.map((item) => (
-      <a href={item.href} class={`mobile-link ${path === item.href ? 'active' : ''}`}>{item.label}</a>
-    ))}
-  </nav>
 </header>
 
+<!-- Drawer mobile (fora do header para overlay full-screen) -->
+<div id="mobile-nav-backdrop" class="nv-mobile-backdrop" hidden></div>
+<aside
+  id="mobile-nav"
+  class="nv-mobile-drawer"
+  aria-label="Navegação mobile"
+  hidden
+>
+  <div class="nv-mobile-head">
+    <a href="/" class="nv-brand" aria-label="NeuroVoz - página inicial">
+      <span class="nv-brand">
+        <span class="nv-brand-mark">
+          <svg
+            viewBox="0 0 24 24"
+            width="22"
+            height="22"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+            ></path>
+          </svg>
+        </span>
+        <span class="nv-brand-text">Neuro<strong>Voz</strong></span>
+      </span>
+    </a>
+    F
+    <button
+      id="menu-close"
+      class="nv-tool"
+      type="button"
+      aria-label="Fechar menu">✕</button
+    >
+  </div>
+  <nav class="nv-mobile-links">
+    {
+      mobileNav.map((item, i) => (
+        <a
+          href={item.href}
+          class={`nv-mobile-link ${featuredLinks.includes(item.href) ? "featured" : ""} ${item.href === "/tablet" ? "tablet-featured" : ""} ${item.href === "/alfabeto" ? "alphabet-featured" : ""} ${path === item.href ? "active" : ""}`}
+          aria-current={path === item.href ? "page" : undefined}
+          style={`--i:${i}`}
+        >
+          <span class="nv-mobile-icon" aria-hidden="true">
+            {item.icon}
+          </span>
+          <span>{item.label}</span>
+          <span class="nv-mobile-arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+      ))
+    }
+  </nav>
+</aside>
+
 <style>
-  .nav {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);
+  .nv-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.78);
+    height: 5rem;
+    backdrop-filter: saturate(180%) blur(18px);
+    -webkit-backdrop-filter: saturate(180%) blur(18px);
+    border-bottom: 1px solid rgba(226, 236, 247, 0.6);
+    transition:
+      box-shadow 0.25s ease,
+      background 0.25s ease;
+  }
+
+  .nv-brand-mark {
+    background: #5b8def;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(91, 141, 239, 0.4);
+    transition: transform 0.25s var(--ease-spring);
+  }
+
+  .nv-header.is-scrolled {
+    background: rgba(255, 255, 255, 0.815);
+    box-shadow: 0 8px 28px rgba(43, 77, 143, 0.06);
+  }
+  :root[data-contrast="high"] .nv-header {
+    background: var(--surface);
+  }
+
+  .nv-header-inner {
+    display: flex;
+    align-items: center;
+    padding-top: 0.8em;
+    gap: 90px;
+    height: var(--header-h);
+  }
+
+  .nv-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-head);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .nv-brand:hover .nv-brand-mark {
+    transform: rotate(-6deg) scale(1.06);
+    cursor: pointer;
+  }
+  .nv-brand-text strong {
+    color: var(--blue);
+  }
+
+  .nv-links {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+    flex-wrap: nowrap;
+  }
+  .nv-link {
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.86rem;
+    white-space: nowrap;
+    color: var(--text-soft);
+    transition:
+      background 0.18s,
+      color 0.18s,
+      transform 0.18s;
+    position: relative;
+  }
+  .nv-link:hover {
+    color: var(--text);
+    background: rgba(91, 141, 239, 0.08);
+    transform: translateY(-1px);
+  }
+  .nv-link.active {
+    color: #1b1b1b;
+    background: var(--grad-primary);
+    box-shadow: 0 6px 18px rgba(91, 141, 239, 0.35);
+  }
+
+  .nv-tools {
+    display: flex;
+    gap: 3px;
+  }
+
+  .nv-tool {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    background: var(--surface);
+    color: var(--text);
+
+    transition:
+      transform 0.18s,
+      background 0.18s,
+      border-color 0.18s;
+  }
+
+  .nv-tool:hover {
+    border-color: var(--blue-soft);
+    background: var(--surface-2);
+    transform: translateY(-1px);
+  }
+  .nv-menu-only {
+    display: none;
+  }
+
+  .nv-burger {
+    display: inline-grid;
+    gap: 4px;
+    width: 20px;
+  }
+  .nv-burger span {
+    display: block;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition:
+      transform 0.3s var(--ease-smooth),
+      opacity 0.3s;
+  }
+  .nv-tool[aria-expanded="true"] .nv-burger span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+  .nv-tool[aria-expanded="true"] .nv-burger span:nth-child(2) {
+    opacity: 0;
+  }
+  .nv-tool[aria-expanded="true"] .nv-burger span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  /* Painel a11y */
+  .nv-a11y-panel {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    animation: fadeIn 0.25s ease;
+  }
+  .nv-a11y-inner {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+  .nv-a11y-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .nv-a11y-label {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .nv-a11y-buttons {
+    display: flex;
+    gap: 6px;
+  }
+  .nv-chip {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 2px solid var(--border);
+    background: var(--surface-2);
+    font-weight: 700;
+    font-family: var(--font-head);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .nv-chip:hover {
+    border-color: var(--blue-soft);
+  }
+  .nv-chip.on {
+    background: var(--grad-primary);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 6px 18px rgba(91, 141, 239, 0.3);
+  }
+
+  /* Mobile drawer */
+  .nv-mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.34s ease,
+      backdrop-filter 0.34s ease;
+  }
+  .nv-mobile-backdrop[hidden] {
+    display: block;
+  }
+  .nv-mobile-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    backdrop-filter: blur(6px);
+  }
+
+  .nv-mobile-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 120;
+    width: min(86vw, 340px);
+    background: var(--surface);
+    box-shadow: -20px 0 60px rgba(15, 23, 42, 0.18);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateX(calc(100% + 18px)) scale(0.985);
+    transition:
+      transform 0.42s cubic-bezier(0.2, 0.88, 0.2, 1),
+      opacity 0.28s ease,
+      box-shadow 0.42s ease;
+    will-change: transform, opacity;
+  }
+  .nv-mobile-drawer.is-open {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    box-shadow: -28px 0 80px rgba(15, 23, 42, 0.2);
+  }
+  .nv-mobile-drawer[hidden] {
+    display: flex;
+    opacity: 0;
+    transform: translateX(calc(100% + 18px)) scale(0.985);
+    pointer-events: none;
+  }
+  .nv-mobile-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
     border-bottom: 1px solid var(--border);
   }
-  :root[data-contrast='high'] .nav { background: var(--surface); }
-  .nav-inner { display: flex; align-items: center; gap: 16px; height: 70px; }
-  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-head); font-size: 1.35rem; font-weight: 900; }
-  .brand-mark { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--blue); color: #fff; box-shadow: var(--shadow-sm); }
-  .brand-text strong { color: var(--blue); }
-  .nav-links { display: flex; gap: 2px; margin-left: auto; flex-wrap: nowrap; }
-  .nav-link { padding: 8px 11px; border-radius: 999px; font-weight: 600; font-size: 0.86rem; white-space: nowrap; color: var(--text-soft); transition: background 0.15s, color 0.15s; }
-  .nav-link:hover { background: var(--bg-alt); color: var(--text); }
-  .nav-link.active { background: var(--blue); color: #fff; }
-  .nav-tools { display: flex; gap: 8px; margin-left: 8px; }
-  .tool-btn { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); }
-  .tool-btn:hover { border-color: var(--blue-soft); }
-  .menu-only { display: none; }
-
-  .a11y-panel { border-top: 1px solid var(--border); background: var(--surface); }
-  .a11y-inner { display: flex; gap: 32px; flex-wrap: wrap; padding-top: 14px; padding-bottom: 14px; }
-  .a11y-group { display: flex; align-items: center; gap: 12px; }
-  .a11y-label { font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; }
-  .a11y-buttons { display: flex; gap: 6px; }
-  .chip { padding: 6px 14px; border-radius: 999px; border: 2px solid var(--border); background: var(--surface-2); font-weight: 700; font-family: var(--font-head); color: var(--text); }
-  .chip.on { background: var(--blue); color: #fff; border-color: var(--blue); }
-
-  .mobile-nav { display: none; flex-direction: column; padding: 12px 20px 20px; border-top: 1px solid var(--border); background: var(--surface); }
-  .mobile-link { padding: 12px; border-radius: 12px; font-weight: 700; font-family: var(--font-head); color: var(--text-soft); }
-  .mobile-link.active, .mobile-link:hover { background: var(--bg-alt); color: var(--text); }
+  .nv-mobile-links {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 12px 24px;
+    overflow-y: auto;
+    gap: 4px;
+  }
+  .nv-mobile-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    color: var(--text-soft);
+    transition:
+      background 0.2s,
+      color 0.2s,
+      border-color 0.2s,
+      box-shadow 0.2s,
+      transform 0.2s;
+    opacity: 0;
+    transform: translateX(18px);
+    transition-delay: 0ms;
+  }
+  .nv-mobile-drawer.is-open .nv-mobile-link {
+    opacity: 1;
+    transform: translateX(0);
+    transition:
+      opacity 0.34s ease,
+      transform 0.42s cubic-bezier(0.2, 0.88, 0.2, 1),
+      background 0.2s,
+      color 0.2s,
+      border-color 0.2s,
+      box-shadow 0.2s;
+    transition-delay: calc(var(--i, 0) * 42ms + 120ms);
+  }
+  .nv-mobile-link:hover {
+    background: var(--bg-alt);
+    color: var(--text);
+    transform: translateX(4px);
+  }
+  .nv-mobile-drawer.is-open .nv-mobile-link:hover {
+    transform: translateX(4px);
+    transition-delay: 0ms;
+  }
+  .nv-mobile-link.active {
+    background: linear-gradient(
+      135deg,
+      rgba(91, 141, 239, 0.12),
+      rgba(92, 201, 176, 0.12)
+    );
+    color: var(--blue-ink);
+  }
+  .nv-mobile-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--bg-alt);
+    display: grid;
+    place-items: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .nv-mobile-link.active .nv-mobile-icon {
+    background: var(--grad-primary);
+    color: #fff;
+  }
+  .nv-mobile-arrow {
+    margin-left: auto;
+    opacity: 0.5;
+    transition: transform 0.2s;
+  }
+  .nv-mobile-link:hover .nv-mobile-arrow {
+    transform: translateX(2px);
+    opacity: 1;
+  }
 
   @media (max-width: 1180px) {
-    .nav-links { display: none; }
-    .menu-only { display: grid; }
-    .mobile-nav[data-open] { display: flex; }
+    .nv-links {
+      display: none;
+    }
+    .nv-menu-only {
+      display: grid;
+    }
+  }
+  @media (max-width: 600px) {
+    .nv-header {
+      height: 6rem;
+    }
+
+    .nv-header-inner {
+      height: 80px;
+    }
+    .nv-brand-text {
+      font-size: 1.2rem;
+    }
+  }
+
+  /* Premium responsive header refinements */
+  .nv-header {
+    isolation: isolate;
+    min-height: 76px;
+    height: auto;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.94),
+        rgba(255, 255, 255, 0.76)
+      ),
+      radial-gradient(
+        circle at 8% 0%,
+        rgba(91, 141, 239, 0.1),
+        transparent 34%
+      ),
+      radial-gradient(
+        circle at 92% 0%,
+        rgba(92, 201, 176, 0.12),
+        transparent 32%
+      );
+    border-bottom: 1px solid rgba(226, 236, 247, 0.78);
+    backdrop-filter: saturate(180%) blur(22px);
+    -webkit-backdrop-filter: saturate(180%) blur(22px);
+  }
+
+  .nv-header.is-scrolled {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 14px 40px rgba(43, 77, 143, 0.1);
+  }
+
+  .nv-header-inner {
+    min-height: 76px;
+    height: auto;
+    justify-content: space-between;
+    gap: clamp(14px, 2vw, 28px);
+    padding-top: 0;
+  }
+
+  .nv-brand {
+    flex: 0 0 auto;
+    font-size: clamp(1.12rem, 1.7vw, 1.32rem);
+  }
+
+  .nv-brand-mark {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--blue), var(--mint));
+    box-shadow:
+      0 12px 26px rgba(91, 141, 239, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .nv-brand:hover .nv-brand-mark {
+    transform: translateY(-1px) rotate(-5deg) scale(1.04);
+    box-shadow:
+      0 16px 34px rgba(91, 141, 239, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  }
+
+  .nv-links {
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 6px;
+    border: 1px solid rgba(226, 236, 247, 0.74);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.58);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  }
+
+  .nv-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 11px;
+    font-size: clamp(0.78rem, 0.78vw, 0.88rem);
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .nv-link:hover {
+    color: var(--blue-ink);
+    background: rgba(91, 141, 239, 0.09);
+    transform: translateY(-2px);
+  }
+
+  .nv-link.active {
+    color: var(--blue-ink);
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(43, 77, 143, 0.12);
+  }
+
+  .nv-link.featured {
+    color: #fff;
+    background: linear-gradient(135deg, var(--blue), var(--mint));
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow:
+      0 12px 24px rgba(91, 141, 239, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+
+  .nv-link.featured:hover,
+  .nv-link.featured.active {
+    color: #fff;
+    background: linear-gradient(135deg, var(--blue-ink), var(--mint));
+    box-shadow:
+      0 14px 28px rgba(43, 77, 143, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  .nv-tools {
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  .nv-tool {
+    width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    border: 1px solid rgba(226, 236, 247, 0.95) !important;
+    border-radius: 14px !important;
+    background: rgba(255, 255, 255, 0.82) !important;
+    color: var(--text) !important;
+    box-shadow: 0 10px 24px rgba(43, 77, 143, 0.08) !important;
+  }
+
+  .nv-tool:hover {
+    border-color: var(--blue-soft) !important;
+    background: var(--surface) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 14px 30px rgba(43, 77, 143, 0.12) !important;
+  }
+
+  .nv-a11y-panel {
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 18px 34px rgba(43, 77, 143, 0.08);
+  }
+
+  .nv-chip {
+    min-height: 38px !important;
+    padding: 8px 14px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 999px !important;
+    background: var(--surface-2) !important;
+    color: var(--text) !important;
+    box-shadow: none !important;
+  }
+
+  .nv-chip:hover {
+    border-color: var(--blue-soft) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .nv-chip.on {
+    color: #fff !important;
+    background: linear-gradient(135deg, var(--blue), var(--mint)) !important;
+    border-color: transparent !important;
+    box-shadow: 0 8px 18px rgba(91, 141, 239, 0.24) !important;
+  }
+
+  .nv-mobile-drawer {
+    width: min(88vw, 380px);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.98),
+        rgba(247, 250, 254, 0.96)
+      ),
+      var(--surface);
+  }
+
+  .nv-mobile-link {
+    padding: 13px 14px;
+    border: 1px solid transparent;
+    border-radius: 18px;
+    font-weight: 800;
+  }
+
+  .nv-mobile-link:hover {
+    background: rgba(91, 141, 239, 0.08);
+  }
+
+  .nv-mobile-link.featured {
+    color: #fff;
+    background: linear-gradient(135deg, var(--blue), var(--mint));
+    border-color: rgba(255, 255, 255, 0.52);
+    box-shadow: 0 14px 28px rgba(91, 141, 239, 0.2);
+  }
+
+  .nv-mobile-link.tablet-featured {
+    color: #fff;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(91, 141, 239, 0.96),
+        rgba(56, 103, 209, 0.96)
+      ),
+      var(--blue);
+    box-shadow: 0 16px 32px rgba(91, 141, 239, 0.24);
+  }
+
+  .nv-mobile-link.alphabet-featured {
+    color: #083a31;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(92, 201, 176, 0.98),
+        rgba(255, 209, 102, 0.92)
+      ),
+      var(--mint);
+    box-shadow: 0 16px 32px rgba(92, 201, 176, 0.24);
+  }
+
+  .nv-mobile-link.tablet-featured:hover,
+  .nv-mobile-link.alphabet-featured:hover {
+    box-shadow: 0 18px 36px rgba(43, 77, 143, 0.18);
+  }
+
+  .nv-mobile-link.featured .nv-mobile-icon {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  .nv-mobile-link.alphabet-featured .nv-mobile-icon {
+    color: #083a31;
+    background: rgba(255, 255, 255, 0.34);
+  }
+
+  .nv-mobile-link.featured .nv-mobile-arrow {
+    opacity: 0.82;
+  }
+
+  @media (max-width: 1240px) {
+    .nv-header-inner {
+      gap: 14px;
+    }
+
+    .nv-link {
+      padding-inline: 9px;
+    }
+  }
+
+  @media (max-width: 1120px) {
+    .nv-links {
+      display: none;
+    }
+
+    .nv-menu-only {
+      display: grid;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .nv-header {
+      min-height: 68px;
+      height: auto;
+    }
+
+    .nv-header-inner {
+      min-height: 68px;
+      height: auto;
+      padding-inline: 16px;
+    }
+
+    .nv-brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
+    }
+
+    .nv-brand-text {
+      font-size: 1.16rem;
+    }
+
+    .nv-tools {
+      gap: 6px;
+    }
+
+    .nv-tool {
+      width: 42px !important;
+      height: 42px !important;
+      min-height: 42px !important;
+      border-radius: 13px !important;
+    }
+
+    .nv-a11y-inner {
+      gap: 14px;
+      padding: 12px 16px;
+    }
+
+    .nv-a11y-group,
+    .nv-a11y-buttons {
+      width: 100%;
+    }
+
+    .nv-a11y-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .nv-a11y-group:last-child .nv-a11y-buttons {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .nv-chip {
+      width: 100%;
+      padding-inline: 10px !important;
+    }
+  }
+
+  /* Header compacto: navegacao sempre concentrada no menu lateral */
+  .nv-links {
+    display: none !important;
+  }
+
+  .nv-menu-only {
+    display: grid !important;
+  }
+
+  .nv-tools {
+    margin-left: auto;
+  }
+
+  .nv-mobile-backdrop {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.34s ease,
+      backdrop-filter 0.34s ease;
+  }
+
+  .nv-mobile-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    backdrop-filter: blur(6px);
+  }
+
+  .nv-mobile-backdrop[hidden] {
+    display: block;
+  }
+
+  .nv-mobile-drawer {
+    opacity: 0;
+    transform: translateX(calc(100% + 18px)) scale(0.985);
+    transition:
+      transform 0.42s cubic-bezier(0.2, 0.88, 0.2, 1),
+      opacity 0.28s ease,
+      box-shadow 0.42s ease;
+    will-change: transform, opacity;
+  }
+
+  .nv-mobile-drawer.is-open {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    box-shadow: -28px 0 80px rgba(15, 23, 42, 0.2);
+  }
+
+  .nv-mobile-drawer[hidden] {
+    display: flex;
+    opacity: 0;
+    transform: translateX(calc(100% + 18px)) scale(0.985);
+    pointer-events: none;
+  }
+
+  .nv-mobile-link {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  .nv-mobile-drawer.is-open .nv-mobile-link {
+    opacity: 1;
+    transform: translateX(0);
+    transition:
+      opacity 0.34s ease,
+      transform 0.42s cubic-bezier(0.2, 0.88, 0.2, 1),
+      background 0.2s,
+      color 0.2s,
+      border-color 0.2s,
+      box-shadow 0.2s;
+    transition-delay: calc(var(--i, 0) * 42ms + 120ms);
+  }
+
+  .nv-mobile-drawer.is-open .nv-mobile-link:hover {
+    transform: translateX(4px);
+    transition-delay: 0ms;
+  }
+
+  .nv-mobile-link.tablet-featured {
+    color: #fff;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(91, 141, 239, 0.96),
+        rgba(56, 103, 209, 0.96)
+      ),
+      var(--blue);
+    box-shadow: 0 16px 32px rgba(91, 141, 239, 0.24);
+  }
+
+  .nv-mobile-link.alphabet-featured {
+    color: #083a31;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(92, 201, 176, 0.98),
+        rgba(255, 209, 102, 0.92)
+      ),
+      var(--mint);
+    box-shadow: 0 16px 32px rgba(92, 201, 176, 0.24);
+  }
+
+  .nv-mobile-link.alphabet-featured .nv-mobile-icon {
+    color: #083a31;
+    background: rgba(255, 255, 255, 0.34);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nv-mobile-backdrop,
+    .nv-mobile-drawer,
+    .nv-mobile-link {
+      transition: none !important;
+    }
   }
 </style>
 
 <script>
   const root = document.documentElement;
-  // Acessibilidade persistente
-  const savedFont = localStorage.getItem('nv-font');
-  const savedContrast = localStorage.getItem('nv-contrast');
-  if (savedFont && savedFont !== 'normal') root.setAttribute('data-fontscale', savedFont);
-  if (savedContrast === 'high') root.setAttribute('data-contrast', 'high');
+  const header = document.getElementById("nv-header");
 
-  const a11yToggle = document.getElementById('a11y-toggle');
-  const a11yPanel = document.getElementById('a11y-panel');
-  a11yToggle?.addEventListener('click', () => {
-    const open = a11yPanel?.hasAttribute('hidden');
-    if (open) { a11yPanel?.removeAttribute('hidden'); } else { a11yPanel?.setAttribute('hidden', ''); }
-    a11yToggle.setAttribute('aria-expanded', String(open));
+  // Shadow on scroll
+  const onScroll = () => {
+    if (window.scrollY > 8) header?.classList.add("is-scrolled");
+    else header?.classList.remove("is-scrolled");
+  };
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  // Acessibilidade persistente
+  const savedFont = localStorage.getItem("nv-font");
+  const savedContrast = localStorage.getItem("nv-contrast");
+  if (savedFont && savedFont !== "normal")
+    root.setAttribute("data-fontscale", savedFont);
+  if (savedContrast === "high") root.setAttribute("data-contrast", "high");
+
+  const a11yToggle = document.getElementById("a11y-toggle");
+  const a11yPanel = document.getElementById("a11y-panel");
+  a11yToggle?.addEventListener("click", () => {
+    const open = a11yPanel?.hasAttribute("hidden");
+    if (open) a11yPanel?.removeAttribute("hidden");
+    else a11yPanel?.setAttribute("hidden", "");
+    a11yToggle.setAttribute("aria-expanded", String(open));
   });
 
   function syncChips() {
-    const f = localStorage.getItem('nv-font') || 'normal';
-    const c = localStorage.getItem('nv-contrast') || 'normal';
-    document.querySelectorAll('[data-font]').forEach((b) => b.classList.toggle('on', (b as HTMLElement).dataset.font === f));
-    document.querySelectorAll('[data-contrast]').forEach((b) => b.classList.toggle('on', (b as HTMLElement).dataset.contrast === c));
+    const f = localStorage.getItem("nv-font") || "normal";
+    const c = localStorage.getItem("nv-contrast") || "normal";
+    document
+      .querySelectorAll("[data-font]")
+      .forEach((b) =>
+        b.classList.toggle("on", (b as HTMLElement).dataset.font === f),
+      );
+    document
+      .querySelectorAll("[data-contrast]")
+      .forEach((b) =>
+        b.classList.toggle("on", (b as HTMLElement).dataset.contrast === c),
+      );
   }
-  document.querySelectorAll('[data-font]').forEach((btn) => {
-    btn.addEventListener('click', () => {
+  document.querySelectorAll("[data-font]").forEach((btn) => {
+    btn.addEventListener("click", () => {
       const v = (btn as HTMLElement).dataset.font!;
-      if (v === 'normal') root.removeAttribute('data-fontscale'); else root.setAttribute('data-fontscale', v);
-      localStorage.setItem('nv-font', v); syncChips();
+      if (v === "normal") root.removeAttribute("data-fontscale");
+      else root.setAttribute("data-fontscale", v);
+      localStorage.setItem("nv-font", v);
+      syncChips();
     });
   });
-  document.querySelectorAll('[data-contrast]').forEach((btn) => {
-    btn.addEventListener('click', () => {
+  document.querySelectorAll("[data-contrast]").forEach((btn) => {
+    btn.addEventListener("click", () => {
       const v = (btn as HTMLElement).dataset.contrast!;
-      if (v === 'high') root.setAttribute('data-contrast', 'high'); else root.removeAttribute('data-contrast');
-      localStorage.setItem('nv-contrast', v); syncChips();
+      if (v === "high") root.setAttribute("data-contrast", "high");
+      else root.removeAttribute("data-contrast");
+      localStorage.setItem("nv-contrast", v);
+      syncChips();
     });
   });
   syncChips();
 
-  // Menu mobile
-  const menuToggle = document.getElementById('menu-toggle');
-  const mobileNav = document.getElementById('mobile-nav');
-  menuToggle?.addEventListener('click', () => {
-    const open = mobileNav?.hasAttribute('data-open');
-    if (open) { mobileNav?.removeAttribute('data-open'); mobileNav?.setAttribute('hidden', ''); }
-    else { mobileNav?.setAttribute('data-open', ''); mobileNav?.removeAttribute('hidden'); }
-    menuToggle.setAttribute('aria-expanded', String(!open));
+  // Drawer mobile
+  const menuToggle = document.getElementById("menu-toggle");
+  const menuClose = document.getElementById("menu-close");
+  const drawer = document.getElementById("mobile-nav");
+  const backdrop = document.getElementById("mobile-nav-backdrop");
+  let closeTimer: ReturnType<typeof window.setTimeout> | undefined;
+
+  function openMenu() {
+    if (closeTimer) window.clearTimeout(closeTimer);
+    drawer?.removeAttribute("hidden");
+    backdrop?.removeAttribute("hidden");
+    window.requestAnimationFrame(() => {
+      drawer?.classList.add("is-open");
+      backdrop?.classList.add("is-open");
+      menuToggle?.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+    });
+  }
+  function closeMenu() {
+    drawer?.classList.remove("is-open");
+    backdrop?.classList.remove("is-open");
+    menuToggle?.setAttribute("aria-expanded", "false");
+    document.body.style.overflow = "";
+    closeTimer = window.setTimeout(() => {
+      drawer?.setAttribute("hidden", "");
+      backdrop?.setAttribute("hidden", "");
+    }, 430);
+  }
+  menuToggle?.addEventListener("click", () => {
+    if (drawer?.hasAttribute("hidden")) openMenu();
+    else closeMenu();
+  });
+  menuClose?.addEventListener("click", closeMenu);
+  backdrop?.addEventListener("click", closeMenu);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeMenu();
   });
 </script>

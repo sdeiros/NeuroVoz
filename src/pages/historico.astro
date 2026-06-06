@@ -752,61 +752,131 @@ import { categories } from "../data/vocabulary";
     const pdfTitle = `Relatório Pedagógico — ${studentFileSegment()} — ${new Date().toISOString().slice(0, 10)}`;
     const win = window.open("", "_blank");
     const timers = loadTimerHistory();
+    const totalPdfPages = 3;
+    const pdfFooter = (pageNumber) => `
+      <footer class="pdf-footer">
+        <div class="pdf-footer-brand">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+        </div>
+        <div class="pdf-footer-text">
+          <strong>NeuroVoz</strong> é um app educacional de Comunicação Aumentativa e Alternativa (CAA), com recursos de comunicação, alfabeto e acompanhamento pedagógico gratuito. Acesse: neurovoz.ong.br
+        </div>
+        <div class="pdf-footer-page">Página ${pageNumber} de ${totalPdfPages}</div>
+        <div class="pdf-footer-qr">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=92x92&margin=1&data=https%3A%2F%2Fneurovoz.ong.br" alt="QR code para neurovoz.ong.br" />
+          <span>Acesse</span>
+        </div>
+      </footer>`;
     win.document
       .write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${pdfTitle}</title>
       <style>
-        body { font-family: 'Nunito', system-ui, sans-serif; padding: 32px; color: #25324a; max-width: 800px; margin: 0 auto; }
-        h1 { color: #2a4d8f; } h2 { margin-top: 24px; border-bottom: 2px solid #e2ecf7; padding-bottom: 6px; }
+        @page { size: A4; margin: 0; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Nunito', system-ui, sans-serif; color: #25324a; margin: 0; background: #fff; }
+        .pdf-page { position: relative; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 17mm 16mm 10mm; display: flex; flex-direction: column; page-break-after: always; overflow: hidden; }
+        .pdf-page:last-child { page-break-after: auto; }
+        .pdf-content { position: relative; z-index: 1; flex: 1 1 auto; }
+        h1 { color: #2a4d8f; margin-top: 0; } h2 { margin-top: 22px; border-bottom: 2px solid #e2ecf7; padding-bottom: 6px; }
+        h3 { margin: 18px 0 8px; }
+        p { margin: 8px 0; }
         .sub { color: #5a6b85; }
         .summary { background: #f4f8ff; border: 1px solid #dbe7f1; border-radius: 16px; padding: 16px 18px; margin-bottom: 22px; }
         .summary p { margin: 6px 0; }
         li { margin: 4px 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        td, th { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e2ecf7; }
+        td, th { text-align: left; padding: 7px 10px; border-bottom: 1px solid #e2ecf7; }
         th { background: #eef5fc; }
+        .pdf-watermark { position: absolute; left: 0; right: 0; top: 42%; display: flex; justify-content: center; align-items: center; gap: 18px; opacity: 0.055; z-index: 0; pointer-events: none; transform: rotate(-12deg); color: #2a4d8f; }
+        .pdf-watermark svg { width: 120px; height: 120px; flex: 0 0 auto; }
+        .pdf-watermark span { font-size: 78px; font-weight: 900; letter-spacing: 0; color: #2a4d8f; }
+        .pdf-footer { flex: 0 0 auto; display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px; min-height: 18mm; margin-top: 10mm; padding-top: 8px; border-top: 1px solid #dbe7f1; background: rgba(255, 255, 255, 0.96); color: #5a6b85; font-size: 9.5px; position: relative; z-index: 1; }
+        .pdf-footer-brand { display: inline-flex; align-items: center; gap: 7px; color: #2a4d8f; font-weight: 900; white-space: nowrap; }
+        .pdf-footer-brand svg { width: 22px; height: 22px; padding: 4px; border-radius: 7px; background: linear-gradient(135deg, #5b8def, #5cc9b0); color: #fff; box-sizing: border-box; }
+        .pdf-footer-text { line-height: 1.35; }
+        .pdf-footer-text strong { color: #25324a; }
+        .pdf-footer-page { color: #2a4d8f; font-weight: 900; white-space: nowrap; }
+        .pdf-footer-qr { display: grid; grid-template-columns: 46px; gap: 2px; justify-items: center; text-align: center; font-size: 8.5px; color: #2a4d8f; font-weight: 800; }
+        .pdf-footer-qr img { width: 46px; height: 46px; border: 1px solid #dbe7f1; border-radius: 4px; padding: 2px; background: #fff; box-sizing: border-box; }
+        @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } .pdf-page { margin: 0; } }
       </style></head><body>
-      <h1>Relatório Pedagógico — NeuroVoz</h1>
-      <p class="sub">Nome: <strong>${student?.name || "Aluno não configurado"}</strong></p>
-      <p class="sub">Idade: <strong>${student?.age ? `${student.age} anos ` : "Não informado "}</strong>Turma/Série: <strong>${student?.turma || "Não informada"}</p>
-      <p class="sub"></strong></p>
-      <section class="summary">
-        <p><strong>Gerado em:</strong> ${new Date().toLocaleString("pt-BR")}</p>
-        <p><strong>Total de Interações Registradas:</strong> ${totalInteractions}</p>
-        <p><strong>Inclui:</strong> Histórico, Alfabeto e Formação de Palavras</p>
+      <section class="pdf-page">
+        <div class="pdf-watermark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          <span>NeuroVoz</span>
+        </div>
+        <div class="pdf-content">
+          <h1>Relatório Pedagógico — NeuroVoz</h1>
+          <p class="sub">Nome: <strong>${student?.name || "Aluno não configurado"}</strong></p>
+          <p class="sub">Idade: <strong>${student?.age ? `${student.age} anos ` : "Não informado "}</strong>Turma/Série: <strong>${student?.turma || "Não informada"}</strong></p>
+          <section class="summary">
+            <p><strong>Gerado em:</strong> ${new Date().toLocaleString("pt-BR")}</p>
+            <p><strong>Total de Interações Registradas:</strong> ${totalInteractions}</p>
+            <p><strong>Inclui:</strong> Histórico, Alfabeto e Formação de Palavras</p>
+          </section>
+          <h2>Frequência por Período</h2>
+          <table>
+            <thead><tr><th>Período</th><th>Interações</th></tr></thead>
+            <tbody>
+              ${Object.entries(periods)
+                .map(([p, v]) => `<tr><td>${p}</td><td>${v}</td></tr>`)
+                .join("")}
+            </tbody>
+          </table>
+          <h2>Emoções Predominantes</h2>
+          <ul>${emocoes.length ? emocoes.map(([l, v]) => `<li>${l}: ${v}×</li>`).join("") : "<li>Sem Registros de Emoções.</li>"}</ul>
+          <h2>Palavras / Necessidades mais Comunicadas</h2>
+          <table><tr><th>#</th><th>Palavra</th><th>Frequência</th></tr>
+          ${ranking.map(([l, v], i) => `<tr><td>${i + 1}</td><td>${l}</td><td>${v}×</td></tr>`).join("")}</table>
+        </div>
+        ${pdfFooter(1)}
       </section>
-      <h2>Frequência por Período</h2>
-      <table>
-        <thead><tr><th>Período</th><th>Interações</th></tr></thead>
-        <tbody>
-          ${Object.entries(periods)
-            .map(([p, v]) => `<tr><td>${p}</td><td>${v}</td></tr>`)
-            .join("")}
-        </tbody>
-      </table>
-      <h2>Emoções Predominantes</h2>
-      <ul>${emocoes.length ? emocoes.map(([l, v]) => `<li>${l}: ${v}×</li>`).join("") : "<li>Sem Registros de Emoções.</li>"}</ul>
-      <h2>Palavras / Necessidades mais Comunicadas</h2>
-      <table><tr><th>#</th><th>Palavra</th><th>Frequência</th></tr>
-      ${ranking.map(([l, v], i) => `<tr><td>${i + 1}</td><td>${l}</td><td>${v}×</td></tr>`).join("")}</table>
-      <h2 style="margin-top:24px">Alfabeto</h2>
-      <p><strong>Letras acessadas:</strong> ${alphaLetters.length}</p>
-      <p><strong>Palavras reproduzidas:</strong> ${alphaWords.length}</p>
-      <p><strong>Exemplos ouvidos:</strong> ${alphaExamples.length}</p>
-      <p><strong>Letras distintas:</strong> ${alphaDistinctLetters}</p>
-      <h3>Top letras</h3>
-      <table><tr><th>#</th><th>Letra</th><th>Frequência</th></tr>
-      ${alphaLetterTop.map(([letter, count], i) => `<tr><td>${i + 1}</td><td>${letter}</td><td>${count}×</td></tr>`).join("")}</table>
-      <h2 style="margin-top:24px">Formação de Palavras</h2>
-      <p><strong>Palavras escritas:</strong> ${typedWordsTotal}</p>
-      <p><strong>Palavras distintas escritas:</strong> ${typedWordsDistinct}</p>
-      <h3>Top palavras escritas</h3>
-      <table><tr><th>#</th><th>Palavra</th><th>Frequência</th></tr>
-      ${typedWordTop.length ? typedWordTop.map(([word, count], i) => `<tr><td>${i + 1}</td><td>${word}</td><td>${count}×</td></tr>`).join("") : `<tr><td colspan="3">Nenhuma palavra escrita ainda.</td></tr>`}</table>
-      <h2 style="margin-top:24px">Temporizadores</h2>
-      ${timers && timers.length ? `<table><tr><th>Hora</th><th>Atividade</th><th>Tema</th><th>Duração</th></tr>${timers.map((t) => `<tr><td>${t.finishedAt || ""}</td><td>${t.name || ""}</td><td>${t.theme || ""}</td><td>${t.duration || ""}</td></tr>`).join("")}</table>` : '<p class="no-data">Nenhum temporizador registrado.</p>'}
-      <h2>Evolução do Vocabulário</h2>
-      <p>Total de Palavras Distintas Utilizadas: <strong>${combinedVocabulary}</strong> (Histórico: ${historyVocabulary}, Formação de Palavras: ${typedVocabulary}).</p>
-      <p style="margin-top:30px;color:#8898b2;font-size:13px">NeuroVoz — dados armazenados localmente, em conformidade com práticas éticas de privacidade.</p>
+
+      <section class="pdf-page">
+        <div class="pdf-watermark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          <span>NeuroVoz</span>
+        </div>
+        <div class="pdf-content">
+          <h2 style="margin-top:0">Alfabeto</h2>
+          <p><strong>Letras acessadas:</strong> ${alphaLetters.length}</p>
+          <p><strong>Palavras reproduzidas:</strong> ${alphaWords.length}</p>
+          <p><strong>Exemplos ouvidos:</strong> ${alphaExamples.length}</p>
+          <p><strong>Letras distintas:</strong> ${alphaDistinctLetters}</p>
+          <h3>Top letras</h3>
+          <table><tr><th>#</th><th>Letra</th><th>Frequência</th></tr>
+          ${alphaLetterTop.length ? alphaLetterTop.map(([letter, count], i) => `<tr><td>${i + 1}</td><td>${letter}</td><td>${count}×</td></tr>`).join("") : `<tr><td colspan="3">Nenhuma letra registrada ainda.</td></tr>`}</table>
+          <h2>Formação de Palavras</h2>
+          <p><strong>Palavras escritas:</strong> ${typedWordsTotal}</p>
+          <p><strong>Palavras distintas escritas:</strong> ${typedWordsDistinct}</p>
+          <h3>Top palavras escritas</h3>
+          <table><tr><th>#</th><th>Palavra</th><th>Frequência</th></tr>
+          ${typedWordTop.length ? typedWordTop.map(([word, count], i) => `<tr><td>${i + 1}</td><td>${word}</td><td>${count}×</td></tr>`).join("") : `<tr><td colspan="3">Nenhuma palavra escrita ainda.</td></tr>`}</table>
+        </div>
+        ${pdfFooter(2)}
+      </section>
+
+      <section class="pdf-page">
+        <div class="pdf-watermark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          <span>NeuroVoz</span>
+        </div>
+        <div class="pdf-content">
+          <h2 style="margin-top:0">Temporizadores</h2>
+          ${timers && timers.length ? `<table><tr><th>Hora</th><th>Atividade</th><th>Tema</th><th>Duração</th></tr>${timers.map((t) => `<tr><td>${t.finishedAt || ""}</td><td>${t.name || ""}</td><td>${t.theme || ""}</td><td>${t.duration || ""}</td></tr>`).join("")}</table>` : '<p class="no-data">Nenhum temporizador registrado.</p>'}
+          <h2>Evolução do Vocabulário</h2>
+          <p>Total de Palavras Distintas Utilizadas: <strong>${combinedVocabulary}</strong> (Histórico: ${historyVocabulary}, Formação de Palavras: ${typedVocabulary}).</p>
+          <p style="margin-top:30px;color:#8898b2;font-size:13px">Dados armazenados localmente, em conformidade com práticas éticas de privacidade.</p>
+        </div>
+        ${pdfFooter(3)}
+      </section>
       <script>window.onload = () => setTimeout(() => window.print(), 400);<\/script>
       </body></html>`);
     win.document.title = pdfTitle;
