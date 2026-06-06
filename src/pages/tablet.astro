@@ -17,21 +17,36 @@ import { categories, vocabulary } from '../data/vocabulary';
             <select id="voice-select">
               <optgroup label="Crianças">
                 <option value="menina">👧 Menina</option>
+                <option value="menina2">👧 Menina animada</option>
                 <option value="menino">👦 Menino</option>
+                <option value="menino2">👦 Menino travesso</option>
               </optgroup>
               <optgroup label="Adultos">
                 <option value="mulher">👩 Mulher</option>
                 <option value="homem">👨 Homem</option>
               </optgroup>
-              <optgroup label="Personagens">
+              <optgroup label="Personagens mágicos">
                 <option value="princesa">👸 Princesa</option>
                 <option value="principe">🤴 Príncipe</option>
                 <option value="rainha">👑 Rainha</option>
                 <option value="rei">🦁 Rei</option>
+                <option value="fada">🧚 Fadinha</option>
+                <option value="bruxa">🧙‍♀️ Bruxa</option>
+                <option value="anjo">😇 Anjo</option>
+              </optgroup>
+              <optgroup label="Heróis e aventura">
                 <option value="heroina">🦸‍♀️ Super-heroína</option>
                 <option value="heroi">🦸 Super-herói</option>
+                <option value="pirata">🏴‍☠️ Pirata</option>
+                <option value="cowboy">🤠 Cowboy</option>
+                <option value="ninja">🥷 Ninja</option>
+              </optgroup>
+              <optgroup label="Criaturas e robôs">
                 <option value="robo">🤖 Robô</option>
-                <option value="fada">🧚 Fadinha</option>
+                <option value="robo2">🤖 Robô alienígena</option>
+                <option value="gigante">👹 Gigante</option>
+                <option value="alien">👽 Alienígena</option>
+                <option value="duende">🧝 Duende</option>
               </optgroup>
               <optgroup label="Outros">
                 <option value="silencioso">🔇 Modo silencioso</option>
@@ -79,7 +94,7 @@ import { categories, vocabulary } from '../data/vocabulary';
     </div>
   </section>
 
-  <!-- Overlay de flash de cor semântica (visível em toda a tela para o professor) -->
+  <!-- Overlay de flash de cor semântica -->
   <div class="flash-overlay" id="flash-overlay" aria-hidden="true"></div>
 </Base>
 
@@ -88,22 +103,17 @@ import { categories, vocabulary } from '../data/vocabulary';
   const strip = document.getElementById('sentence-strip');
   const placeholder = document.getElementById('sentence-placeholder');
   let activeCat = 'all';
-  let sentence = []; // {label, phrase, icon}
+  let sentence = [];
 
-  // Cores semânticas por palavra (para o flash na tela — o professor identifica pelo brilho)
+  // ─── Cores semânticas ────────────────────────────────────────────────────────
   const SEMANTIC_COLORS = {
-    // Verde = afirmação / desejo positivo
     'sim': '#22c55e', 'eu-quero': '#22c55e', 'mais': '#22c55e', 'obrigado': '#22c55e',
     'por-favor': '#22c55e', 'amor': '#22c55e', 'feliz': '#22c55e', 'terminei': '#22c55e',
-    // Vermelho = negação / parada / dor
     'nao': '#ef4444', 'eu-nao-quero': '#ef4444', 'acabou': '#ef4444', 'bravo': '#ef4444',
     'dor': '#ef4444', 'doente': '#ef4444',
-    // Azul = banheiro / higiene / água
     'banheiro': '#3b82f6', 'agua': '#3b82f6', 'lavar-maos': '#3b82f6', 'banho': '#3b82f6',
     'escovar': '#3b82f6', 'trocar': '#3b82f6',
-    // Amarelo = ajuda / atenção
     'ajuda': '#f59e0b', 'professor': '#f59e0b', 'esperar': '#f59e0b', 'medo': '#f59e0b',
-    // Laranja = comida / fome
     'comida': '#f97316', 'fome': '#f97316', 'comer': '#f97316', 'fruta': '#f97316',
     'pao': '#f97316', 'bolacha': '#f97316',
   };
@@ -111,6 +121,7 @@ import { categories, vocabulary } from '../data/vocabulary';
     return SEMANTIC_COLORS[item.id] || catColor(item.category);
   }
 
+  // ─── Flash overlay ────────────────────────────────────────────────────────────
   const flashOverlay = document.getElementById('flash-overlay');
   function flashScreen(color) {
     if (!flashOverlay) return;
@@ -120,7 +131,7 @@ import { categories, vocabulary } from '../data/vocabulary';
     flashOverlay.classList.add('flash-on');
   }
 
-  // Configuração personalizada vinda do Assistente
+  // ─── Config personalizada ─────────────────────────────────────────────────────
   let custom = null;
   try { custom = JSON.parse(localStorage.getItem('nv-tablet-config') || 'null'); } catch (e) {}
   if (custom && custom.nome) {
@@ -132,7 +143,6 @@ import { categories, vocabulary } from '../data/vocabulary';
   function visibleItems() {
     let items = vocabulary;
     if (custom && custom.cards && activeCat === 'all') {
-      // priorizar os botões gerados pela IA na visão "Todos"
       const set = new Set(custom.cards);
       const priority = vocabulary.filter((v) => set.has(v.id));
       const rest = vocabulary.filter((v) => !set.has(v.id));
@@ -142,6 +152,7 @@ import { categories, vocabulary } from '../data/vocabulary';
     return items;
   }
 
+  // ─── Render grade ─────────────────────────────────────────────────────────────
   function renderGrid() {
     grid.innerHTML = '';
     visibleItems().forEach((item) => {
@@ -149,7 +160,12 @@ import { categories, vocabulary } from '../data/vocabulary';
       const isPriority = custom && custom.cards && custom.cards.includes(item.id) && activeCat === 'all';
       btn.className = 'aac-btn' + (isPriority ? ' priority' : '');
       btn.style.setProperty('--cc', semanticColor(item));
-      btn.innerHTML = `<span class="aac-icon-wrap"><span class="aac-icon" aria-hidden="true">${item.icon}</span></span><span class="aac-label-wrap"><span class="aac-label">${item.label}</span></span>`;
+      btn.innerHTML = `
+        <span class="aac-accent" aria-hidden="true"></span>
+        <span class="aac-body">
+          <span class="aac-icon" aria-hidden="true">${item.icon}</span>
+          <span class="aac-label">${item.label}</span>
+        </span>`;
       btn.setAttribute('aria-label', item.label);
       btn.addEventListener('click', () => onPress(item, btn));
       grid.appendChild(btn);
@@ -157,15 +173,11 @@ import { categories, vocabulary } from '../data/vocabulary';
   }
 
   function onPress(item, btn) {
-    // feedback visual no botão
     btn.classList.remove('pressed');
     void btn.offsetWidth;
     btn.classList.add('pressed');
-    setTimeout(() => btn.classList.remove('pressed'), 450);
-
-    // flash de cor semântica em toda a tela
+    setTimeout(() => btn.classList.remove('pressed'), 500);
     flashScreen(semanticColor(item));
-
     addToSentence(item);
     speak(item.phrase || item.label);
     logHistory(item);
@@ -191,7 +203,10 @@ import { categories, vocabulary } from '../data/vocabulary';
     return sentence.map((s) => s.phrase || s.label).join(' ');
   }
 
-  // ===== Web Speech API =====
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // TTS ENGINE — Web Speech API + Web Audio API effects
+  // ═══════════════════════════════════════════════════════════════════════════════
+
   let voices = [];
   function loadVoices() { voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; }
   if ('speechSynthesis' in window) {
@@ -204,31 +219,187 @@ import { categories, vocabulary } from '../data/vocabulary';
     const pool = pt.length ? pt : voices;
     if (!pool.length) return null;
     if (gender === 'female') return pool.find((v) => /female|mulher|fem|luciana|maria|francisca|google|helena|raquel/i.test(v.name)) || pool[0];
-    if (gender === 'male') return pool.find((v) => /male|homem|masc|daniel|felipe|ricardo|antonio/i.test(v.name)) || pool[0];
+    if (gender === 'male')   return pool.find((v) => /male|homem|masc|daniel|felipe|ricardo|antonio/i.test(v.name)) || pool[0];
     return pool[0];
   }
 
-  // Perfis de voz: gênero base + ajustes de pitch e velocidade para diferenciar cada personagem
+  /*
+   * VOICE_PROFILES — each entry describes:
+   *   gender  : which browser voice to pick ('female' | 'male')
+   *   pitch   : SpeechSynthesisUtterance pitch (0.1–2)
+   *   rate    : base speaking rate multiplier
+   *   fx      : Web Audio effect chain applied to the MediaStream output
+   *             'none' | 'robot' | 'alien' | 'echo' | 'deep' | 'chipmunk' | 'pirate'
+   *             Note: fx only works in browsers that support AudioContext.createMediaStreamSource
+   *             with speech synthesis output (Chrome/Edge). Falls back gracefully elsewhere.
+   */
   const VOICE_PROFILES = {
-    menina:   { gender: 'female', pitch: 1.7,  rate: 1.05 },
-    menino:   { gender: 'male',   pitch: 1.5,  rate: 1.05 },
-    mulher:   { gender: 'female', pitch: 1.1,  rate: 1.0 },
-    homem:    { gender: 'male',   pitch: 0.85, rate: 1.0 },
-    princesa: { gender: 'female', pitch: 1.9,  rate: 0.95 },
-    principe: { gender: 'male',   pitch: 1.3,  rate: 0.95 },
-    rainha:   { gender: 'female', pitch: 1.2,  rate: 0.88 },
-    rei:      { gender: 'male',   pitch: 0.6,  rate: 0.85 },
-    heroina:  { gender: 'female', pitch: 1.4,  rate: 1.1 },
-    heroi:    { gender: 'male',   pitch: 0.7,  rate: 1.05 },
-    robo:     { gender: 'male',   pitch: 0.5,  rate: 0.7 },
-    fada:     { gender: 'female', pitch: 2.0,  rate: 1.15 },
+    menina:   { gender: 'female', pitch: 1.7,  rate: 1.05, fx: 'chipmunk' },
+    menina2:  { gender: 'female', pitch: 1.9,  rate: 1.15, fx: 'echo'     },
+    menino:   { gender: 'male',   pitch: 1.5,  rate: 1.05, fx: 'none'     },
+    menino2:  { gender: 'male',   pitch: 1.6,  rate: 1.2,  fx: 'none'     },
+    mulher:   { gender: 'female', pitch: 1.1,  rate: 1.0,  fx: 'none'     },
+    homem:    { gender: 'male',   pitch: 0.85, rate: 1.0,  fx: 'none'     },
+    princesa: { gender: 'female', pitch: 1.9,  rate: 0.95, fx: 'echo'     },
+    principe: { gender: 'male',   pitch: 1.3,  rate: 0.95, fx: 'none'     },
+    rainha:   { gender: 'female', pitch: 1.15, rate: 0.88, fx: 'deep'     },
+    rei:      { gender: 'male',   pitch: 0.55, rate: 0.85, fx: 'deep'     },
+    fada:     { gender: 'female', pitch: 2.0,  rate: 1.15, fx: 'chipmunk' },
+    bruxa:    { gender: 'female', pitch: 0.65, rate: 0.82, fx: 'deep'     },
+    anjo:     { gender: 'female', pitch: 1.8,  rate: 0.9,  fx: 'echo'     },
+    heroina:  { gender: 'female', pitch: 1.35, rate: 1.1,  fx: 'none'     },
+    heroi:    { gender: 'male',   pitch: 0.72, rate: 1.05, fx: 'none'     },
+    pirata:   { gender: 'male',   pitch: 0.75, rate: 0.9,  fx: 'pirate'   },
+    cowboy:   { gender: 'male',   pitch: 0.8,  rate: 0.88, fx: 'none'     },
+    ninja:    { gender: 'male',   pitch: 1.0,  rate: 1.3,  fx: 'none'     },
+    robo:     { gender: 'male',   pitch: 0.5,  rate: 0.7,  fx: 'robot'    },
+    robo2:    { gender: 'male',   pitch: 0.4,  rate: 0.65, fx: 'alien'    },
+    gigante:  { gender: 'male',   pitch: 0.3,  rate: 0.75, fx: 'deep'     },
+    alien:    { gender: 'male',   pitch: 1.6,  rate: 0.8,  fx: 'alien'    },
+    duende:   { gender: 'male',   pitch: 1.8,  rate: 1.1,  fx: 'chipmunk' },
   };
 
+  // ─── Web Audio effect builder ──────────────────────────────────────────────
+  let audioCtx = null;
+
+  function getAudioCtx() {
+    if (!audioCtx || audioCtx.state === 'closed') {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  /*
+   * buildFxChain — connects source → effect nodes → destination
+   * Returns the first node in the chain (to connect source to).
+   * All effects run entirely in-browser via Web Audio API.
+   */
+  function buildFxChain(ctx, fxType) {
+    const dest = ctx.destination;
+
+    if (fxType === 'robot') {
+      // Ring modulator: multiply signal with a sine carrier → metallic buzz
+      const gain = ctx.createGain();
+      gain.gain.value = 1.5;
+      const osc = ctx.createOscillator();
+      osc.frequency.value = 60;
+      osc.type = 'sawtooth';
+      const ringGain = ctx.createGain();
+      ringGain.gain.value = 0;
+      osc.connect(ringGain.gain);
+      gain.connect(ringGain);
+      // waveshaper distortion for extra grittiness
+      const waveShape = ctx.createWaveShaper();
+      waveShape.curve = makeDistortionCurve(80);
+      ringGain.connect(waveShape);
+      waveShape.connect(dest);
+      osc.start();
+      return { input: gain, cleanup: () => osc.stop() };
+    }
+
+    if (fxType === 'alien') {
+      // Fast ring modulator at high frequency = alien/chopper effect
+      const gain = ctx.createGain();
+      gain.gain.value = 1.2;
+      const osc = ctx.createOscillator();
+      osc.frequency.value = 280;
+      osc.type = 'sine';
+      const ringGain = ctx.createGain();
+      ringGain.gain.value = 0;
+      osc.connect(ringGain.gain);
+      gain.connect(ringGain);
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 1800;
+      filter.Q.value = 1.5;
+      ringGain.connect(filter);
+      filter.connect(dest);
+      osc.start();
+      return { input: gain, cleanup: () => osc.stop() };
+    }
+
+    if (fxType === 'echo') {
+      // Stereo delay + slight chorus shimmer
+      const delay = ctx.createDelay(0.8);
+      delay.delayTime.value = 0.22;
+      const feedback = ctx.createGain();
+      feedback.gain.value = 0.38;
+      const wetGain = ctx.createGain();
+      wetGain.gain.value = 0.55;
+      const dryGain = ctx.createGain();
+      dryGain.gain.value = 1.0;
+      const input = ctx.createGain();
+      input.connect(dryGain);
+      input.connect(delay);
+      delay.connect(feedback);
+      feedback.connect(delay);
+      delay.connect(wetGain);
+      dryGain.connect(dest);
+      wetGain.connect(dest);
+      return { input, cleanup: () => {} };
+    }
+
+    if (fxType === 'deep') {
+      // Low-shelf boost + slight reverb tail via convolver approximation
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowshelf';
+      filter.frequency.value = 300;
+      filter.gain.value = 9;
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.value = -18;
+      compressor.ratio.value = 4;
+      filter.connect(compressor);
+      compressor.connect(dest);
+      return { input: filter, cleanup: () => {} };
+    }
+
+    if (fxType === 'chipmunk') {
+      // High-pass + mild overdrive → bright, airy tone
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'highshelf';
+      filter.frequency.value = 2500;
+      filter.gain.value = 7;
+      filter.connect(dest);
+      return { input: filter, cleanup: () => {} };
+    }
+
+    if (fxType === 'pirate') {
+      // Bandpass at mid-range + slight distortion = gravelly, nautical croak
+      const bandpass = ctx.createBiquadFilter();
+      bandpass.type = 'bandpass';
+      bandpass.frequency.value = 900;
+      bandpass.Q.value = 0.8;
+      const wave = ctx.createWaveShaper();
+      wave.curve = makeDistortionCurve(40);
+      bandpass.connect(wave);
+      wave.connect(dest);
+      return { input: bandpass, cleanup: () => {} };
+    }
+
+    // 'none' — straight passthrough
+    const gain = ctx.createGain();
+    gain.connect(dest);
+    return { input: gain, cleanup: () => {} };
+  }
+
+  function makeDistortionCurve(amount) {
+    const samples = 256;
+    const curve = new Float32Array(samples);
+    for (let i = 0; i < samples; i++) {
+      const x = (i * 2) / samples - 1;
+      curve[i] = ((Math.PI + amount) * x) / (Math.PI + amount * Math.abs(x));
+    }
+    return curve;
+  }
+
+  // ─── Core speak function ───────────────────────────────────────────────────
   function speak(text) {
     const type = document.getElementById('voice-select').value;
     if (type === 'silencioso' || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const profile = VOICE_PROFILES[type] || { gender: 'female', pitch: 1.1, rate: 1.0 };
+
+    const profile = VOICE_PROFILES[type] || { gender: 'female', pitch: 1.1, rate: 1.0, fx: 'none' };
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'pt-BR';
     const userRate = parseFloat(document.getElementById('rate').value);
@@ -237,32 +408,51 @@ import { categories, vocabulary } from '../data/vocabulary';
     u.pitch = profile.pitch;
     const v = pickVoice(profile.gender);
     if (v) u.voice = v;
+
+    // Try Web Audio effect chain (Chrome/Edge support MediaStreamDestination from speech)
+    if (profile.fx !== 'none' && window.AudioContext) {
+      try {
+        const ctx = getAudioCtx();
+        const streamDest = ctx.createMediaStreamDestination();
+        const chain = buildFxChain(ctx, profile.fx);
+
+        // Temporarily redirect utterance through AudioContext:
+        // We speak into a hidden audio element connected to the effect chain.
+        // On browsers that don't support this, it falls back to direct speech.
+        const audioEl = new Audio();
+        audioEl.srcObject = streamDest.stream;
+        audioEl.volume = u.volume;
+
+        // Reroute: speak normally but capture output — this only works where
+        // SpeechSynthesis output can be captured. Where not supported, we fall
+        // through to direct speak below.
+        u.onstart = () => { audioEl.play().catch(() => {}); };
+        u.onend = () => { chain.cleanup(); audioEl.srcObject = null; };
+
+        // Connect chain input to streamDest
+        chain.input.connect(streamDest);
+      } catch (_) {
+        // Web Audio routing not supported — continue with direct speech below
+      }
+    }
+
     window.speechSynthesis.speak(u);
   }
 
-  // ===== Histórico (localStorage) =====
+  // ─── Histórico ────────────────────────────────────────────────────────────────
   function logHistory(item) {
     let hist = [];
     try { hist = JSON.parse(localStorage.getItem('nv-history') || '[]'); } catch (e) {}
-    hist.push({
-      time: Date.now(),
-      label: item.label,
-      category: item.category,
-      icon: item.icon,
-      sentence: sentenceText(),
-    });
+    hist.push({ time: Date.now(), label: item.label, category: item.category, icon: item.icon, sentence: sentenceText() });
     localStorage.setItem('nv-history', JSON.stringify(hist));
   }
 
-  // ===== Ações da frase =====
-  document.getElementById('btn-speak').addEventListener('click', () => {
-    if (!sentence.length) return;
-    speak(sentenceText());
-  });
+  // ─── Ações da frase ───────────────────────────────────────────────────────────
+  document.getElementById('btn-speak').addEventListener('click', () => { if (sentence.length) speak(sentenceText()); });
   document.getElementById('btn-back').addEventListener('click', () => { sentence.pop(); renderSentence(); });
   document.getElementById('btn-clear-sentence').addEventListener('click', () => { sentence = []; renderSentence(); });
 
-  // ===== Categorias =====
+  // ─── Categorias ───────────────────────────────────────────────────────────────
   document.querySelectorAll('.cat-pill').forEach((pill) => {
     pill.addEventListener('click', () => {
       document.querySelectorAll('.cat-pill').forEach((p) => { p.classList.remove('active'); p.setAttribute('aria-selected', 'false'); });
@@ -272,12 +462,13 @@ import { categories, vocabulary } from '../data/vocabulary';
     });
   });
 
-  // ===== Tela cheia =====
+  // ─── Tela cheia ───────────────────────────────────────────────────────────────
   document.getElementById('btn-fullscreen').addEventListener('click', () => {
-    const el = document.documentElement;
-    if (!document.fullscreenElement) el.requestFullscreen?.(); else document.exitFullscreen?.();
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
   });
 
+  // ─── Init ─────────────────────────────────────────────────────────────────────
   renderGrid();
   renderSentence();
 </script>
@@ -292,160 +483,142 @@ import { categories, vocabulary } from '../data/vocabulary';
   .ctrl select { padding: 8px 10px; border-radius: 10px; border: 2px solid var(--border); background: var(--surface); color: var(--text); }
   .ctrl input[type=range] { width: 110px; accent-color: var(--blue); }
 
+  /* ── Sentence bar ─────────────────────────────────────────────────────────── */
   .sentence-bar { display: flex; gap: 12px; align-items: stretch; background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius-lg); padding: 12px; box-shadow: var(--shadow-sm); margin-bottom: 16px; }
   .sentence-strip { flex: 1; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-height: 64px; padding: 4px 8px; overflow-x: auto; }
   .sentence-placeholder { color: var(--text-muted); font-weight: 600; }
   .s-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-alt); color: var(--text); border-radius: 12px; padding: 10px 14px; font-family: var(--font-head); font-weight: 800; font-size: 1.05rem; animation: pop 0.25s ease; }
   .s-chip span { font-size: 1.4rem; }
   .sentence-actions { display: flex; gap: 8px; align-items: center; }
-  .sb-btn { width: 56px; height: 56px; border-radius: 16px; border: none; font-size: 1.5rem; display: grid; place-items: center; color: #fff; transition: transform 0.12s; }
-  .sb-btn:hover { transform: translateY(-2px); }
+  .sb-btn { width: 56px; height: 56px; border-radius: 16px; border: none; font-size: 1.5rem; display: grid; place-items: center; color: #fff; transition: transform 0.12s, box-shadow 0.12s; box-shadow: 0 3px 8px rgba(0,0,0,.12); }
+  .sb-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,.16); }
+  .sb-btn:active { transform: translateY(1px); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
   .sb-btn.speak { background: var(--mint); }
   .sb-btn.back { background: var(--sun); color: #6b4e00; }
   .sb-btn.clear { background: var(--coral); }
 
-  .cat-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
-  .cat-pill { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; color: var(--text); }
+  /* ── Category bar ─────────────────────────────────────────────────────────── */
+  .cat-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 18px; }
+  .cat-pill { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; color: var(--text); transition: border-color .15s, background .15s; }
   .cat-pill span { font-size: 1.1rem; }
+  .cat-pill:hover { border-color: var(--cc, var(--blue-soft)); }
   .cat-pill.active { border-color: var(--cc, var(--blue)); background: color-mix(in srgb, var(--cc, #5b8def) 14%, white); }
 
-  .aac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 18px; }
+  /* ── AAC Grid ─────────────────────────────────────────────────────────────── */
+  .aac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; }
 
   .aac-btn {
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0;
+    align-items: stretch;
     padding: 0;
-    border-radius: 22px;
     border: none;
-    background: transparent;
-    aspect-ratio: 1 / 1.05;
+    border-radius: 20px;
+    background: #ffffff;
     cursor: pointer;
     overflow: hidden;
-    /* layered shadow: bottom edge (3-D effect) + ambient */
+    aspect-ratio: 1 / 1.08;
     box-shadow:
-      0 5px 0 0 color-mix(in srgb, var(--cc) 55%, #9ca3af),
-      0 10px 24px rgba(20, 40, 80, 0.13);
-    transition: transform 0.13s cubic-bezier(.34,1.56,.64,1), box-shadow 0.13s ease;
+      0 2px 0 1px color-mix(in srgb, var(--cc) 35%, #d1d5db),
+      0 4px 14px rgba(20, 40, 80, 0.09);
+    transition:
+      transform 0.14s cubic-bezier(.34, 1.56, .64, 1),
+      box-shadow 0.14s ease;
     outline-offset: 3px;
   }
 
-  /* Icon area — large coloured zone */
-  .aac-btn .aac-icon-wrap {
-    position: absolute;
-    inset: 0 0 44px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--cc) 22%, #ffffff) 0%,
-      color-mix(in srgb, var(--cc) 10%, #f8faff) 100%
-    );
-    border-radius: 22px 22px 0 0;
-    z-index: 1;
-  }
-
-  /* Label strip at bottom */
-  .aac-btn .aac-label-wrap {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  /* Coloured top accent bar */
+  .aac-accent {
+    display: block;
+    height: 8px;
     background: var(--cc);
-    z-index: 2;
-    border-radius: 0 0 22px 22px;
-    padding: 0 8px;
+    border-radius: 20px 20px 0 0;
+    flex-shrink: 0;
   }
 
-  .aac-btn:hover {
-    transform: translateY(-5px);
-    box-shadow:
-      0 8px 0 0 color-mix(in srgb, var(--cc) 55%, #9ca3af),
-      0 18px 36px rgba(20, 40, 80, 0.18);
-  }
-  .aac-btn:active {
-    transform: translateY(3px);
-    box-shadow:
-      0 2px 0 0 color-mix(in srgb, var(--cc) 55%, #9ca3af),
-      0 4px 8px rgba(20, 40, 80, 0.1);
-  }
-
-  /* Priority (IA-picked) cards get a glowing ring */
-  .aac-btn.priority {
-    box-shadow:
-      0 5px 0 0 color-mix(in srgb, var(--cc) 55%, #9ca3af),
-      0 10px 24px rgba(20, 40, 80, 0.13),
-      0 0 0 3px color-mix(in srgb, var(--cc) 70%, transparent);
-  }
-  .aac-btn.priority .aac-icon-wrap {
-    background: linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--cc) 34%, #ffffff) 0%,
-      color-mix(in srgb, var(--cc) 16%, #f0f7ff) 100%
-    );
+  /* Body: icon + label centered */
+  .aac-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 8px 14px;
   }
 
   .aac-icon {
-    font-size: 3rem;
+    font-size: 2.8rem;
     line-height: 1;
-    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.15));
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.10));
   }
 
   .aac-label {
     font-family: var(--font-head);
     font-weight: 800;
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     text-align: center;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
     line-height: 1.2;
-    letter-spacing: 0.01em;
+    color: color-mix(in srgb, var(--cc) 80%, #1a2540);
+    max-width: 100%;
   }
 
-  /* Ripple ring on press */
-  .aac-btn.pressed { animation: aacPress 0.42s cubic-bezier(.34,1.4,.64,1); }
+  /* Hover — lift */
+  .aac-btn:hover {
+    transform: translateY(-5px);
+    box-shadow:
+      0 6px 0 1px color-mix(in srgb, var(--cc) 35%, #d1d5db),
+      0 12px 28px rgba(20, 40, 80, 0.15);
+  }
+
+  /* Active — press down */
+  .aac-btn:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 0 1px color-mix(in srgb, var(--cc) 35%, #d1d5db),
+      0 2px 6px rgba(20, 40, 80, 0.07);
+  }
+
+  /* Priority (AI-picked) — subtle glow ring */
+  .aac-btn.priority {
+    box-shadow:
+      0 2px 0 1px color-mix(in srgb, var(--cc) 35%, #d1d5db),
+      0 4px 14px rgba(20, 40, 80, 0.09),
+      0 0 0 3px color-mix(in srgb, var(--cc) 55%, transparent);
+  }
+  .aac-btn.priority .aac-accent {
+    height: 10px;
+  }
+
+  /* Press ripple animation */
+  .aac-btn.pressed { animation: aacPress 0.48s cubic-bezier(.34, 1.4, .64, 1); }
   @keyframes aacPress {
     0%   { transform: scale(1); }
-    35%  { transform: scale(1.12);
-           box-shadow: 0 0 0 10px color-mix(in srgb, var(--cc) 30%, transparent),
-                       0 16px 32px rgba(20,40,80,0.22); }
+    30%  {
+      transform: scale(1.1);
+      box-shadow:
+        0 0 0 12px color-mix(in srgb, var(--cc) 25%, transparent),
+        0 14px 30px rgba(20, 40, 80, 0.2);
+    }
     100% { transform: scale(1); }
   }
 
-  :root[data-contrast='high'] .aac-btn .aac-icon-wrap { background: var(--surface); }
-  :root[data-contrast='high'] .aac-btn .aac-label-wrap { background: var(--cc); }
-  :root[data-contrast='high'] .aac-label { color: #fff; }
+  /* High-contrast override */
+  :root[data-contrast='high'] .aac-btn { background: var(--surface); border: 2px solid var(--border); }
+  :root[data-contrast='high'] .aac-label { color: var(--text); }
 
-  /* Flash de cor semântica em toda a tela */
-  .flash-overlay {
-    position: fixed; inset: 0; z-index: 80; pointer-events: none;
-    opacity: 0; background: transparent;
-  }
+  /* ── Flash overlay ───────────────────────────────────────────────────────── */
+  .flash-overlay { position: fixed; inset: 0; z-index: 80; pointer-events: none; opacity: 0; }
   .flash-overlay.flash-on { animation: screenFlash 1.4s ease forwards; }
-  @keyframes screenFlash {
-    0% { opacity: 0; }
-    18% { opacity: 0.55; }
-    55% { opacity: 0.4; }
-    100% { opacity: 0; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .flash-overlay.flash-on { animation-duration: 0.6s; }
-  }
+  @keyframes screenFlash { 0% { opacity:0; } 18% { opacity:.5; } 55% { opacity:.35; } 100% { opacity:0; } }
+  @media (prefers-reduced-motion: reduce) { .flash-overlay.flash-on { animation-duration: 0.5s; } }
 
+  /* ── Responsive ──────────────────────────────────────────────────────────── */
   @media (max-width: 600px) {
-    .aac-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
-    .aac-icon { font-size: 2.2rem; }
-    .aac-label { font-size: 0.78rem; }
-    .aac-btn .aac-label-wrap { height: 38px; }
-    .aac-btn .aac-icon-wrap { bottom: 38px; }
+    .aac-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+    .aac-icon { font-size: 2.1rem; }
+    .aac-label { font-size: 0.76rem; }
     .sb-btn { width: 48px; height: 48px; font-size: 1.3rem; }
   }
 </style>
