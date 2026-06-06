@@ -178,32 +178,18 @@ import { categories } from "../data/vocabulary";
     </div>
   </section>
 
+  <!-- Rotina do Dia -->
   <section class="section-sm">
     <div class="container">
-      <h2 class="section-title" style="font-size:1.6rem">Temporizadores</h2>
-      <div class="timer-dashboard-grid">
-        <div class="card chart-card">
-          <h3>Temporizadores</h3>
-          <div class="timer-stats">
-            <div>
-              <strong id="timer-started-count">0</strong><span>Iniciados</span>
-            </div>
-            <div>
-              <strong id="timer-paused-count">0</strong><span>Pausados</span>
-            </div>
-            <div>
-              <strong id="timer-excluded-count">0</strong><span
-                >Concluídos</span>
-            </div>
-          </div>
-        </div>
-        <div class="card chart-card">
-          <h3>Status Atual</h3>
-          <div id="timer-current-status" class="timer-current-status">
-            Nenhum temporizador ativo no momento.
-          </div>
-        </div>
+      <h2 class="section-title" style="font-size:1.6rem">Rotina do Dia</h2>
+      <div class="grid grid-4" id="routine-kpis">
+        <div class="kpi card"><span class="kpi-num" id="routine-kpi-total">0</span><span class="kpi-label">Eventos hoje</span></div>
+        <div class="kpi card"><span class="kpi-num" id="routine-kpi-done">0</span><span class="kpi-label">Concluídas</span></div>
+        <div class="kpi card"><span class="kpi-num" id="routine-kpi-alarms">0</span><span class="kpi-label">Alarmes disparados</span></div>
+        <div class="kpi card"><span class="kpi-num" id="routine-kpi-countdowns">0</span><span class="kpi-label">Contagens regressivas</span></div>
       </div>
+      <div id="routine-history-list" class="timeline-list" style="margin-top:18px"></div>
+      <p id="routine-history-empty" class="empty-state">Nenhuma atividade da rotina registrada ainda. Use o <a href="/dia">Plano do Dia</a> para começar.</p>
     </div>
   </section>
 
@@ -334,20 +320,76 @@ import { categories } from "../data/vocabulary";
   }
   let history = load();
 
-  function loadTimerHistory() {
+  function loadRoutineHistory() {
     try {
-      return JSON.parse(localStorage.getItem("nv-timer-history") || "[]");
+      return JSON.parse(localStorage.getItem("nv-routine-history") || "[]");
     } catch (e) {
       return [];
     }
   }
 
-  function loadCurrentTimer() {
-    try {
-      return JSON.parse(localStorage.getItem("nv-timer") || "null");
-    } catch (e) {
-      return null;
+  function routineEntryLabel(entry) {
+    if (entry.type === "completed") return `${entry.name} — concluída`;
+    if (entry.type === "alarm") return entry.label || `Hora de ${entry.name}`;
+    if (entry.type === "countdown") return entry.label || `Contagem para ${entry.name}`;
+    return entry.label || entry.name || "Evento de rotina";
+  }
+
+  function routineEntryTag(entry) {
+    if (entry.type === "completed") return "✅ Concluída";
+    if (entry.type === "alarm") return "🔔 Alarme";
+    if (entry.type === "countdown") return "⏳ Contagem";
+    return "📍 Rotina";
+  }
+
+  function renderRoutineHistory() {
+    const all = loadRoutineHistory();
+    const list = document.getElementById("routine-history-list");
+    const empty = document.getElementById("routine-history-empty");
+    if (!list || !empty) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const todayItems = all.filter((e) => e.date === today);
+    const totalEl = document.getElementById("routine-kpi-total");
+    const doneEl = document.getElementById("routine-kpi-done");
+    const alEl = document.getElementById("routine-kpi-alarms");
+    const cdEl = document.getElementById("routine-kpi-countdowns");
+    if (totalEl) totalEl.textContent = String(todayItems.length);
+    if (doneEl) doneEl.textContent = String(todayItems.filter((e) => e.type === "completed").length);
+    if (alEl) alEl.textContent = String(todayItems.filter((e) => e.type === "alarm").length);
+    if (cdEl) cdEl.textContent = String(todayItems.filter((e) => e.type === "countdown").length);
+
+    if (!all.length) {
+      list.innerHTML = "";
+      empty.style.display = "block";
+      return;
     }
+    empty.style.display = "none";
+    const groups = {};
+    all.forEach((e) => {
+      const d = e.date || "sem-data";
+      (groups[d] = groups[d] || []).push(e);
+    });
+    list.innerHTML = Object.entries(groups)
+      .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+      .map(([day, items]) => {
+        const dayLabel = day === "sem-data"
+          ? "Sem data"
+          : new Date(day + "T00:00:00").toLocaleDateString("pt-BR", {
+              weekday: "long", day: "2-digit", month: "long",
+            });
+        return `<div class="tl-day"><h4 class="tl-date">${dayLabel}</h4>${items
+          .map((e) => {
+            const color = e.type === "completed" ? "#2ecc71" : e.type === "alarm" ? "#f39c12" : "#5b8def";
+            return `<div class="tl-item" style="border-left-color:${color}">
+              <span class="tl-time">${e.completedAt || e.time || "--:--"}</span>
+              <span class="tl-icon">${e.icon || "📍"}</span>
+              <span class="tl-content"><strong>${routineEntryLabel(e)}</strong><span class="tl-sentence">${e.time ? `Horário previsto: ${e.time}` : "Sem horário"}</span></span>
+              <span class="tl-cat" style="background:${color}1a;color:${color}">${routineEntryTag(e)}</span>
+            </div>`;
+          })
+          .join("")}</div>`;
+      })
+      .join("");
   }
 
   function studentInfoComplete() {
@@ -419,11 +461,6 @@ import { categories } from "../data/vocabulary";
 
   function renderDashboard() {
     const all = history;
-    const currentTimer = loadCurrentTimer();
-    const timers = loadTimerHistory();
-    const started = currentTimer && currentTimer.status === "running" ? 1 : 0;
-    const paused = currentTimer && currentTimer.status === "paused" ? 1 : 0;
-    const excluded = timers.length;
 
     // KPIs
     document.getElementById("kpi-total").textContent = all.length;
@@ -448,20 +485,6 @@ import { categories } from "../data/vocabulary";
     }
     const top = countBy(all, "label")[0];
     document.getElementById("kpi-top").textContent = top ? top[0] : "—";
-
-    document.getElementById("timer-started-count").textContent = started;
-    document.getElementById("timer-paused-count").textContent = paused;
-    document.getElementById("timer-excluded-count").textContent = excluded;
-    const statusEl = document.getElementById("timer-current-status");
-    if (currentTimer && (currentTimer.status === "running" || currentTimer.status === "paused")) {
-      if (currentTimer.status === "running") {
-        statusEl.innerHTML = `<strong>Em andamento</strong><br>${currentTimer.icon || "⏱️"} ${currentTimer.name || "Atividade"}`;
-      } else {
-        statusEl.innerHTML = `<strong>Pausado</strong><br>${currentTimer.icon || "⏱️"} ${currentTimer.name || "Atividade"}`;
-      }
-    } else {
-      statusEl.textContent = "Nenhum temporizador ativo no momento.";
-    }
 
     // Emoções
     renderBars(
@@ -615,6 +638,7 @@ import { categories } from "../data/vocabulary";
     renderDashboard();
     renderAlphabetInfo();
     renderTimeline();
+    renderRoutineHistory();
   }
 
   ["filter-date", "filter-cat", "filter-search"].forEach((id) =>
@@ -625,18 +649,19 @@ import { categories } from "../data/vocabulary";
   document.getElementById("btn-clear").addEventListener("click", () => {
     if (
       confirm(
-        "Tem certeza? Isso apagará permanentemente todo o histórico de comunicação.",
+        "Tem certeza? Isso apagará permanentemente todo o histórico de comunicação e da rotina.",
       )
     ) {
       localStorage.removeItem("nv-history");
+      localStorage.removeItem("nv-routine-history");
       history = [];
       renderAll();
     }
   });
 
   function hasExportData() {
-    const timers = loadTimerHistory();
-    return history.length > 0 || timers.length > 0;
+    const routine = loadRoutineHistory();
+    return history.length > 0 || routine.length > 0;
   }
 
   function showStudentRequiredModal() {
@@ -685,18 +710,19 @@ import { categories } from "../data/vocabulary";
         ]);
       });
     }
-    // Append timer history if present
-    const timers = loadTimerHistory();
-    if (timers && timers.length) {
+    // Append routine history if present
+    const routine = loadRoutineHistory();
+    if (routine && routine.length) {
       rows.push([]);
-      rows.push(["Temporizadores"]);
-      rows.push(["Hora", "Atividade", "Tema", "Duração"]);
-      timers.forEach((t) => {
+      rows.push(["Rotina do Dia"]);
+      rows.push(["Data", "Hora", "Atividade", "Tipo", "Detalhe"]);
+      routine.forEach((e) => {
         rows.push([
-          t.finishedAt || "",
-          t.name || "",
-          t.theme || "",
-          (t.duration || "").toString().replace(/,/g, ";"),
+          e.date || "",
+          e.completedAt || e.time || "",
+          e.name || "",
+          e.type || "",
+          (routineEntryLabel(e) || "").replace(/,/g, ";"),
         ]);
       });
     }
@@ -729,7 +755,6 @@ import { categories } from "../data/vocabulary";
     const periods = { Madrugada: 0, Manhã: 0, Tarde: 0, Noite: 0 };
     history.forEach((h) => periods[period(h.time)]++);
 
-    const studentLabel = studentExportLabel();
     const student = loadStudent();
     const alphaEvents = loadAlphabetHistory();
     const alphaActions = alphaEvents.filter((e) => e.type === "alphabet");
@@ -751,7 +776,12 @@ import { categories } from "../data/vocabulary";
     const typedVocabulary = typedWordsDistinct;
     const pdfTitle = `Relatório Pedagógico — ${studentFileSegment()} — ${new Date().toISOString().slice(0, 10)}`;
     const win = window.open("", "_blank");
-    const timers = loadTimerHistory();
+    const routineHistoryAll = loadRoutineHistory();
+    const routineByDate = {};
+    routineHistoryAll.forEach((e) => {
+      const d = e.date || "sem-data";
+      (routineByDate[d] = routineByDate[d] || []).push(e);
+    });
     const totalPdfPages = 3;
     const pdfFooter = (pageNumber) => `
       <footer class="pdf-footer">
@@ -857,10 +887,12 @@ import { categories } from "../data/vocabulary";
           <h3>Top palavras escritas</h3>
           <table><tr><th>#</th><th>Palavra</th><th>Frequência</th></tr>
           ${typedWordTop.length ? typedWordTop.map(([word, count], i) => `<tr><td>${i + 1}</td><td>${word}</td><td>${count}×</td></tr>`).join("") : `<tr><td colspan="3">Nenhuma palavra escrita ainda.</td></tr>`}</table>
+          <h2>Evolução do Vocabulário</h2>
+          <p>Total de Palavras Distintas Utilizadas: <strong>${combinedVocabulary}</strong> (Histórico: ${historyVocabulary}, Formação de Palavras: ${typedVocabulary}).</p>
+          <p style="margin-top:30px;color:#8898b2;font-size:13px">Dados armazenados localmente, em conformidade com práticas éticas de privacidade.</p>
         </div>
         ${pdfFooter(2)}
       </section>
-
       <section class="pdf-page">
         <div class="pdf-watermark" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -869,11 +901,25 @@ import { categories } from "../data/vocabulary";
           <span>NeuroVoz</span>
         </div>
         <div class="pdf-content">
-          <h2 style="margin-top:0">Temporizadores</h2>
-          ${timers && timers.length ? `<table><tr><th>Hora</th><th>Atividade</th><th>Tema</th><th>Duração</th></tr>${timers.map((t) => `<tr><td>${t.finishedAt || ""}</td><td>${t.name || ""}</td><td>${t.theme || ""}</td><td>${t.duration || ""}</td></tr>`).join("")}</table>` : '<p class="no-data">Nenhum temporizador registrado.</p>'}
-          <h2>Evolução do Vocabulário</h2>
-          <p>Total de Palavras Distintas Utilizadas: <strong>${combinedVocabulary}</strong> (Histórico: ${historyVocabulary}, Formação de Palavras: ${typedVocabulary}).</p>
-          <p style="margin-top:30px;color:#8898b2;font-size:13px">Dados armazenados localmente, em conformidade com práticas éticas de privacidade.</p>
+          <h2 style="margin-top:0">Rotina do Dia — Histórico de Atividades</h2>
+          <p class="sub">Inclui atividades concluídas, alarmes disparados no horário e contagens regressivas. Os dados ficam armazenados localmente no dispositivo.</p>
+          ${routineHistoryAll.length
+            ? Object.entries(routineByDate)
+                .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+                .map(([day, items]) => {
+                  const dayLabel = day === "sem-data"
+                    ? "Sem data"
+                    : new Date(day + "T00:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+                  return `<h3 style="text-transform:capitalize">${dayLabel}</h3>
+                    <table>
+                      <thead><tr><th>Hora</th><th>Atividade</th><th>Tipo</th><th>Detalhe</th></tr></thead>
+                      <tbody>
+                        ${items.map((e) => `<tr><td>${e.completedAt || e.time || "--:--"}</td><td>${(e.icon || "📍") + " " + (e.name || "")}</td><td>${routineEntryTag(e)}</td><td>${routineEntryLabel(e)}</td></tr>`).join("")}
+                      </tbody>
+                    </table>`;
+                })
+                .join("")
+            : '<p class="no-data">Nenhuma atividade da rotina registrada.</p>'}
         </div>
         ${pdfFooter(3)}
       </section>
@@ -1079,48 +1125,6 @@ import { categories } from "../data/vocabulary";
   .period-val {
     font-family: var(--font-head);
     font-weight: 800;
-  }
-
-  .timer-dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
-    margin-top: 24px;
-  }
-  .timer-stats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
-    margin-top: 18px;
-  }
-  .timer-stats div {
-    background: var(--surface-2);
-    border-radius: 18px;
-    padding: 18px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .timer-stats strong {
-    font-family: var(--font-head);
-    font-size: 1.9rem;
-    display: block;
-  }
-  .timer-stats span {
-    color: var(--text-soft);
-    font-size: 0.95rem;
-  }
-  .timer-current-status {
-    padding: 20px;
-    border-radius: 18px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    min-height: 116px;
-    display: grid;
-    place-content: center;
-    font-size: 0.98rem;
-    line-height: 1.5;
   }
 
   .modal-overlay {

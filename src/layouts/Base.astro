@@ -41,8 +41,12 @@ const {
     </main>
     {!fullbleed && <Footer />}
 
-    <button id="nv-timer-widget" class="nv-timer-widget" hidden aria-label="Abrir temporizador" type="button">
-      <span id="nv-timer-widget-icon">⏱️</span>
+    <button id="nv-timer-widget" class="nv-timer-widget nv-routine-widget" hidden aria-label="Abrir rotina" type="button">
+      <span id="nv-timer-widget-icon">📍</span>
+      <span class="nv-routine-widget-text">
+        <strong id="nv-routine-widget-title">Plano do Dia</strong>
+        <small id="nv-routine-widget-subtitle">Abra para ver a rotina</small>
+      </span>
     </button>
 
     <div id="nv-timer-modal" class="nv-timer-modal" hidden aria-hidden="true">
@@ -66,6 +70,21 @@ const {
           <div class="nv-timer-big-time" id="nv-timer-modal-remaining">00:00:00</div>
           <div class="nv-timer-bar"><div class="nv-timer-bar-fill" id="nv-timer-bar-fill"></div></div>
           <div class="nv-timer-state" id="nv-timer-status-text">Preparando...</div>
+          <div class="nv-routine-modal-summary" id="nv-routine-modal-summary" hidden>
+            <div>
+              <span>📍 Agora</span>
+              <strong id="nv-routine-modal-now">Nenhuma atividade</strong>
+            </div>
+            <div>
+              <span>📍 Depois</span>
+              <strong id="nv-routine-modal-next">Sem próxima atividade</strong>
+            </div>
+          </div>
+          <div class="nv-routine-modal-actions" id="nv-routine-modal-actions" hidden>
+            <button type="button" class="btn btn-primary" id="nv-routine-modal-complete">✅ Concluir agora</button>
+          </div>
+          <div class="nv-routine-modal-list" id="nv-routine-modal-list" hidden></div>
+          <div class="nv-routine-modal-history" id="nv-routine-modal-history" hidden></div>
         </div>
       </div>
     </div>
@@ -101,11 +120,21 @@ const {
       const modalRemaining = document.getElementById('nv-timer-modal-remaining');
       const modalStatus = document.getElementById('nv-timer-status-text');
       const barFill = document.getElementById('nv-timer-bar-fill');
+      const widgetTitle = document.getElementById('nv-routine-widget-title');
+      const widgetSubtitle = document.getElementById('nv-routine-widget-subtitle');
+      const routineSummary = document.getElementById('nv-routine-modal-summary');
+      const routineModalNow = document.getElementById('nv-routine-modal-now');
+      const routineModalNext = document.getElementById('nv-routine-modal-next');
+      const routineModalList = document.getElementById('nv-routine-modal-list');
+      const routineModalHistory = document.getElementById('nv-routine-modal-history');
       const pauseButton = document.getElementById('nv-timer-pause');
       const resumeButton = document.getElementById('nv-timer-resume');
       const resetButton = document.getElementById('nv-timer-reset');
       const endButton = document.getElementById('nv-timer-end');
       const celebration = document.getElementById('nv-timer-celebration');
+      const NV_ROUTINE_KEY = 'nv-routine-plan';
+      const NV_ROUTINE_HISTORY_KEY = 'nv-routine-history';
+      const NV_ROUTINE_SETTINGS_KEY = 'nv-routine-settings';
 
       function loadTimer() {
         try { return JSON.parse(localStorage.getItem(NV_TIMER_KEY) || 'null'); } catch (e) { return null; }
@@ -127,6 +156,316 @@ const {
 
       function saveHistory(history) {
         localStorage.setItem(NV_HISTORY_KEY, JSON.stringify(history));
+      }
+
+      function readJson(key, fallback) {
+        try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch (e) { return fallback; }
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        }[char]));
+      }
+
+      function routineTodayKey() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      function routineMinutes(time) {
+        if (!time) return null;
+        const [hour, minute] = time.split(':').map(Number);
+        if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
+        return hour * 60 + minute;
+      }
+
+      function routineTargetMs(activity) {
+        if (!activity?.time) return null;
+        const [hour, minute] = String(activity.time).split(':').map(Number);
+        if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
+        const d = new Date();
+        d.setHours(hour, minute, 0, 0);
+        return d.getTime();
+      }
+
+      function routineFormatUntil(activity) {
+        const target = routineTargetMs(activity);
+        if (target === null) return 'Horário livre';
+        let diff = Math.floor((target - Date.now()) / 1000);
+        if (diff <= 0) return 'Agora';
+        const h = Math.floor(diff / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        const s = diff % 60;
+        if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+        if (m > 0) return `${m}m ${String(s).padStart(2,'0')}s`;
+        return `${s}s`;
+      }
+
+      // Frase amigável: "Restam 1h e 23 min para a conclusão"
+      function routineFormatHumanRemaining(activity) {
+        const target = routineTargetMs(activity);
+        if (target === null) return '';
+        const diffSec = Math.floor((target - Date.now()) / 1000);
+        if (diffSec <= 0) return 'Horário atingido — hora de concluir';
+        if (diffSec < 60) return 'Falta menos de um minuto para a conclusão';
+        const diffMin = Math.floor(diffSec / 60);
+        const h = Math.floor(diffMin / 60);
+        const m = diffMin % 60;
+        if (h > 0) {
+          return m > 0
+            ? `Restam ${h}h e ${m} min para a conclusão`
+            : `Restam ${h}h para a conclusão`;
+        }
+        return `Restam ${m} min para a conclusão`;
+      }
+
+      // Cronômetro exato HH:MM:SS — usado no big-time do modal.
+      function routineFormatClock(activity) {
+        const target = routineTargetMs(activity);
+        if (target === null) return '--:--:--';
+        let diff = Math.max(0, Math.floor((target - Date.now()) / 1000));
+        const h = Math.floor(diff / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        const s = diff % 60;
+        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      }
+
+      // Pede permissão de notificação assim que o Base monta.
+      try {
+        if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+      } catch (e) {}
+
+      function nvNotify(title, body) {
+        try {
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { body, icon: '/icon.svg', tag: `nv-${title}` });
+          }
+        } catch (e) {}
+      }
+
+      function nvSpeak(text) {
+        if (!('speechSynthesis' in window)) return;
+        try {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = 'pt-BR';
+          window.speechSynthesis.speak(u);
+        } catch (e) {}
+      }
+
+      // Checagem global: dispara alarme/contagem assim que o relógio do
+      // dispositivo atinge o horário da atividade — funciona em QUALQUER
+      // página (não só /dia). Usa flags persistidas para evitar duplicação.
+      function tickRoutineAlarmsGlobal() {
+        const plan = readJson(NV_ROUTINE_KEY, null);
+        if (!plan || plan.day !== routineTodayKey() || !Array.isArray(plan.activities)) return;
+        const now = Date.now();
+        let changed = false;
+        plan.activities.forEach((item) => {
+          const target = routineTargetMs(item);
+          if (target === null || item.completed) return;
+          const countdownMs = Number(item.countdown) * 60 * 1000;
+          if (countdownMs > 0 && !item.countdownFired && now >= target - countdownMs && now < target) {
+            item.countdownFired = true;
+            changed = true;
+            // Calcula o tempo real que falta no instante do disparo (h + min, sem segundos).
+            const diffSec = Math.max(0, Math.floor((target - now) / 1000));
+            let tempo;
+            if (diffSec < 60) {
+              tempo = 'menos de um minuto';
+            } else {
+              const diffMin = Math.round(diffSec / 60);
+              const h = Math.floor(diffMin / 60);
+              const m = diffMin % 60;
+              if (h > 0 && m > 0) tempo = `${h} ${h === 1 ? 'hora' : 'horas'} e ${m} ${m === 1 ? 'minuto' : 'minutos'}`;
+              else if (h > 0) tempo = `${h} ${h === 1 ? 'hora' : 'horas'}`;
+              else tempo = `${m} ${m === 1 ? 'minuto' : 'minutos'}`;
+            }
+            const label = diffSec < 60
+              ? `Falta menos de um minuto para ${item.name}`
+              : `Faltam ${tempo} para ${item.name}`;
+            const history = readJson(NV_ROUTINE_HISTORY_KEY, []);
+            history.unshift({
+              id: item.id, name: item.name, icon: item.icon, time: item.time,
+              completedAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+              date: routineTodayKey(), type: 'countdown', label,
+            });
+            localStorage.setItem(NV_ROUTINE_HISTORY_KEY, JSON.stringify(history.slice(0, 240)));
+            nvSpeak(label);
+            nvNotify('⏳ Prepare-se', label);
+          }
+          if (item.alarm && !item.alarmFired && now >= target) {
+            item.alarmFired = true;
+            changed = true;
+            const label = `Hora de ${item.name}`;
+            const history = readJson(NV_ROUTINE_HISTORY_KEY, []);
+            history.unshift({
+              id: item.id, name: item.name, icon: item.icon, time: item.time,
+              completedAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+              date: routineTodayKey(), type: 'alarm', label,
+            });
+            localStorage.setItem(NV_ROUTINE_HISTORY_KEY, JSON.stringify(history.slice(0, 240)));
+            nvSpeak(`${item.name}. Vamos para a próxima atividade!`);
+            nvNotify(`${item.icon || '📍'} ${item.name}`, label);
+          }
+        });
+        if (changed) {
+          localStorage.setItem(NV_ROUTINE_KEY, JSON.stringify(plan));
+          window.dispatchEvent(new Event('nv-routine-updated'));
+        }
+      }
+
+      function isLegacyDefaultRoutine(activities) {
+        const legacyNames = ['Acordar', 'Café da manhã', 'Escola', 'Atividade', 'Brincar', 'Banho', 'Dormir'];
+        return activities.length === legacyNames.length
+          && activities.every((item, index) => item.name === legacyNames[index] && !item.completed && item.order === undefined);
+      }
+
+      function getRoutineSnapshot() {
+        const plan = readJson(NV_ROUTINE_KEY, null);
+        if (!plan || plan.day !== routineTodayKey() || !Array.isArray(plan.activities)) {
+          return { activities: [], current: null, next: null, progress: 0, done: 0, past: [] };
+        }
+        if (isLegacyDefaultRoutine(plan.activities)) {
+          localStorage.setItem(NV_ROUTINE_KEY, JSON.stringify({ day: routineTodayKey(), activities: [] }));
+          return { activities: [], current: null, next: null, progress: 0, done: 0, past: [] };
+        }
+        const activities = [...plan.activities].sort((a, b) => {
+          const at = routineTargetMs(a);
+          const bt = routineTargetMs(b);
+          if (at === null && bt === null) return 0;
+          if (at === null) return 1;
+          if (bt === null) return -1;
+          return at - bt;
+        });
+        const now = Date.now();
+        const timed = activities.filter((item) => routineTargetMs(item) !== null);
+        let current = timed.filter((item) => routineTargetMs(item) <= now && !item.completed).at(-1)
+          || activities.find((item) => !item.completed && routineTargetMs(item) === null)
+          || null;
+        if (!current) current = activities.find((item) => !item.completed) || null;
+        const next = activities.find((item) => !item.completed && item.id !== current?.id && (routineTargetMs(item) ?? Infinity) > now)
+          || activities.find((item) => !item.completed && item.id !== current?.id)
+          || null;
+        const past = activities.filter((item) => item.completed || (routineTargetMs(item) !== null && routineTargetMs(item) < now && item.id !== current?.id));
+        const done = activities.filter((item) => item.completed).length;
+        const progress = activities.length ? Math.round((done / activities.length) * 100) : 0;
+        return { activities, current, next, progress, done, past };
+      }
+
+      // referências do modal
+      const routineModalActions = document.getElementById('nv-routine-modal-actions');
+      const routineModalComplete = document.getElementById('nv-routine-modal-complete');
+
+      function completeRoutineActivity(id) {
+        const plan = readJson(NV_ROUTINE_KEY, null);
+        if (!plan || !Array.isArray(plan.activities)) return;
+        const item = plan.activities.find((a) => a.id === id);
+        if (!item || item.completed) return;
+        item.completed = true;
+        item.completedAt = new Date().toISOString();
+        const history = readJson(NV_ROUTINE_HISTORY_KEY, []);
+        history.unshift({
+          id: item.id,
+          name: item.name,
+          icon: item.icon,
+          time: item.time,
+          completedAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          date: routineTodayKey(),
+          type: 'completed',
+        });
+        localStorage.setItem(NV_ROUTINE_HISTORY_KEY, JSON.stringify(history.slice(0, 240)));
+        localStorage.setItem(NV_ROUTINE_KEY, JSON.stringify(plan));
+        window.dispatchEvent(new Event('nv-routine-updated'));
+        updateTimerUI();
+      }
+
+      routineModalComplete?.addEventListener('click', () => {
+        const { current } = getRoutineSnapshot();
+        if (!current) return;
+        const ok = window.confirm(`Confirmar conclusão de "${current.name}"?\n\nEssa ação não pode ser desfeita.`);
+        if (!ok) return;
+        completeRoutineActivity(current.id);
+      });
+
+      function updateRoutineUI() {
+        const settings = readJson(NV_ROUTINE_SETTINGS_KEY, { hidden: false });
+        const { activities, current, next, progress, done, past } = getRoutineSnapshot();
+        const hasRoutine = activities.length > 0;
+        if (!hasRoutine || settings.hidden) {
+          widget?.setAttribute('hidden', '');
+          modal?.setAttribute('hidden', '');
+          return;
+        }
+
+        const active = current || next || activities[0];
+        const activeTarget = routineTargetMs(active);
+        const liveCountdown = activeTarget !== null ? routineFormatUntil(active) : null;
+
+        widget?.removeAttribute('hidden');
+        widget?.classList.add('nv-routine-widget');
+        widgetIcon.textContent = active?.icon || '📍';
+        widgetTitle.textContent = active?.name || 'Plano do Dia';
+        const humanRemaining = activeTarget !== null ? routineFormatHumanRemaining(active) : '';
+        widgetSubtitle.textContent = humanRemaining
+          || (next ? `Próxima: ${next.name} • ${routineFormatHumanRemaining(next) || routineFormatUntil(next)}` : `${done} de ${activities.length} concluídas`);
+        widget.style.setProperty('background', active?.color || 'linear-gradient(135deg, var(--blue), var(--mint))', 'important');
+
+        document.getElementById('nv-timer-modal-title').textContent = 'Plano do Dia';
+        modalIcon.textContent = active?.icon || '📍';
+        modalActivity.textContent = active?.name || 'Rotina visual';
+        modalTheme.textContent = next ? `Depois: ${next.icon || '⏳'} ${next.name}` : 'Depois: plano finalizado';
+        // Cronômetro exato HH:MM:SS quando há horário definido
+        modalRemaining.textContent = activeTarget !== null
+          ? routineFormatClock(active)
+          : (next ? routineFormatUntil(next) : 'Tudo concluído');
+        const statusBase = current && !current.completed
+          ? `Em andamento • ${done} de ${activities.length} concluídas`
+          : `${done} de ${activities.length} atividades concluídas`;
+        modalStatus.textContent = humanRemaining ? `${humanRemaining} • ${statusBase}` : statusBase;
+        barFill.style.width = `${progress}%`;
+        barFill.style.background = active?.color || 'var(--blue)';
+
+        routineSummary?.removeAttribute('hidden');
+        routineModalList?.removeAttribute('hidden');
+        routineModalHistory?.removeAttribute('hidden');
+        if (routineModalNow) routineModalNow.textContent = current ? `${current.icon || '📍'} ${current.name}` : 'Nenhuma atividade atual';
+        if (routineModalNext) routineModalNext.textContent = next ? `${next.icon || '⏳'} ${next.name} (${routineFormatUntil(next)})` : 'Sem próxima atividade';
+
+        // Mostra botão Concluir agora só quando existe uma atividade atual pendente
+        if (current && !current.completed) {
+          routineModalActions?.removeAttribute('hidden');
+          if (routineModalComplete) routineModalComplete.textContent = `✅ Concluir "${current.name}"`;
+        } else {
+          routineModalActions?.setAttribute('hidden', '');
+        }
+
+        if (routineModalList) {
+          const now = Date.now();
+          const upcoming = activities.filter((item) => !item.completed && item.id !== current?.id && (routineTargetMs(item) ?? Infinity) >= now);
+          const pastList = activities.filter((item) => item.completed || (routineTargetMs(item) !== null && routineTargetMs(item) < now && item.id !== current?.id));
+          const renderItem = (item, tag) => `
+            <div class="nv-routine-modal-item ${item.completed ? 'done' : item.id === current?.id ? 'current' : ''}">
+              <span>${escapeHtml(item.icon || '📍')}</span>
+              <strong>${escapeHtml(item.name)}</strong>
+              <small>${escapeHtml(item.time || '--:--')} ${tag}</small>
+            </div>`;
+          routineModalList.innerHTML = `
+            ${current ? `<div class="nv-routine-modal-section"><strong>📍 Agora</strong>${renderItem(current, '🔵')}</div>` : ''}
+            ${upcoming.length ? `<div class="nv-routine-modal-section"><strong>⏭ Próximas</strong>${upcoming.map((i) => renderItem(i, `⏳ ${routineFormatUntil(i)}`)).join('')}</div>` : ''}
+            ${pastList.length ? `<div class="nv-routine-modal-section nv-routine-modal-past"><strong>↩ Passadas</strong>${pastList.map((i) => renderItem(i, i.completed ? '✅' : '⌛ atrasada')).join('')}</div>` : ''}
+          `;
+        }
+        if (routineModalHistory) {
+          const history = readJson(NV_ROUTINE_HISTORY_KEY, []).filter((entry) => entry.date === routineTodayKey()).slice(0, 6);
+          routineModalHistory.innerHTML = `<strong>Histórico do dia</strong>${history.length ? history.map((entry) => `<span>${escapeHtml(entry.completedAt || entry.time || '--:--')} — ${escapeHtml(entry.label || `${entry.name} concluído`)}</span>`).join('') : '<span>Nenhum registro ainda.</span>'}`;
+        }
       }
 
       function setHistoryEntry(timer) {
@@ -186,10 +525,8 @@ const {
 
       function updateTimerUI() {
         const timer = loadTimer();
-        console.log('NVTimer.updateTimerUI -> timer:', timer);
         if (!timer) {
-          widget?.setAttribute('hidden', '');
-          modal?.setAttribute('hidden', '');
+          updateRoutineUI();
           return;
         }
 
@@ -207,13 +544,9 @@ const {
         const isRunningActive = status === 'running' && remaining > 0 && duration > 0;
         const isPausedActive = status === 'paused' && pausedRemaining > 0;
         const isWaitingState = status === 'aguardando' || status === 'waiting' || status === 'idle' || status === 'pending';
-        console.log('NVTimer.state', { status, remaining, duration, pausedRemaining, isRunningActive, isPausedActive, isWaitingState });
-
         // Only show the widget/modal when there is an actually active timer
         if (!isRunningActive && !isPausedActive) {
-          console.log('NVTimer: hiding widget (no active timer)');
-          widget?.setAttribute('hidden', '');
-          modal?.setAttribute('hidden', '');
+          updateRoutineUI();
           return;
         }
 
@@ -221,23 +554,30 @@ const {
         const tone = getColorTone(timer);
 
         widget?.removeAttribute('hidden');
+        widget?.classList.remove('nv-routine-widget');
         widgetIcon.textContent = timer.icon || '⏱️';
+        widgetTitle.textContent = timer.name || 'Temporizador';
+        widgetSubtitle.textContent = formatShort(remaining);
         if (timer.color) {
-          widget.style.background = timer.color;
+          widget.style.setProperty('background', timer.color, 'important');
           if (widgetIcon) widgetIcon.style.color = '#fff';
         } else {
-          widget.style.background = 'linear-gradient(135deg, var(--blue), var(--mint))';
+          widget.style.setProperty('background', 'linear-gradient(135deg, var(--blue), var(--mint))', 'important');
           if (widgetIcon) widgetIcon.style.color = '#fff';
         }
         widget.style.boxShadow = '0 18px 36px rgba(16,24,40,0.24)';
 
         modalIcon.textContent = timer.icon || '⏱️';
+        document.getElementById('nv-timer-modal-title').textContent = 'Atividade em andamento';
         modalActivity.textContent = timer.name || 'Atividade';
         modalTheme.textContent = `Tema: ${timer.theme.replace(/-/g, ' ')}`;
         modalRemaining.textContent = formatTime(remaining);
         modalStatus.textContent = timer.status === 'running' ? 'Em andamento' : 'Pausado';
         barFill.style.width = `${progress}%`;
         barFill.style.background = tone;
+        routineSummary?.setAttribute('hidden', '');
+        routineModalList?.setAttribute('hidden', '');
+        routineModalHistory?.setAttribute('hidden', '');
 
         pauseButton?.classList.toggle('hidden', timer.status !== 'running');
         resumeButton?.classList.toggle('hidden', timer.status !== 'paused');
@@ -362,13 +702,35 @@ const {
         getTimer() { return loadTimer(); },
       };
 
-      setInterval(sync, 500);
-      document.addEventListener('DOMContentLoaded', updateTimerUI);
+      window.NVRoutine = {
+        refreshUI() { updateTimerUI(); },
+        getSnapshot() { return getRoutineSnapshot(); },
+        showWidget() {
+          const settings = readJson(NV_ROUTINE_SETTINGS_KEY, { hidden: false });
+          localStorage.setItem(NV_ROUTINE_SETTINGS_KEY, JSON.stringify({ ...settings, hidden: false }));
+          updateTimerUI();
+        },
+        hideWidget() {
+          const settings = readJson(NV_ROUTINE_SETTINGS_KEY, { hidden: false });
+          localStorage.setItem(NV_ROUTINE_SETTINGS_KEY, JSON.stringify({ ...settings, hidden: true }));
+          updateTimerUI();
+        },
+      };
+
+      // Alarmes globais: verifica a cada 500ms se algum horário foi atingido
+      setInterval(tickRoutineAlarmsGlobal, 500);
+      // UI: 250ms para manter o cronômetro do modal sempre exato
+      setInterval(sync, 250);
+      document.addEventListener('DOMContentLoaded', () => {
+        tickRoutineAlarmsGlobal();
+        updateTimerUI();
+      });
 
       // When another tab/page updates the timer in localStorage, refresh UI
       window.addEventListener('storage', (ev) => {
-        if (ev.key === NV_TIMER_KEY) updateTimerUI();
+        if ([NV_TIMER_KEY, NV_ROUTINE_KEY, NV_ROUTINE_HISTORY_KEY, NV_ROUTINE_SETTINGS_KEY].includes(ev.key)) updateTimerUI();
       });
+      window.addEventListener('nv-routine-updated', updateTimerUI);
     </script>
   </body>
 </html>

@@ -271,10 +271,11 @@ input[type="submit"]:focus,
   right: 18px;
   bottom: 18px;
   z-index: 9999;
-  display: grid;
+  display: grid !important;
   place-items: center;
   width: 56px;
   height: 56px;
+  padding: 0 !important;
   background: linear-gradient(135deg, var(--blue), var(--mint));
   border: 1px solid rgba(255, 255, 255, 0.38);
   border-radius: 999px;
@@ -288,6 +289,52 @@ input[type="submit"]:focus,
 
 /* Ensure hidden attribute actually hides the floating widget (overrides author display) */
 .nv-timer-widget[hidden] { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+
+.nv-timer-widget.nv-routine-widget {
+  width: min(300px, calc(100vw - 28px));
+  height: auto;
+  min-height: 72px !important;
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr);
+  justify-items: start;
+  gap: 10px;
+  padding: 10px 14px !important;
+  border-radius: 18px !important;
+  color: #fff !important;
+  text-align: left !important;
+}
+.nv-routine-widget #nv-timer-widget-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.2);
+  font-size: 1.55rem;
+}
+.nv-routine-widget-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.nv-routine-widget-text strong,
+.nv-routine-widget-text small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nv-routine-widget-text strong {
+  color: #fff;
+  font-family: var(--font-head);
+  font-size: 0.98rem;
+  line-height: 1.15;
+}
+.nv-routine-widget-text small {
+  color: rgba(255,255,255,0.88);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
 
 .nv-timer-modal {
   position: fixed;
@@ -370,6 +417,73 @@ input[type="submit"]:focus,
   transition: width 0.4s ease, background 0.4s ease;
 }
 .nv-timer-state { color: var(--text-soft); font-weight: 700; }
+.nv-routine-modal-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.nv-routine-modal-summary[hidden],
+.nv-routine-modal-list[hidden],
+.nv-routine-modal-history[hidden] { display: none; }
+.nv-routine-modal-summary div,
+.nv-routine-modal-history {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.nv-routine-modal-summary span,
+.nv-routine-modal-history span,
+.nv-routine-modal-list small {
+  color: var(--text-soft);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+.nv-routine-modal-summary strong,
+.nv-routine-modal-history strong {
+  font-family: var(--font-head);
+}
+.nv-routine-modal-list {
+  display: grid;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+  padding-right: 4px;
+}
+.nv-routine-modal-item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.nv-routine-modal-item.current {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.14);
+}
+.nv-routine-modal-item.done {
+  opacity: 0.68;
+}
+.nv-routine-modal-item span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 1.25rem;
+}
+.nv-routine-modal-item strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .nv-timer-controls {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -404,7 +518,24 @@ input[type="submit"]:focus,
   box-shadow: 0 18px 50px rgba(0,0,0,0.28);
 }
 .nv-timer-celebration .celebration-message strong { display: block; font-size: 2rem; margin-bottom: 10px; }
-.nv-timer-celebration .celebration-message p { margin: 0; font-size: 1.05rem; color: #d1d5db; }
+  .nv-timer-celebration .celebration-message p { margin: 0; font-size: 1.05rem; color: #d1d5db; }
+
+@media (max-width: 520px) {
+  .nv-timer-widget.nv-routine-widget {
+    right: 10px;
+    bottom: 10px;
+    width: calc(100vw - 20px);
+  }
+  .nv-routine-modal-summary {
+    grid-template-columns: 1fr;
+  }
+  .nv-routine-modal-item {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+  .nv-routine-modal-item small {
+    grid-column: 2;
+  }
+}
 
 @keyframes rain-fall {
   0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
