@@ -673,9 +673,13 @@ import { categories, vocabulary } from '../data/vocabulary';
     width: 100%;
   }
 
-  .aac-icon {
-    font-size: 2.8rem;
+  :global(.aac-icon) {
+    display: block;
+    font-size: 2.4rem !important;
+    margin-bottom: 15px;
     line-height: 1;
+    transform: scale(1.15);
+    transform-origin: center;
     filter: drop-shadow(0 2px 3px rgba(0,0,0,0.10));
   }
 
@@ -745,7 +749,7 @@ import { categories, vocabulary } from '../data/vocabulary';
   /* ── Responsive ──────────────────────────────────────────────────────────── */
   @media (max-width: 600px) {
     .aac-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
-    .aac-icon { font-size: 2.1rem; }
+    :global(.aac-icon) { font-size: 4rem !important; transform: scale(1.15); }
     .aac-label { font-size: 0.76rem; }
     .sb-btn { width: 48px; height: 48px; font-size: 1.3rem; }
   }
@@ -879,8 +883,9 @@ import { categories, vocabulary } from '../data/vocabulary';
       gap: 6px;
       padding: 8px 6px 10px;
     }
-    .aac-icon {
-      font-size: 2rem;
+    :global(.aac-icon) {
+      font-size: 4rem !important;
+      transform: scale(1.15);
     }
     .aac-label {
       font-size: 0.76rem;
@@ -906,8 +911,9 @@ import { categories, vocabulary } from '../data/vocabulary';
       margin-inline: -12px;
       scroll-padding-inline: 12px;
     }
-    .aac-icon {
-      font-size: 1.85rem;
+    :global(.aac-icon) {
+      font-size: 2rem !important;
+      transform: scale(1.15);
     }
     .aac-label {
       font-size: 0.72rem;
