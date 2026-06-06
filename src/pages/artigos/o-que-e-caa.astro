@@ -1,0 +1,125 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="O que é CAA? — NeuroVoz"
+  description="Entenda os fundamentos da Comunicação Aumentativa e Alternativa e como ela apoia crianças não verbais."
+>
+  <article class="article-page">
+    <div class="container article-container">
+      <a href="/recursos" class="back-link">← Voltar para Recursos</a>
+
+      <header class="article-header">
+        <span class="cat">Fundamentos</span>
+        <h1>O que é Comunicação Aumentativa e Alternativa (CAA)?</h1>
+        <p class="article-lead">Entenda os fundamentos da CAA e como ela apoia crianças não verbais a se expressarem com autonomia.</p>
+        <div class="article-meta">
+          <span>💬 Leitura: ~5 min</span>
+          <span>Atualizado em 2025</span>
+        </div>
+      </header>
+
+      <div class="article-body">
+        <h2>Definição</h2>
+        <p>A <strong>Comunicação Aumentativa e Alternativa (CAA)</strong> é um conjunto de estratégias, recursos e técnicas que apoiam ou substituem a fala quando ela é limitada, ausente ou ineficaz. O objetivo é garantir que toda pessoa consiga se expressar, independentemente das suas habilidades verbais.</p>
+
+        <blockquote>"CAA não substitui a fala — ela cria pontes para que a comunicação aconteça de todas as formas possíveis."</blockquote>
+
+        <h2>Aumentativa x Alternativa</h2>
+        <p>É importante entender a diferença entre os dois termos:</p>
+        <ul>
+          <li><strong>Aumentativa:</strong> complementa a fala já existente. A criança que fala algumas palavras usa a CAA para ampliar o que consegue comunicar.</li>
+          <li><strong>Alternativa:</strong> substitui a fala quando ela não é funcional. A criança usa símbolos, imagens ou dispositivos no lugar da voz.</li>
+        </ul>
+        <p>Na prática, a maioria dos sistemas de CAA funciona de forma mista — aumentando onde há fala e substituindo onde não há.</p>
+
+        <h2>Tipos de sistemas de CAA</h2>
+
+        <h3>Sem tecnologia (no-tech)</h3>
+        <ul>
+          <li>Gestos e língua de sinais</li>
+          <li>Expressões faciais intencionais</li>
+          <li>Apontar e indicar</li>
+          <li>Fotografias e objetos concretos</li>
+        </ul>
+
+        <h3>Baixa tecnologia (low-tech)</h3>
+        <ul>
+          <li>Pranchas de comunicação impressas</li>
+          <li>Cartões PECS (Picture Exchange Communication System)</li>
+          <li>Pastas de vocabulário</li>
+          <li>Pranchas de escolha (sim/não)</li>
+        </ul>
+
+        <h3>Alta tecnologia (high-tech)</h3>
+        <ul>
+          <li>Tablets com aplicativos de CAA</li>
+          <li>Dispositivos geradores de fala (SGD)</li>
+          <li>Comunicadores portáteis</li>
+          <li>Software de predição de símbolos</li>
+        </ul>
+
+        <h2>Para quem é a CAA?</h2>
+        <p>A CAA beneficia crianças e adultos com diversas condições que afetam a comunicação, incluindo:</p>
+        <ul>
+          <li>Transtorno do Espectro Autista (TEA)</li>
+          <li>Paralisia cerebral</li>
+          <li>Apraxia de fala</li>
+          <li>Deficiência intelectual</li>
+          <li>Síndrome de Down</li>
+          <li>Traumatismo cranioencefálico</li>
+        </ul>
+
+        <h2>A CAA atrasa a fala?</h2>
+        <p>Esta é uma das dúvidas mais comuns — e a resposta é <strong>não</strong>. Diversas pesquisas indicam que o uso de CAA não inibe o desenvolvimento da fala. Pelo contrário: ao reduzir a frustração comunicativa e criar oportunidades de interação significativa, a CAA pode <em>favorecer</em> o desenvolvimento da linguagem verbal.</p>
+
+        <div class="callout callout-mint">
+          <strong>Dica prática:</strong> Nunca exija que a criança diga a palavra antes de usar a CAA. A comunicação por símbolos é tão válida quanto a fala.
+        </div>
+
+        <h2>Primeiros passos</h2>
+        <ol>
+          <li>Observe como a criança já se comunica (gestos, olhar, vocalizações).</li>
+          <li>Identifique as necessidades comunicativas prioritárias.</li>
+          <li>Comece com um vocabulário pequeno e funcional.</li>
+          <li>Use o sistema junto com a criança — modele o uso!</li>
+          <li>Amplie gradualmente conforme a criança ganha confiança.</li>
+        </ol>
+
+        <div class="article-cta">
+          <p>Pronto para criar uma prancha de comunicação?</p>
+          <a href="/pedagogos" class="btn btn-primary">Ver guia para pedagogos →</a>
+          <a href="/pranchas" class="btn btn-ghost">Criar prancha agora →</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .article-page { padding: 40px 0 80px; }
+  .article-container { max-width: 760px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-soft); font-weight: 700; font-size: 0.9rem; margin-bottom: 28px; transition: color .15s; }
+  .back-link:hover { color: var(--blue); }
+  .cat { display: inline-block; background: var(--mint-soft); color: var(--mint-ink); font-weight: 700; font-size: 0.75rem; padding: 4px 12px; border-radius: 999px; margin-bottom: 14px; }
+  .article-header h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 10px 0 14px; text-wrap: balance; }
+  .article-lead { font-size: 1.15rem; color: var(--text-soft); margin-bottom: 16px; }
+  .article-meta { display: flex; gap: 18px; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 12px 0; margin-bottom: 36px; }
+
+  .article-body h2 { font-size: 1.45rem; margin: 36px 0 12px; padding-top: 8px; border-top: 2px solid var(--border); }
+  .article-body h3 { font-size: 1.1rem; margin: 24px 0 8px; color: var(--blue-ink); }
+  .article-body p { color: var(--text-soft); line-height: 1.75; margin-bottom: 16px; }
+  .article-body ul, .article-body ol { color: var(--text-soft); line-height: 1.75; margin: 0 0 16px 24px; display: flex; flex-direction: column; gap: 6px; }
+  .article-body strong { color: var(--text); }
+  .article-body em { color: var(--mint-ink); }
+
+  blockquote { border-left: 4px solid var(--blue); padding: 14px 20px; margin: 24px 0; background: var(--bg-alt); border-radius: 0 12px 12px 0; font-style: italic; color: var(--text-soft); }
+
+  .callout { border-radius: var(--radius); padding: 18px 22px; margin: 28px 0; }
+  .callout-mint { background: var(--mint-soft); color: var(--mint-ink); }
+
+  .article-cta { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; margin-top: 48px; text-align: center; }
+  .article-cta p { font-family: var(--font-head); font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; }
+  .article-cta .btn { margin: 6px; }
+</style>

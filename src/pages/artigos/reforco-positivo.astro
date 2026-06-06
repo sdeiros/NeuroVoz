@@ -1,0 +1,89 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="Reforço positivo na comunicação — NeuroVoz"
+  description="Como celebrar cada tentativa comunicativa da criança e fortalecer o vínculo comunicativo."
+>
+  <article class="article-page">
+    <div class="container article-container">
+      <a href="/recursos" class="back-link">← Voltar para Recursos</a>
+
+      <header class="article-header">
+        <span class="cat">Estratégia</span>
+        <h1>Reforço positivo na comunicação</h1>
+        <p class="article-lead">Como celebrar cada tentativa comunicativa da criança — e por que isso é a base de qualquer progresso.</p>
+        <div class="article-meta">
+          <span>⭐ Leitura: ~4 min</span>
+          <span>Atualizado em 2025</span>
+        </div>
+      </header>
+
+      <div class="article-body">
+        <h2>O que é reforço positivo</h2>
+        <p>Reforço positivo é qualquer consequência que aumenta a probabilidade de um comportamento se repetir. Na comunicação, significa que toda vez que a criança tenta se comunicar — de qualquer forma — a tentativa vale a pena para ela.</p>
+        <p>O princípio parece simples, mas na prática exige atenção: o reforço precisa ser <strong>imediato</strong>, <strong>consistente</strong> e <strong>significativo para a criança</strong> — não para o adulto.</p>
+
+        <h2>Celebrar a tentativa, não a perfeição</h2>
+        <p>Um erro comum é só reforçar comunicações "corretas" ou completas. A criança aponta vagamente para a geladeira? Isso é comunicação. Ela vocaliza sem palavras claras? Comunicação. Ela olha para o adulto e olha para o objeto? Comunicação.</p>
+
+        <div class="callout callout-mint">
+          <strong>Regra prática:</strong> Responda a TODA tentativa comunicativa como se fosse intencional. Com o tempo, ela ficará mais refinada naturalmente.
+        </div>
+
+        <h2>Tipos de reforço na comunicação</h2>
+
+        <h3>Reforço natural (o melhor tipo)</h3>
+        <p>O melhor reforço é a própria consequência da comunicação: a criança pede água → recebe água. Pede para brincar → brinca. Essa conexão direta entre comunicar e obter o que deseja é o motor mais poderoso do aprendizado.</p>
+
+        <h3>Reforço social</h3>
+        <p>Elogios, sorrisos, entusiasmo do adulto. Funciona muito para crianças que buscam aprovação social. Use com moderação — celebrações exageradas podem distrair da própria comunicação.</p>
+
+        <h3>Reforço por acesso a preferências</h3>
+        <p>Quando a comunicação bem-sucedida leva ao acesso a algo muito desejado (uma música favorita, um brinquedo especial), o aprendizado é acelerado.</p>
+
+        <h2>Erros comuns a evitar</h2>
+        <ul>
+          <li><strong>Reforço atrasado:</strong> se a recompensa vem 10 minutos depois, a criança não conecta a comunicação à consequência.</li>
+          <li><strong>Ignorar tentativas:</strong> não responder a uma tentativa comunicativa ensina que comunicar não adianta.</li>
+          <li><strong>Exigir fala antes de reforçar:</strong> a fala pode vir depois — o que importa agora é a comunicação funcional.</li>
+          <li><strong>Reforço inconsistente:</strong> se às vezes funciona e às vezes não, a criança aprende a insistir mais, não a comunicar melhor.</li>
+        </ul>
+
+        <h2>Construindo o repertório comunicativo</h2>
+        <p>O reforço positivo também serve para ampliar o vocabulário. Quando você responde entusiasticamente a novos símbolos na prancha — "Olha, você usou 'brincar'! Ótimo!" — e imediatamente oferece a atividade, o novo símbolo se conecta a consequências positivas e é usado novamente.</p>
+
+        <blockquote>"A comunicação que funciona é a comunicação que se repete."</blockquote>
+
+        <div class="article-cta">
+          <p>Registre e acompanhe o progresso comunicativo da criança.</p>
+          <a href="/historico" class="btn btn-primary">Ver dashboard de evolução →</a>
+          <a href="/tablet" class="btn btn-ghost">Usar o comunicador →</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .article-page { padding: 40px 0 80px; }
+  .article-container { max-width: 760px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-soft); font-weight: 700; font-size: 0.9rem; margin-bottom: 28px; transition: color .15s; }
+  .back-link:hover { color: var(--blue); }
+  .cat { display: inline-block; background: #fffbdb; color: #8a6800; font-weight: 700; font-size: 0.75rem; padding: 4px 12px; border-radius: 999px; margin-bottom: 14px; }
+  .article-header h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 10px 0 14px; text-wrap: balance; }
+  .article-lead { font-size: 1.15rem; color: var(--text-soft); margin-bottom: 16px; }
+  .article-meta { display: flex; gap: 18px; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 12px 0; margin-bottom: 36px; }
+  .article-body h2 { font-size: 1.45rem; margin: 36px 0 12px; padding-top: 8px; border-top: 2px solid var(--border); }
+  .article-body h3 { font-size: 1.1rem; margin: 24px 0 8px; color: var(--blue-ink); }
+  .article-body p { color: var(--text-soft); line-height: 1.75; margin-bottom: 16px; }
+  .article-body ul { color: var(--text-soft); line-height: 1.75; margin: 0 0 16px 24px; display: flex; flex-direction: column; gap: 6px; }
+  .article-body strong { color: var(--text); }
+  blockquote { border-left: 4px solid var(--sun); padding: 14px 20px; margin: 24px 0; background: var(--bg-alt); border-radius: 0 12px 12px 0; font-style: italic; color: var(--text-soft); }
+  .callout { border-radius: var(--radius); padding: 18px 22px; margin: 28px 0; }
+  .callout-mint { background: var(--mint-soft); color: var(--mint-ink); }
+  .article-cta { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; margin-top: 48px; text-align: center; }
+  .article-cta p { font-family: var(--font-head); font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; }
+  .article-cta .btn { margin: 6px; }
+</style>

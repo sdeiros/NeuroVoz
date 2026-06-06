@@ -1,0 +1,128 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="PECS x Pranchas digitais — NeuroVoz"
+  description="Vantagens e limites de cada abordagem para comunicação visual: PECS físico versus pranchas digitais."
+>
+  <article class="article-page">
+    <div class="container article-container">
+      <a href="/recursos" class="back-link">← Voltar para Recursos</a>
+
+      <header class="article-header">
+        <span class="cat">Comparativo</span>
+        <h1>PECS x Pranchas digitais</h1>
+        <p class="article-lead">Vantagens e limites de cada abordagem — e como decidir qual é a mais adequada para cada criança.</p>
+        <div class="article-meta">
+          <span>⚖️ Leitura: ~5 min</span>
+          <span>Atualizado em 2025</span>
+        </div>
+      </header>
+
+      <div class="article-body">
+        <h2>O que é o PECS?</h2>
+        <p>O <strong>PECS (Picture Exchange Communication System)</strong> é um sistema de comunicação baseado em troca física de figuras. Desenvolvido nos anos 1980, ele segue um protocolo estruturado em 6 fases — da troca simples de uma figura até a construção de frases.</p>
+        <p>O PECS físico usa cartões impressos ou plastificados com pictogramas que a criança entrega a um parceiro comunicativo para fazer pedidos e comentários.</p>
+
+        <h2>O que são pranchas digitais?</h2>
+        <p>Pranchas digitais são versões eletrônicas — em tablets, smartphones ou computadores — que reproduzem a mesma lógica de símbolos, mas com recursos adicionais como voz sintetizada, categorias dinâmicas e personalização fácil.</p>
+
+        <div class="compare-table">
+          <div class="compare-col">
+            <h3>📋 PECS físico</h3>
+            <ul class="pros">
+              <li>Sem dependência de bateria ou internet</li>
+              <li>Protocolo validado por décadas de pesquisa</li>
+              <li>Feedback tátil real (a criança entrega o cartão)</li>
+              <li>Baixo custo inicial</li>
+              <li>Funciona em qualquer ambiente</li>
+            </ul>
+            <ul class="cons">
+              <li>Vocabulário limitado ao que cabe na pasta</li>
+              <li>Risco de perda ou dano dos cartões</li>
+              <li>Atualização trabalhosa (imprimir, plastificar)</li>
+              <li>Menos motivador para crianças que adoram tecnologia</li>
+            </ul>
+          </div>
+          <div class="compare-col">
+            <h3>📱 Prancha digital</h3>
+            <ul class="pros">
+              <li>Vocabulário ilimitado e fácil de expandir</li>
+              <li>Voz sintetizada — a prancha "fala" por si só</li>
+              <li>Personalização rápida (fotos, categorias)</li>
+              <li>Portátil e sempre atualizado</li>
+              <li>Registro automático de uso para acompanhamento</li>
+            </ul>
+            <ul class="cons">
+              <li>Depende de bateria e dispositivo funcionando</li>
+              <li>Custo do dispositivo (tablet, smartphone)</li>
+              <li>Risco de distração com outras funções do tablet</li>
+              <li>Pode ser roubado ou quebrado</li>
+            </ul>
+          </div>
+        </div>
+
+        <h2>Qual escolher?</h2>
+        <p>A resposta depende de vários fatores individuais. Use este guia como orientação:</p>
+
+        <h3>Escolha PECS físico quando:</h3>
+        <ul>
+          <li>A criança está no início do processo de CAA (fases 1 e 2 do PECS).</li>
+          <li>O ambiente não tem acesso consistente a dispositivos ou energia.</li>
+          <li>A criança tem hiperfoco em telas e o tablet vira distração.</li>
+          <li>O feedback tátil parece importante para a criança.</li>
+        </ul>
+
+        <h3>Escolha prancha digital quando:</h3>
+        <ul>
+          <li>A criança já domina a ideia de troca/seleção de símbolo.</li>
+          <li>O vocabulário precisa crescer rapidamente.</li>
+          <li>A criança é motivada por tecnologia e voz sintetizada.</li>
+          <li>A equipe quer acompanhar o progresso automaticamente.</li>
+        </ul>
+
+        <div class="callout callout-mint">
+          <strong>Abordagem híbrida:</strong> Muitas equipes usam PECS físico para introduzir o conceito e migram para o digital à medida que a criança evolui. Não precisa ser uma escolha permanente.
+        </div>
+
+        <h2>Evidências científicas</h2>
+        <p>Ambas as abordagens têm respaldo em pesquisas. Uma revisão sistemática de 2020 (Ganz et al.) não encontrou diferença significativa na eficácia comunicativa entre sistemas físicos e digitais — o fator mais importante foi a consistência de uso pelos adultos ao redor da criança.</p>
+
+        <div class="article-cta">
+          <p>Experimente o comunicador digital do NeuroVoz — gratuito e sem cadastro.</p>
+          <a href="/tablet" class="btn btn-primary">Abrir tablet comunicador →</a>
+          <a href="/pranchas" class="btn btn-ghost">Criar prancha impressa →</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .article-page { padding: 40px 0 80px; }
+  .article-container { max-width: 760px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-soft); font-weight: 700; font-size: 0.9rem; margin-bottom: 28px; transition: color .15s; }
+  .back-link:hover { color: var(--blue); }
+  .cat { display: inline-block; background: #f0f0ff; color: #4a3fbf; font-weight: 700; font-size: 0.75rem; padding: 4px 12px; border-radius: 999px; margin-bottom: 14px; }
+  .article-header h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 10px 0 14px; text-wrap: balance; }
+  .article-lead { font-size: 1.15rem; color: var(--text-soft); margin-bottom: 16px; }
+  .article-meta { display: flex; gap: 18px; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 12px 0; margin-bottom: 36px; }
+  .article-body h2 { font-size: 1.45rem; margin: 36px 0 12px; padding-top: 8px; border-top: 2px solid var(--border); }
+  .article-body h3 { font-size: 1.1rem; margin: 24px 0 8px; color: var(--blue-ink); }
+  .article-body p { color: var(--text-soft); line-height: 1.75; margin-bottom: 16px; }
+  .article-body ul { color: var(--text-soft); line-height: 1.75; margin: 0 0 10px 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .article-body strong { color: var(--text); }
+  .compare-table { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 28px 0; }
+  .compare-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .compare-col h3 { font-size: 1rem; margin-bottom: 14px; }
+  .pros li::before { content: '✓ '; color: var(--mint-ink); font-weight: 900; }
+  .cons li::before { content: '✗ '; color: #e23b3b; font-weight: 900; }
+  .pros, .cons { margin-bottom: 12px; }
+  .callout { border-radius: var(--radius); padding: 18px 22px; margin: 28px 0; }
+  .callout-mint { background: var(--mint-soft); color: var(--mint-ink); }
+  .article-cta { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; margin-top: 48px; text-align: center; }
+  .article-cta p { font-family: var(--font-head); font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; }
+  .article-cta .btn { margin: 6px; }
+  @media (max-width: 600px) { .compare-table { grid-template-columns: 1fr; } }
+</style>

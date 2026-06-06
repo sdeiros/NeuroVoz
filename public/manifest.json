@@ -1,0 +1,47 @@
+{
+  "name": "NeuroVoz — Autismo e Comunicação Alternativa",
+  "short_name": "NeuroVoz",
+  "description": "Plataforma educacional e acessível sobre autismo (TEA) e Comunicação Aumentativa e Alternativa (CAA). Toda criança tem algo a dizer.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f8fd",
+  "theme_color": "#5b8def",
+  "orientation": "any",
+  "lang": "pt-BR",
+  "categories": ["education", "health", "medical"],
+  "icons": [
+    {
+      "src": "/icon-light-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tablet Comunicador",
+      "short_name": "Comunicador",
+      "description": "Abrir o comunicador AAC com voz sintetizada",
+      "url": "/tablet",
+      "icons": [{ "src": "/icon-light-32x32.png", "sizes": "32x32" }]
+    },
+    {
+      "name": "Criar Prancha",
+      "short_name": "Prancha",
+      "description": "Criar uma prancha de comunicação personalizada",
+      "url": "/pranchas",
+      "icons": [{ "src": "/icon-light-32x32.png", "sizes": "32x32" }]
+    }
+  ],
+  "screenshots": []
+}

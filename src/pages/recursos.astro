@@ -9,12 +9,12 @@ const tools = [
 ];
 
 const articles = [
-  { title: 'O que é Comunicação Aumentativa e Alternativa (CAA)?', desc: 'Entenda os fundamentos da CAA e como ela apoia crianças não verbais.', icon: '💬', cat: 'Fundamentos' },
-  { title: 'Como introduzir uma prancha de comunicação', desc: 'Estratégias práticas para os primeiros dias de uso em sala de aula.', icon: '🪜', cat: 'Prática' },
-  { title: 'PECS x Pranchas digitais', desc: 'Vantagens e limites de cada abordagem para a comunicação visual.', icon: '⚖️', cat: 'Comparativo' },
-  { title: 'Rotina visual e previsibilidade', desc: 'Por que antecipar as atividades reduz a ansiedade e crises.', icon: '🗓️', cat: 'Prática' },
-  { title: 'Reforço positivo na comunicação', desc: 'Como celebrar cada tentativa comunicativa da criança.', icon: '⭐', cat: 'Estratégia' },
-  { title: 'Parceria escola e família', desc: 'Mantendo o mesmo vocabulário em casa e na escola.', icon: '🤝', cat: 'Inclusão' },
+  { title: 'O que é Comunicação Aumentativa e Alternativa (CAA)?', desc: 'Entenda os fundamentos da CAA e como ela apoia crianças não verbais.', icon: '💬', cat: 'Fundamentos', href: '/artigos/o-que-e-caa' },
+  { title: 'Como introduzir uma prancha de comunicação', desc: 'Estratégias práticas para os primeiros dias de uso em sala de aula.', icon: '🪜', cat: 'Prática', href: '/artigos/introduzir-prancha' },
+  { title: 'PECS x Pranchas digitais', desc: 'Vantagens e limites de cada abordagem para a comunicação visual.', icon: '⚖️', cat: 'Comparativo', href: '/artigos/pecs-vs-digital' },
+  { title: 'Rotina visual e previsibilidade', desc: 'Por que antecipar as atividades reduz a ansiedade e crises.', icon: '🗓️', cat: 'Prática', href: '/artigos/rotina-visual' },
+  { title: 'Reforço positivo na comunicação', desc: 'Como celebrar cada tentativa comunicativa da criança.', icon: '⭐', cat: 'Estratégia', href: '/artigos/reforco-positivo' },
+  { title: 'Parceria escola e família', desc: 'Mantendo o mesmo vocabulário em casa e na escola.', icon: '🤝', cat: 'Inclusão', href: '/artigos/parceria-escola-familia' },
 ];
 
 const downloads = [
@@ -62,13 +62,13 @@ const faqs = [
       <h2 class="section-title">Artigos e guias</h2>
       <div class="grid grid-3" style="margin-top:24px">
         {articles.map((a) => (
-          <article class="card card-hover reveal">
+          <a href={a.href} class="card card-hover reveal article-card">
             <span class="r-icon" aria-hidden="true">{a.icon}</span>
             <span class="cat">{a.cat}</span>
             <h3>{a.title}</h3>
             <p class="muted">{a.desc}</p>
             <span class="read">Ler artigo →</span>
-          </article>
+          </a>
         ))}
       </div>
     </div>
@@ -117,7 +117,8 @@ const faqs = [
   .pill { display: inline-block; background: var(--blue-soft); color: var(--blue-ink); font-weight: 700; font-size: 0.72rem; padding: 3px 10px; border-radius: 999px; margin-bottom: 6px; }
   .cat { display: inline-block; background: var(--mint-soft); color: var(--mint-ink); font-weight: 700; font-size: 0.72rem; padding: 3px 10px; border-radius: 999px; margin-bottom: 6px; }
   .card h3 { font-size: 1.08rem; margin-bottom: 6px; }
-  .read { color: var(--blue); font-weight: 800; font-size: 0.9rem; margin-top: 10px; display: inline-block; }
+  .read { color: var(--blue); font-weight: 800; font-size: 0.9rem; margin-top: auto; display: inline-block; }
+  .article-card { display: flex; flex-direction: column; }
   .download { display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; }
   .download .btn { width: 100%; }
 

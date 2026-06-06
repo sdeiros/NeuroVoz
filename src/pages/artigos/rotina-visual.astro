@@ -1,0 +1,98 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="Rotina visual e previsibilidade — NeuroVoz"
+  description="Por que antecipar atividades reduz a ansiedade e crises em crianças autistas."
+>
+  <article class="article-page">
+    <div class="container article-container">
+      <a href="/recursos" class="back-link">← Voltar para Recursos</a>
+
+      <header class="article-header">
+        <span class="cat">Prática</span>
+        <h1>Rotina visual e previsibilidade</h1>
+        <p class="article-lead">Por que antecipar as atividades reduz a ansiedade e crises — e como montar uma rotina visual eficaz.</p>
+        <div class="article-meta">
+          <span>🗓️ Leitura: ~5 min</span>
+          <span>Atualizado em 2025</span>
+        </div>
+      </header>
+
+      <div class="article-body">
+        <h2>Por que o imprevisível é difícil</h2>
+        <p>Para muitas crianças autistas, a incerteza sobre o que vai acontecer a seguir é uma fonte constante de estresse. O cérebro está em estado de alerta permanente — tentando prever o que vem a seguir. Quando não consegue, a resposta pode ser ansiedade, comportamentos de fuga ou crises de desregulação.</p>
+        <p>A <strong>rotina visual</strong> é uma das intervenções mais simples e eficazes para reduzir essa carga: ela torna o futuro visível e concreto.</p>
+
+        <blockquote>"Previsibilidade não é rigidez. É segurança."</blockquote>
+
+        <h2>O que é uma rotina visual</h2>
+        <p>Uma rotina visual é uma sequência de imagens, símbolos ou ícones que representam as atividades do dia — em ordem cronológica. A criança pode ver, ao longo do dia, o que já aconteceu e o que vem a seguir.</p>
+        <ul>
+          <li>Pode ser impressa em cartões e fixada na parede.</li>
+          <li>Pode ser digital, em tablet ou tela.</li>
+          <li>Pode ser para o dia inteiro ou apenas para uma atividade específica (p.ex.: rotina do banho).</li>
+        </ul>
+
+        <h2>Como montar uma rotina visual eficaz</h2>
+
+        <h3>1. Use símbolos que a criança reconhece</h3>
+        <p>Fotos reais do ambiente da criança (a escola dela, o banheiro dela) costumam funcionar melhor do que pictogramas genéricos. Sempre que possível, personalize.</p>
+
+        <h3>2. Mantenha o número de itens gerenciável</h3>
+        <p>Comece com 4 a 6 atividades. Muitos itens ao mesmo tempo podem ser sobrecarregantes. Conforme a criança se habitua, amplie gradualmente.</p>
+
+        <h3>3. Sinalize as transições</h3>
+        <p>Use um marcador (um envelope, um cartão "feito") para indicar que a atividade acabou. A criança move o cartão ou vira-o para baixo — isso cria uma sensação concreta de conclusão.</p>
+
+        <h3>4. Antecipe mudanças</h3>
+        <p>Quando a rotina precisar mudar (consulta, feriado, professor substituto), avise com antecedência. Use um cartão de "surpresa" ou "mudança" que a criança já conheça e associe a alterações planejadas.</p>
+
+        <div class="callout callout-mint">
+          <strong>Dica:</strong> Reserve 2 a 3 minutos antes de cada transição para revisar a rotina visual com a criança. "Olha, acabou o recreio. O que vem a seguir?" — isso prepara o cérebro para a mudança.
+        </div>
+
+        <h2>Rotina visual x rigidez comportamental</h2>
+        <p>Uma dúvida comum: usar rotina visual não vai aumentar a rigidez da criança? A resposta, na maioria dos casos, é não. A rotina visual oferece <em>previsibilidade gerenciada</em> — ela própria pode incluir "tempo livre" ou "atividade surpresa", ensinando a criança a lidar com variações dentro de um contexto seguro.</p>
+
+        <h2>Rotinas para momentos específicos</h2>
+        <p>Além da rotina do dia, rotinas visuais para atividades isoladas são muito eficazes:</p>
+        <ul>
+          <li><strong>Rotina do banho:</strong> tirar roupa → entrar na ducha → se lavar → se enxugar → se vestir.</li>
+          <li><strong>Rotina da chegada na escola:</strong> pendurar a mochila → cumprimentar o professor → sentar → pegar o material.</li>
+          <li><strong>Rotina da refeição:</strong> lavar as mãos → sentar → comer → limpar a boca → levantar.</li>
+        </ul>
+
+        <div class="article-cta">
+          <p>Monte cartões de rotina personalizados com o NeuroVoz.</p>
+          <a href="/pranchas" class="btn btn-primary">Criar cartões de rotina →</a>
+          <a href="/autismo" class="btn btn-ghost">Entender mais sobre TEA →</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .article-page { padding: 40px 0 80px; }
+  .article-container { max-width: 760px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-soft); font-weight: 700; font-size: 0.9rem; margin-bottom: 28px; transition: color .15s; }
+  .back-link:hover { color: var(--blue); }
+  .cat { display: inline-block; background: #fff5ec; color: #c2601a; font-weight: 700; font-size: 0.75rem; padding: 4px 12px; border-radius: 999px; margin-bottom: 14px; }
+  .article-header h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 10px 0 14px; text-wrap: balance; }
+  .article-lead { font-size: 1.15rem; color: var(--text-soft); margin-bottom: 16px; }
+  .article-meta { display: flex; gap: 18px; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 12px 0; margin-bottom: 36px; }
+  .article-body h2 { font-size: 1.45rem; margin: 36px 0 12px; padding-top: 8px; border-top: 2px solid var(--border); }
+  .article-body h3 { font-size: 1.1rem; margin: 24px 0 8px; color: var(--blue-ink); }
+  .article-body p { color: var(--text-soft); line-height: 1.75; margin-bottom: 16px; }
+  .article-body ul { color: var(--text-soft); line-height: 1.75; margin: 0 0 16px 24px; display: flex; flex-direction: column; gap: 6px; }
+  .article-body strong { color: var(--text); }
+  .article-body em { color: var(--mint-ink); }
+  blockquote { border-left: 4px solid var(--mint); padding: 14px 20px; margin: 24px 0; background: var(--bg-alt); border-radius: 0 12px 12px 0; font-style: italic; color: var(--text-soft); }
+  .callout { border-radius: var(--radius); padding: 18px 22px; margin: 28px 0; }
+  .callout-mint { background: var(--mint-soft); color: var(--mint-ink); }
+  .article-cta { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; margin-top: 48px; text-align: center; }
+  .article-cta p { font-family: var(--font-head); font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; }
+  .article-cta .btn { margin: 6px; }
+</style>

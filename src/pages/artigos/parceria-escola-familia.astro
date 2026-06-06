@@ -1,0 +1,101 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base
+  title="Parceria escola e família — NeuroVoz"
+  description="Como manter o mesmo vocabulário em casa e na escola para potencializar a comunicação da criança."
+>
+  <article class="article-page">
+    <div class="container article-container">
+      <a href="/recursos" class="back-link">← Voltar para Recursos</a>
+
+      <header class="article-header">
+        <span class="cat">Inclusão</span>
+        <h1>Parceria escola e família</h1>
+        <p class="article-lead">Mantendo o mesmo vocabulário em casa e na escola — por que a consistência entre ambientes é fundamental para o progresso.</p>
+        <div class="article-meta">
+          <span>🤝 Leitura: ~5 min</span>
+          <span>Atualizado em 2025</span>
+        </div>
+      </header>
+
+      <div class="article-body">
+        <h2>Por que a consistência importa</h2>
+        <p>A criança não aprende a se comunicar em contextos isolados — ela aprende na interação com as pessoas ao seu redor. Quando escola e família usam símbolos diferentes, pronúncias diferentes, estratégias diferentes, a criança precisa dividir seu esforço cognitivo entre "decifrar" o contexto antes de comunicar.</p>
+        <p>Por outro lado, quando os ambientes são consistentes — os mesmos símbolos, as mesmas respostas, as mesmas expectativas — o aprendizado se consolida muito mais rápido.</p>
+
+        <blockquote>"A generalização do aprendizado comunicativo depende de ambientes consistentes."</blockquote>
+
+        <h2>O vocabulário deve viajar com a criança</h2>
+        <p>O comunicador ou a prancha da criança precisa estar presente em todos os contextos. Não é "o tablet da escola" ou "a prancha de casa" — é o sistema de comunicação dela, assim como a fala de uma criança verbal não fica na escola.</p>
+        <ul>
+          <li>Envie a prancha para casa com instruções de uso.</li>
+          <li>Compartilhe com a família quais símbolos estão sendo trabalhados na escola.</li>
+          <li>Peça para a família relatar novos contextos em que a criança tentou comunicar.</li>
+        </ul>
+
+        <h2>Reuniões de alinhamento</h2>
+        <p>Reuniões regulares entre escola e família — mesmo breves — fazem grande diferença. Sugestão de pauta:</p>
+        <ol>
+          <li>Quais símbolos a criança está usando consistentemente?</li>
+          <li>Quais novas palavras seriam úteis no contexto doméstico?</li>
+          <li>Há comportamentos comunicativos em casa que não aparecem na escola (ou vice-versa)?</li>
+          <li>Ajustes necessários no sistema: novos cartões, categorias, etc.</li>
+        </ol>
+
+        <h2>Formação básica para a família</h2>
+        <p>Muitas famílias querem ajudar mas não sabem como. Ofereça uma orientação simples:</p>
+
+        <h3>O que a família pode fazer em casa</h3>
+        <ul>
+          <li>Modele o uso — aponte os símbolos enquanto fala com a criança.</li>
+          <li>Crie oportunidades — não antecipe tudo, espere a criança comunicar.</li>
+          <li>Responda sempre — qualquer tentativa comunicativa merece uma resposta.</li>
+          <li>Use nas rotinas do dia a dia: refeições, banho, hora de dormir.</li>
+        </ul>
+
+        <div class="callout callout-mint">
+          <strong>Recurso prático:</strong> Crie um "caderno de comunicação" que vai e volta entre escola e casa. Registre novas tentativas comunicativas, palavras usadas com sucesso e dificuldades observadas.
+        </div>
+
+        <h2>Quando há conflito de abordagens</h2>
+        <p>É comum que família e escola tenham visões diferentes sobre a comunicação da criança. Algumas dicas para alinhar:</p>
+        <ul>
+          <li>Evite julgamentos — cada adulto faz o melhor que pode com as informações que tem.</li>
+          <li>Baseie as decisões em evidências: o que está funcionando para a criança?</li>
+          <li>Envolva o terapeuta como mediador quando necessário.</li>
+          <li>Foque sempre no objetivo comum: a autonomia comunicativa da criança.</li>
+        </ul>
+
+        <div class="article-cta">
+          <p>Compartilhe o NeuroVoz com a família — gratuito, sem cadastro, funciona no celular.</p>
+          <a href="/tablet" class="btn btn-primary">Abrir comunicador →</a>
+          <a href="/assistente" class="btn btn-ghost">Personalizar com IA →</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .article-page { padding: 40px 0 80px; }
+  .article-container { max-width: 760px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-soft); font-weight: 700; font-size: 0.9rem; margin-bottom: 28px; transition: color .15s; }
+  .back-link:hover { color: var(--blue); }
+  .cat { display: inline-block; background: #e6f9f5; color: var(--mint-ink); font-weight: 700; font-size: 0.75rem; padding: 4px 12px; border-radius: 999px; margin-bottom: 14px; }
+  .article-header h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 10px 0 14px; text-wrap: balance; }
+  .article-lead { font-size: 1.15rem; color: var(--text-soft); margin-bottom: 16px; }
+  .article-meta { display: flex; gap: 18px; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 12px 0; margin-bottom: 36px; }
+  .article-body h2 { font-size: 1.45rem; margin: 36px 0 12px; padding-top: 8px; border-top: 2px solid var(--border); }
+  .article-body h3 { font-size: 1.1rem; margin: 24px 0 8px; color: var(--blue-ink); }
+  .article-body p { color: var(--text-soft); line-height: 1.75; margin-bottom: 16px; }
+  .article-body ul, .article-body ol { color: var(--text-soft); line-height: 1.75; margin: 0 0 16px 24px; display: flex; flex-direction: column; gap: 6px; }
+  .article-body strong { color: var(--text); }
+  blockquote { border-left: 4px solid var(--mint); padding: 14px 20px; margin: 24px 0; background: var(--bg-alt); border-radius: 0 12px 12px 0; font-style: italic; color: var(--text-soft); }
+  .callout { border-radius: var(--radius); padding: 18px 22px; margin: 28px 0; }
+  .callout-mint { background: var(--mint-soft); color: var(--mint-ink); }
+  .article-cta { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; margin-top: 48px; text-align: center; }
+  .article-cta p { font-family: var(--font-head); font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; }
+  .article-cta .btn { margin: 6px; }
+</style>
