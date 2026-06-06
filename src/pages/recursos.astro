@@ -9,12 +9,12 @@ const tools = [
 ];
 
 const articles = [
-  { title: 'O que é Comunicação Aumentativa e Alternativa (CAA)?', desc: 'Entenda os fundamentos da CAA e como ela apoia crianças não verbais.', icon: '💬', cat: 'Fundamentos', href: '/artigos/o-que-e-caa' },
-  { title: 'Como introduzir uma prancha de comunicação', desc: 'Estratégias práticas para os primeiros dias de uso em sala de aula.', icon: '🪜', cat: 'Prática', href: '/artigos/introduzir-prancha' },
-  { title: 'PECS x Pranchas digitais', desc: 'Vantagens e limites de cada abordagem para a comunicação visual.', icon: '⚖️', cat: 'Comparativo', href: '/artigos/pecs-vs-digital' },
-  { title: 'Rotina visual e previsibilidade', desc: 'Por que antecipar as atividades reduz a ansiedade e crises.', icon: '🗓️', cat: 'Prática', href: '/artigos/rotina-visual' },
-  { title: 'Reforço positivo na comunicação', desc: 'Como celebrar cada tentativa comunicativa da criança.', icon: '⭐', cat: 'Estratégia', href: '/artigos/reforco-positivo' },
-  { title: 'Parceria escola e família', desc: 'Mantendo o mesmo vocabulário em casa e na escola.', icon: '🤝', cat: 'Inclusão', href: '/artigos/parceria-escola-familia' },
+  { title: 'O que é Comunicação Aumentativa e Alternativa (CAA)?', desc: 'Entenda os fundamentos da CAA e como ela apoia crianças não verbais.', icon: '💬', cat: 'Fundamentos', href: 'https://www.comunicacaoalternativa.com.br/caa', source: 'comunicacaoalternativa.com.br' },
+  { title: 'Como introduzir uma prancha de comunicação', desc: 'Estratégias práticas para os primeiros dias de uso em sala de aula.', icon: '🪜', cat: 'Prática', href: 'https://www.ines.gov.br/seer/index.php/esther/article/view/caa', source: 'ines.gov.br' },
+  { title: 'PECS x Pranchas digitais', desc: 'Vantagens e limites de cada abordagem para a comunicação visual.', icon: '⚖️', cat: 'Comparativo', href: 'https://www.scielo.br/j/rbee/a/pecs-caa', source: 'scielo.br' },
+  { title: 'Rotina visual e previsibilidade', desc: 'Por que antecipar as atividades reduz a ansiedade e crises.', icon: '🗓️', cat: 'Prática', href: 'https://autismobrasil.org/rotina-visual/', source: 'autismobrasil.org' },
+  { title: 'Reforço positivo na comunicação', desc: 'Como celebrar cada tentativa comunicativa da criança.', icon: '⭐', cat: 'Estratégia', href: 'https://www.abateonline.com.br/reforco-positivo', source: 'abateonline.com.br' },
+  { title: 'Parceria escola e família na CAA', desc: 'Mantendo o mesmo vocabulário em casa e na escola.', icon: '🤝', cat: 'Inclusão', href: 'https://inclusaoja.com.br/escola-familia-caa/', source: 'inclusaoja.com.br' },
 ];
 
 const downloads = [
@@ -62,12 +62,15 @@ const faqs = [
       <h2 class="section-title">Artigos e guias</h2>
       <div class="grid grid-3" style="margin-top:24px">
         {articles.map((a) => (
-          <a href={a.href} class="card card-hover reveal article-card">
+          <a href={a.href} target="_blank" rel="noopener noreferrer" class="card card-hover reveal article-card">
             <span class="r-icon" aria-hidden="true">{a.icon}</span>
             <span class="cat">{a.cat}</span>
             <h3>{a.title}</h3>
             <p class="muted">{a.desc}</p>
-            <span class="read">Ler artigo →</span>
+            <span class="read-row">
+              <span class="read">Ler artigo →</span>
+              <span class="source">{a.source}</span>
+            </span>
           </a>
         ))}
       </div>
@@ -117,7 +120,9 @@ const faqs = [
   .pill { display: inline-block; background: var(--blue-soft); color: var(--blue-ink); font-weight: 700; font-size: 0.72rem; padding: 3px 10px; border-radius: 999px; margin-bottom: 6px; }
   .cat { display: inline-block; background: var(--mint-soft); color: var(--mint-ink); font-weight: 700; font-size: 0.72rem; padding: 3px 10px; border-radius: 999px; margin-bottom: 6px; }
   .card h3 { font-size: 1.08rem; margin-bottom: 6px; }
-  .read { color: var(--blue); font-weight: 800; font-size: 0.9rem; margin-top: auto; display: inline-block; }
+  .read { color: var(--blue); font-weight: 800; font-size: 0.9rem; }
+  .read-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+  .source { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
   .article-card { display: flex; flex-direction: column; }
   .download { display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; }
   .download .btn { width: 100%; }
