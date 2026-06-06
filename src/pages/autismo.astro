@@ -1,0 +1,186 @@
+---
+import Base from '../layouts/Base.astro';
+
+const niveis = [
+  { n: 'Nível 1', title: 'Exige apoio', desc: 'Dificuldades de iniciar interações sociais; pode precisar de apoio leve na organização e flexibilidade.', color: '#5cc9b0' },
+  { n: 'Nível 2', title: 'Exige apoio substancial', desc: 'Déficits mais evidentes na comunicação verbal e não verbal; comportamentos repetitivos perceptíveis.', color: '#5b8def' },
+  { n: 'Nível 3', title: 'Exige apoio muito substancial', desc: 'Comunicação muito limitada; grande necessidade de apoio em diversas atividades do dia a dia.', color: '#ff9b85' },
+];
+
+const comunicacao = [
+  { icon: '💬', title: 'Comunicação verbal', desc: 'Uso da fala e da linguagem oral para se expressar. Pode estar presente, ausente ou em desenvolvimento.' },
+  { icon: '🙆', title: 'Comunicação não verbal', desc: 'Gestos, olhar, expressões faciais, postura e apontar. É a base de muitas interações.' },
+  { icon: '🔁', title: 'Ecolalia', desc: 'Repetição de palavras ou frases ouvidas. Pode ser imediata ou tardia e ter função comunicativa.' },
+  { icon: '⏳', title: 'Atraso de fala', desc: 'Desenvolvimento da fala mais lento que o esperado para a idade, mas com progressão possível.' },
+  { icon: '🤐', title: 'Alalia', desc: 'Ausência ou grande limitação da fala, geralmente de origem neurológica, sem comprometer a intenção de comunicar.' },
+  { icon: '🖼️', title: 'Comunicação alternativa', desc: 'Substitui a fala por símbolos, imagens, pranchas ou dispositivos quando a fala não é funcional.' },
+  { icon: '➕', title: 'Comunicação aumentativa', desc: 'Complementa a fala existente, ampliando a compreensão e a expressão da criança.' },
+];
+
+const timeline = [
+  { age: '0–6 meses', label: 'Choro, contato visual, sorriso social e primeiros sons (arrulhos).' },
+  { age: '6–12 meses', label: 'Balbucio, atenção compartilhada e gestos como apontar e dar tchau.' },
+  { age: '12–18 meses', label: 'Primeiras palavras com intenção e compreensão de comandos simples.' },
+  { age: '18–24 meses', label: 'Explosão de vocabulário e combinação de duas palavras.' },
+  { age: '2–3 anos', label: 'Frases curtas, perguntas e narrativas simples do cotidiano.' },
+  { age: 'Quando há barreiras', label: 'A CAA entra como ponte — em qualquer idade — para garantir comunicação funcional.' },
+];
+---
+
+<Base title="Entendendo o Autismo — NeuroVoz" description="Conteúdo educativo e acessível sobre o Transtorno do Espectro Autista, neurodiversidade, níveis de suporte e comunicação.">
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Entendendo o Autismo</span>
+      <h1 class="page-title">Conhecer para incluir</h1>
+      <p class="page-lead">Conteúdo científico apresentado de forma acessível, em módulos, para educadores, famílias e profissionais.</p>
+    </div>
+  </section>
+
+  <!-- Módulo: O que é o TEA -->
+  <section class="section" id="tea">
+    <div class="container">
+      <span class="eyebrow">Módulo 1</span>
+      <h2 class="section-title">O que é o TEA</h2>
+      <p class="section-lead">O Transtorno do Espectro Autista é uma condição do neurodesenvolvimento que influencia a comunicação, a interação social e o comportamento — de formas muito diferentes em cada pessoa.</p>
+
+      <div class="grid grid-2" style="margin-top:28px">
+        <div class="card reveal">
+          <h3>🌈 Neurodiversidade</h3>
+          <p class="muted">O cérebro humano funciona de maneiras diversas. A neurodiversidade reconhece o autismo como uma variação natural — não um defeito a ser corrigido, mas uma forma diferente de perceber e interagir com o mundo.</p>
+        </div>
+        <div class="card reveal">
+          <h3>🏫 Inclusão escolar</h3>
+          <p class="muted">Incluir é adaptar o ambiente à criança, e não o contrário. Rotinas previsíveis, recursos visuais e comunicação alternativa tornam a escola um espaço de pertencimento e aprendizagem.</p>
+        </div>
+        <div class="card reveal">
+          <h3>🌱 Desenvolvimento infantil</h3>
+          <p class="muted">Cada criança tem seu ritmo. O acompanhamento precoce e o respeito ao tempo individual potencializam habilidades de comunicação, autonomia e socialização.</p>
+        </div>
+        <div class="card reveal">
+          <h3>🤝 Espectro</h3>
+          <p class="muted">"Espectro" indica uma ampla variação de características e necessidades de apoio. Por isso o ditado: "se você conhece uma pessoa autista, você conhece uma pessoa autista".</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Níveis de suporte -->
+  <section class="section band">
+    <div class="container">
+      <span class="eyebrow">Níveis de suporte</span>
+      <h2 class="section-title">Três níveis, uma criança única</h2>
+      <p class="section-lead">Os níveis descrevem a intensidade de apoio necessária — não a "gravidade" da pessoa.</p>
+      <div class="grid grid-3" style="margin-top:28px">
+        {niveis.map((nv) => (
+          <div class="card card-hover reveal nivel" style={`border-top:5px solid ${nv.color}`}>
+            <span class="nivel-tag" style={`background:${nv.color}1a;color:${nv.color}`}>{nv.n}</span>
+            <h3>{nv.title}</h3>
+            <p class="muted">{nv.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Módulo: Comunicação e Linguagem -->
+  <section class="section" id="comunicacao">
+    <div class="container">
+      <span class="eyebrow">Módulo 2</span>
+      <h2 class="section-title">Comunicação e Linguagem</h2>
+      <p class="section-lead">Conceitos essenciais para entender como cada criança se comunica e como apoiá-la.</p>
+      <div class="grid grid-3" style="margin-top:28px">
+        {comunicacao.map((c) => (
+          <div class="card card-hover reveal">
+            <span class="feat-icon" aria-hidden="true">{c.icon}</span>
+            <h3>{c.title}</h3>
+            <p class="muted">{c.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Infográfico CAA -->
+  <section class="section">
+    <div class="container">
+      <div class="info-box reveal">
+        <div>
+          <h2 class="section-title" style="margin-top:0">CAA: Aumentativa x Alternativa</h2>
+          <p class="muted">A Comunicação Aumentativa e Alternativa (CAA) reúne estratégias e recursos que apoiam a comunicação.</p>
+          <ul class="checklist">
+            <li><strong>Aumentativa:</strong> soma-se à fala existente para ampliá-la.</li>
+            <li><strong>Alternativa:</strong> substitui a fala quando ela não é funcional.</li>
+            <li><strong>Recursos:</strong> pranchas, pictogramas, gestos e dispositivos de voz.</li>
+            <li><strong>Objetivo:</strong> autonomia e participação real da criança.</li>
+          </ul>
+        </div>
+        <div class="info-visual" aria-hidden="true">
+          <div class="info-pill" style="background:var(--mint-soft);color:var(--mint-ink)">Fala + Símbolos<br><span>Aumentativa</span></div>
+          <div class="info-arrow">⇄</div>
+          <div class="info-pill" style="background:#dbe8ff;color:var(--blue-ink)">Símbolos no lugar da fala<br><span>Alternativa</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Linha do tempo -->
+  <section class="section band">
+    <div class="container">
+      <span class="eyebrow">Linha do tempo</span>
+      <h2 class="section-title">Desenvolvimento da comunicação</h2>
+      <ol class="timeline">
+        {timeline.map((t, i) => (
+          <li class="reveal">
+            <span class="tl-dot">{i + 1}</span>
+            <div class="tl-card">
+              <strong>{t.age}</strong>
+              <p class="muted">{t.label}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="cta-box reveal">
+        <h2>Pronto para a prática?</h2>
+        <p>Aprenda a montar uma prancha de comunicação passo a passo.</p>
+        <a href="/pedagogos" class="btn btn-mint btn-lg">Ir para o Guia para Pedagogos</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-hero { background: linear-gradient(180deg, var(--bg-alt), var(--bg)); padding: 48px 0; }
+  .page-title { font-size: clamp(2rem, 5vw, 3rem); margin: 12px 0 10px; }
+  .page-lead { color: var(--text-soft); font-size: 1.12rem; max-width: 640px; }
+  .muted { color: var(--text-soft); }
+  .feat-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+  .band { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .nivel-tag { display: inline-block; padding: 4px 12px; border-radius: 999px; font-family: var(--font-head); font-weight: 800; font-size: 0.82rem; margin-bottom: 10px; }
+
+  .info-box { display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px; box-shadow: var(--shadow-sm); }
+  .checklist { list-style: none; margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .checklist li { padding-left: 30px; position: relative; color: var(--text-soft); }
+  .checklist li::before { content: '✓'; position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--mint-soft); color: var(--mint-ink); font-weight: 900; font-size: 0.8rem; }
+  .info-visual { display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; }
+  .info-pill { padding: 18px; border-radius: var(--radius); font-family: var(--font-head); font-weight: 800; width: 100%; }
+  .info-pill span { font-size: 0.78rem; opacity: 0.8; font-weight: 600; }
+  .info-arrow { font-size: 1.6rem; color: var(--text-muted); }
+
+  .timeline { list-style: none; margin-top: 24px; position: relative; padding-left: 8px; }
+  .timeline::before { content: ''; position: absolute; left: 22px; top: 8px; bottom: 8px; width: 3px; background: var(--border); }
+  .timeline li { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 16px; position: relative; }
+  .tl-dot { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-family: var(--font-head); font-weight: 900; box-shadow: var(--shadow-sm); z-index: 1; }
+  .tl-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow-sm); flex: 1; }
+  .tl-card strong { font-family: var(--font-head); }
+
+  .cta-box { background: linear-gradient(135deg, var(--blue), var(--mint)); color: #fff; border-radius: var(--radius-xl); padding: 48px 32px; text-align: center; }
+  .cta-box h2 { color: #fff; }
+  .cta-box p { margin: 10px 0 22px; opacity: 0.95; }
+
+  @media (max-width: 760px) { .info-box { grid-template-columns: 1fr; } }
+</style>

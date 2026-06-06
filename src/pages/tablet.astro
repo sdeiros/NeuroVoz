@@ -1,0 +1,372 @@
+---
+import Base from '../layouts/Base.astro';
+import { categories, vocabulary } from '../data/vocabulary';
+---
+
+<Base title="Tablet Comunicador — NeuroVoz" description="Comunicador AAC com construção de frases, voz sintetizada, feedback visual e modo tela cheia." fullbleed={false}>
+  <section class="tablet-page">
+    <div class="container">
+      <div class="tablet-head">
+        <div>
+          <span class="eyebrow">Tablet Comunicador</span>
+          <h1 class="t-title" id="t-title">Comunicador</h1>
+        </div>
+        <div class="t-controls">
+          <label class="ctrl">
+            <span>Voz</span>
+            <select id="voice-select">
+              <optgroup label="Crianças">
+                <option value="menina">👧 Menina</option>
+                <option value="menino">👦 Menino</option>
+              </optgroup>
+              <optgroup label="Adultos">
+                <option value="mulher">👩 Mulher</option>
+                <option value="homem">👨 Homem</option>
+              </optgroup>
+              <optgroup label="Personagens">
+                <option value="princesa">👸 Princesa</option>
+                <option value="principe">🤴 Príncipe</option>
+                <option value="rainha">👑 Rainha</option>
+                <option value="rei">🦁 Rei</option>
+                <option value="heroina">🦸‍♀️ Super-heroína</option>
+                <option value="heroi">🦸 Super-herói</option>
+                <option value="robo">🤖 Robô</option>
+                <option value="fada">🧚 Fadinha</option>
+              </optgroup>
+              <optgroup label="Outros">
+                <option value="silencioso">🔇 Modo silencioso</option>
+              </optgroup>
+            </select>
+          </label>
+          <label class="ctrl">
+            <span>Velocidade</span>
+            <input id="rate" type="range" min="0.5" max="1.5" step="0.1" value="1" />
+          </label>
+          <label class="ctrl">
+            <span>Volume</span>
+            <input id="volume" type="range" min="0" max="1" step="0.1" value="1" />
+          </label>
+          <button class="btn btn-ghost" id="btn-fullscreen" title="Tela cheia">⛶ Tela cheia</button>
+        </div>
+      </div>
+
+      <!-- Barra de frase -->
+      <div class="sentence-bar">
+        <div class="sentence-strip" id="sentence-strip" aria-live="polite">
+          <span class="sentence-placeholder" id="sentence-placeholder">Toque nos botões para montar uma frase...</span>
+        </div>
+        <div class="sentence-actions">
+          <button class="sb-btn speak" id="btn-speak" title="Falar frase" aria-label="Falar a frase completa">🔊</button>
+          <button class="sb-btn back" id="btn-back" title="Apagar último" aria-label="Apagar último cartão">⌫</button>
+          <button class="sb-btn clear" id="btn-clear-sentence" title="Limpar frase" aria-label="Limpar frase">🗑️</button>
+        </div>
+      </div>
+
+      <!-- Categorias -->
+      <div class="cat-bar" id="cat-bar" role="tablist" aria-label="Categorias">
+        <button class="cat-pill active" data-cat="all" role="tab" aria-selected="true">
+          <span aria-hidden="true">🔠</span> Todos
+        </button>
+        {categories.map((c) => (
+          <button class="cat-pill" data-cat={c.id} role="tab" aria-selected="false" style={`--cc:${c.color}`}>
+            <span aria-hidden="true">{c.icon}</span> {c.name}
+          </button>
+        ))}
+      </div>
+
+      <!-- Grade de botões -->
+      <div class="aac-grid" id="aac-grid"></div>
+    </div>
+  </section>
+
+  <!-- Overlay de flash de cor semântica (visível em toda a tela para o professor) -->
+  <div class="flash-overlay" id="flash-overlay" aria-hidden="true"></div>
+</Base>
+
+<script define:vars={{ vocabulary, categories }}>
+  const grid = document.getElementById('aac-grid');
+  const strip = document.getElementById('sentence-strip');
+  const placeholder = document.getElementById('sentence-placeholder');
+  let activeCat = 'all';
+  let sentence = []; // {label, phrase, icon}
+
+  // Cores semânticas por palavra (para o flash na tela — o professor identifica pelo brilho)
+  const SEMANTIC_COLORS = {
+    // Verde = afirmação / desejo positivo
+    'sim': '#22c55e', 'eu-quero': '#22c55e', 'mais': '#22c55e', 'obrigado': '#22c55e',
+    'por-favor': '#22c55e', 'amor': '#22c55e', 'feliz': '#22c55e', 'terminei': '#22c55e',
+    // Vermelho = negação / parada / dor
+    'nao': '#ef4444', 'eu-nao-quero': '#ef4444', 'acabou': '#ef4444', 'bravo': '#ef4444',
+    'dor': '#ef4444', 'doente': '#ef4444',
+    // Azul = banheiro / higiene / água
+    'banheiro': '#3b82f6', 'agua': '#3b82f6', 'lavar-maos': '#3b82f6', 'banho': '#3b82f6',
+    'escovar': '#3b82f6', 'trocar': '#3b82f6',
+    // Amarelo = ajuda / atenção
+    'ajuda': '#f59e0b', 'professor': '#f59e0b', 'esperar': '#f59e0b', 'medo': '#f59e0b',
+    // Laranja = comida / fome
+    'comida': '#f97316', 'fome': '#f97316', 'comer': '#f97316', 'fruta': '#f97316',
+    'pao': '#f97316', 'bolacha': '#f97316',
+  };
+  function semanticColor(item) {
+    return SEMANTIC_COLORS[item.id] || catColor(item.category);
+  }
+
+  const flashOverlay = document.getElementById('flash-overlay');
+  function flashScreen(color) {
+    if (!flashOverlay) return;
+    flashOverlay.style.background = color;
+    flashOverlay.classList.remove('flash-on');
+    void flashOverlay.offsetWidth;
+    flashOverlay.classList.add('flash-on');
+  }
+
+  // Configuração personalizada vinda do Assistente
+  let custom = null;
+  try { custom = JSON.parse(localStorage.getItem('nv-tablet-config') || 'null'); } catch (e) {}
+  if (custom && custom.nome) {
+    document.getElementById('t-title').textContent = `Comunicador de ${custom.nome}`;
+  }
+
+  function catColor(id) { return (categories.find((c) => c.id === id) || {}).color || '#5b8def'; }
+
+  function visibleItems() {
+    let items = vocabulary;
+    if (custom && custom.cards && activeCat === 'all') {
+      // priorizar os botões gerados pela IA na visão "Todos"
+      const set = new Set(custom.cards);
+      const priority = vocabulary.filter((v) => set.has(v.id));
+      const rest = vocabulary.filter((v) => !set.has(v.id));
+      items = [...priority, ...rest];
+    }
+    if (activeCat !== 'all') items = vocabulary.filter((v) => v.category === activeCat);
+    return items;
+  }
+
+  function renderGrid() {
+    grid.innerHTML = '';
+    visibleItems().forEach((item) => {
+      const btn = document.createElement('button');
+      const isPriority = custom && custom.cards && custom.cards.includes(item.id) && activeCat === 'all';
+      btn.className = 'aac-btn' + (isPriority ? ' priority' : '');
+      btn.style.setProperty('--cc', semanticColor(item));
+      btn.innerHTML = `<span class="aac-icon" aria-hidden="true">${item.icon}</span><span class="aac-label">${item.label}</span>`;
+      btn.setAttribute('aria-label', item.label);
+      btn.addEventListener('click', () => onPress(item, btn));
+      grid.appendChild(btn);
+    });
+  }
+
+  function onPress(item, btn) {
+    // feedback visual no botão
+    btn.classList.remove('pressed');
+    void btn.offsetWidth;
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 450);
+
+    // flash de cor semântica em toda a tela
+    flashScreen(semanticColor(item));
+
+    addToSentence(item);
+    speak(item.phrase || item.label);
+    logHistory(item);
+  }
+
+  function addToSentence(item) {
+    sentence.push(item);
+    renderSentence();
+  }
+
+  function renderSentence() {
+    strip.querySelectorAll('.s-chip').forEach((n) => n.remove());
+    placeholder.style.display = sentence.length ? 'none' : 'block';
+    sentence.forEach((it) => {
+      const chip = document.createElement('span');
+      chip.className = 's-chip';
+      chip.innerHTML = `<span aria-hidden="true">${it.icon}</span> ${it.label}`;
+      strip.appendChild(chip);
+    });
+  }
+
+  function sentenceText() {
+    return sentence.map((s) => s.phrase || s.label).join(' ');
+  }
+
+  // ===== Web Speech API =====
+  let voices = [];
+  function loadVoices() { voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; }
+  if ('speechSynthesis' in window) {
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  function pickVoice(gender) {
+    const pt = voices.filter((v) => /pt(-|_)?BR/i.test(v.lang) || /portug/i.test(v.name) || /pt/i.test(v.lang));
+    const pool = pt.length ? pt : voices;
+    if (!pool.length) return null;
+    if (gender === 'female') return pool.find((v) => /female|mulher|fem|luciana|maria|francisca|google|helena|raquel/i.test(v.name)) || pool[0];
+    if (gender === 'male') return pool.find((v) => /male|homem|masc|daniel|felipe|ricardo|antonio/i.test(v.name)) || pool[0];
+    return pool[0];
+  }
+
+  // Perfis de voz: gênero base + ajustes de pitch e velocidade para diferenciar cada personagem
+  const VOICE_PROFILES = {
+    menina:   { gender: 'female', pitch: 1.7,  rate: 1.05 },
+    menino:   { gender: 'male',   pitch: 1.5,  rate: 1.05 },
+    mulher:   { gender: 'female', pitch: 1.1,  rate: 1.0 },
+    homem:    { gender: 'male',   pitch: 0.85, rate: 1.0 },
+    princesa: { gender: 'female', pitch: 1.9,  rate: 0.95 },
+    principe: { gender: 'male',   pitch: 1.3,  rate: 0.95 },
+    rainha:   { gender: 'female', pitch: 1.2,  rate: 0.88 },
+    rei:      { gender: 'male',   pitch: 0.6,  rate: 0.85 },
+    heroina:  { gender: 'female', pitch: 1.4,  rate: 1.1 },
+    heroi:    { gender: 'male',   pitch: 0.7,  rate: 1.05 },
+    robo:     { gender: 'male',   pitch: 0.5,  rate: 0.7 },
+    fada:     { gender: 'female', pitch: 2.0,  rate: 1.15 },
+  };
+
+  function speak(text) {
+    const type = document.getElementById('voice-select').value;
+    if (type === 'silencioso' || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const profile = VOICE_PROFILES[type] || { gender: 'female', pitch: 1.1, rate: 1.0 };
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'pt-BR';
+    const userRate = parseFloat(document.getElementById('rate').value);
+    u.rate = Math.max(0.5, Math.min(2, profile.rate * userRate));
+    u.volume = parseFloat(document.getElementById('volume').value);
+    u.pitch = profile.pitch;
+    const v = pickVoice(profile.gender);
+    if (v) u.voice = v;
+    window.speechSynthesis.speak(u);
+  }
+
+  // ===== Histórico (localStorage) =====
+  function logHistory(item) {
+    let hist = [];
+    try { hist = JSON.parse(localStorage.getItem('nv-history') || '[]'); } catch (e) {}
+    hist.push({
+      time: Date.now(),
+      label: item.label,
+      category: item.category,
+      icon: item.icon,
+      sentence: sentenceText(),
+    });
+    localStorage.setItem('nv-history', JSON.stringify(hist));
+  }
+
+  // ===== Ações da frase =====
+  document.getElementById('btn-speak').addEventListener('click', () => {
+    if (!sentence.length) return;
+    speak(sentenceText());
+  });
+  document.getElementById('btn-back').addEventListener('click', () => { sentence.pop(); renderSentence(); });
+  document.getElementById('btn-clear-sentence').addEventListener('click', () => { sentence = []; renderSentence(); });
+
+  // ===== Categorias =====
+  document.querySelectorAll('.cat-pill').forEach((pill) => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.cat-pill').forEach((p) => { p.classList.remove('active'); p.setAttribute('aria-selected', 'false'); });
+      pill.classList.add('active'); pill.setAttribute('aria-selected', 'true');
+      activeCat = pill.dataset.cat;
+      renderGrid();
+    });
+  });
+
+  // ===== Tela cheia =====
+  document.getElementById('btn-fullscreen').addEventListener('click', () => {
+    const el = document.documentElement;
+    if (!document.fullscreenElement) el.requestFullscreen?.(); else document.exitFullscreen?.();
+  });
+
+  renderGrid();
+  renderSentence();
+</script>
+
+<style>
+  .tablet-page { padding: 24px 0 60px; }
+  .tablet-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  .t-title { font-size: clamp(1.5rem, 4vw, 2.2rem); margin-top: 6px; }
+  .t-controls { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .ctrl { display: flex; flex-direction: column; gap: 4px; font-family: var(--font-head); font-weight: 700; font-size: 0.78rem; color: var(--text-soft); }
+  .ctrl select, .ctrl input { font-family: var(--font-body); }
+  .ctrl select { padding: 8px 10px; border-radius: 10px; border: 2px solid var(--border); background: var(--surface); color: var(--text); }
+  .ctrl input[type=range] { width: 110px; accent-color: var(--blue); }
+
+  .sentence-bar { display: flex; gap: 12px; align-items: stretch; background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius-lg); padding: 12px; box-shadow: var(--shadow-sm); margin-bottom: 16px; }
+  .sentence-strip { flex: 1; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-height: 64px; padding: 4px 8px; overflow-x: auto; }
+  .sentence-placeholder { color: var(--text-muted); font-weight: 600; }
+  .s-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-alt); color: var(--text); border-radius: 12px; padding: 10px 14px; font-family: var(--font-head); font-weight: 800; font-size: 1.05rem; animation: pop 0.25s ease; }
+  .s-chip span { font-size: 1.4rem; }
+  .sentence-actions { display: flex; gap: 8px; align-items: center; }
+  .sb-btn { width: 56px; height: 56px; border-radius: 16px; border: none; font-size: 1.5rem; display: grid; place-items: center; color: #fff; transition: transform 0.12s; }
+  .sb-btn:hover { transform: translateY(-2px); }
+  .sb-btn.speak { background: var(--mint); }
+  .sb-btn.back { background: var(--sun); color: #6b4e00; }
+  .sb-btn.clear { background: var(--coral); }
+
+  .cat-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+  .cat-pill { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; color: var(--text); }
+  .cat-pill span { font-size: 1.1rem; }
+  .cat-pill.active { border-color: var(--cc, var(--blue)); background: color-mix(in srgb, var(--cc, #5b8def) 14%, white); }
+
+  .aac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 16px; }
+  .aac-btn {
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; padding: 18px 10px 16px; border-radius: 20px;
+    border: none; background: var(--surface);
+    aspect-ratio: 1 / 0.94; cursor: pointer; overflow: hidden;
+    box-shadow: 0 4px 0 color-mix(in srgb, var(--cc) 45%, #c7c7c7), 0 8px 18px rgba(20, 40, 80, 0.1);
+    transition: transform 0.14s ease, box-shadow 0.14s ease;
+  }
+  .aac-btn::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--cc) 18%, white) 0%, color-mix(in srgb, var(--cc) 6%, white) 100%);
+    z-index: 0;
+  }
+  .aac-btn::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 7px;
+    background: var(--cc); z-index: 1;
+  }
+  .aac-btn > * { position: relative; z-index: 2; }
+  .aac-btn:hover { transform: translateY(-4px); box-shadow: 0 6px 0 color-mix(in srgb, var(--cc) 45%, #c7c7c7), 0 14px 26px rgba(20, 40, 80, 0.16); }
+  .aac-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb, var(--cc) 45%, #c7c7c7), 0 4px 10px rgba(20, 40, 80, 0.12); }
+  .aac-btn.priority { outline: 3px solid color-mix(in srgb, var(--cc) 60%, transparent); outline-offset: 2px; }
+  .aac-btn.priority::before { background: linear-gradient(180deg, color-mix(in srgb, var(--cc) 30%, white) 0%, color-mix(in srgb, var(--cc) 12%, white) 100%); }
+  .aac-icon { font-size: 2.7rem; line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.12)); }
+  .aac-label {
+    font-family: var(--font-head); font-weight: 800; font-size: 0.96rem; text-align: center;
+    color: color-mix(in srgb, var(--cc) 70%, #1f2937);
+  }
+
+  .aac-btn.pressed { animation: aacPress 0.45s ease; }
+  @keyframes aacPress {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.1); box-shadow: 0 0 0 8px color-mix(in srgb, var(--cc) 40%, transparent), 0 14px 26px rgba(20, 40, 80, 0.2); }
+    100% { transform: scale(1); }
+  }
+  :root[data-contrast='high'] .aac-btn::before { background: var(--surface); }
+  :root[data-contrast='high'] .aac-label { color: var(--text); }
+
+  /* Flash de cor semântica em toda a tela */
+  .flash-overlay {
+    position: fixed; inset: 0; z-index: 80; pointer-events: none;
+    opacity: 0; background: transparent;
+  }
+  .flash-overlay.flash-on { animation: screenFlash 1.4s ease forwards; }
+  @keyframes screenFlash {
+    0% { opacity: 0; }
+    18% { opacity: 0.55; }
+    55% { opacity: 0.4; }
+    100% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .flash-overlay.flash-on { animation-duration: 0.6s; }
+  }
+
+  @media (max-width: 600px) {
+    .aac-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+    .aac-icon { font-size: 2rem; }
+    .aac-label { font-size: 0.82rem; }
+    .sb-btn { width: 48px; height: 48px; font-size: 1.3rem; }
+  }
+</style>

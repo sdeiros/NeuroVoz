@@ -1,0 +1,305 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Assistente de Personalização com IA — NeuroVoz" description="Gere automaticamente um prompt e um tablet comunicador personalizado a partir das características individuais da criança.">
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Assistente com IA</span>
+      <h1 class="page-title">Tablet comunicador sob medida</h1>
+      <p class="page-lead">Preencha o perfil da criança. O NeuroVoz gera um prompt pronto para copiar e monta automaticamente um tablet personalizado com os interesses dela.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container ai-layout">
+      <form class="panel" id="ai-form">
+        <h2 class="panel-title">Informações da Criança</h2>
+
+        <div class="field">
+          <label for="nome">Nome da criança</label>
+          <input id="nome" name="nome" type="text" placeholder="Ex.: Miguel" required />
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="idade">Idade</label>
+            <input id="idade" name="idade" type="number" min="0" max="18" placeholder="Ex.: 5" />
+          </div>
+          <div class="field">
+            <label for="nivel">Nível de suporte</label>
+            <select id="nivel" name="nivel">
+              <option value="1">Nível 1 — apoio</option>
+              <option value="2">Nível 2 — apoio substancial</option>
+              <option value="3">Nível 3 — apoio muito substancial</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="comunicacao">Forma atual de comunicação</label>
+          <select id="comunicacao" name="comunicacao">
+            <option>Verbal</option>
+            <option>Não verbal</option>
+            <option>Poucas palavras</option>
+            <option>Comunicação por gestos</option>
+            <option>Comunicação por imagens</option>
+          </select>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="interesses">Interesses especiais</label>
+            <input id="interesses" name="interesses" type="text" placeholder="Ex.: dinossauros" />
+          </div>
+          <div class="field">
+            <label for="hiperfocos">Hiperfocos</label>
+            <input id="hiperfocos" name="hiperfocos" type="text" placeholder="Ex.: trens" />
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="brincadeiras">Brincadeiras favoritas</label>
+            <input id="brincadeiras" name="brincadeiras" type="text" placeholder="Ex.: blocos de montar" />
+          </div>
+          <div class="field">
+            <label for="personagens">Personagens favoritos</label>
+            <input id="personagens" name="personagens" type="text" placeholder="Ex.: super-heróis" />
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="alimentos">Alimentos preferidos</label>
+            <input id="alimentos" name="alimentos" type="text" placeholder="Ex.: maçã, suco" />
+          </div>
+          <div class="field">
+            <label for="emocoes">Emoções mais observadas</label>
+            <input id="emocoes" name="emocoes" type="text" placeholder="Ex.: alegria, ansiedade" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="necessidades">Necessidades comunicativas frequentes</label>
+          <input id="necessidades" name="necessidades" type="text" placeholder="Ex.: pedir água, ir ao banheiro" />
+        </div>
+
+        <div class="field">
+          <label for="contexto">Contexto de utilização</label>
+          <select id="contexto" name="contexto">
+            <option>Casa</option>
+            <option>Escola</option>
+            <option>Clínica</option>
+            <option>Outros</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="observacoes">Observações pedagógicas</label>
+          <textarea id="observacoes" name="observacoes" placeholder="Anotações adicionais..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="btn-gerar-prompt">Gerar prompt</button>
+          <button type="button" class="btn btn-mint" id="btn-gerar-tablet">Gerar Tablet Personalizado</button>
+        </div>
+      </form>
+
+      <!-- Resultado -->
+      <div class="panel result-panel">
+        <div class="result-head">
+          <h2 class="panel-title">Prompt gerado</h2>
+          <button class="btn btn-ghost" id="btn-copiar" disabled>Copiar Prompt</button>
+        </div>
+        <pre id="prompt-output" class="prompt-box">Preencha o formulário e clique em "Gerar prompt" para criar um prompt pronto para usar em qualquer IA.</pre>
+
+        <div id="tablet-preview" class="tablet-preview" hidden>
+          <h3 class="preview-title">Pré-visualização do tablet</h3>
+          <p class="preview-sub" id="preview-sub"></p>
+          <div class="preview-cats" id="preview-cats"></div>
+          <div class="preview-grid" id="preview-grid"></div>
+          <a href="/tablet" class="btn btn-primary btn-block" id="btn-abrir-tablet" style="margin-top:16px">Abrir no Tablet Comunicador →</a>
+          <p class="preview-note" id="preview-explain"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { vocabulary, categories } from '../data/vocabulary';
+
+  const form = document.getElementById('ai-form') as HTMLFormElement;
+  const output = document.getElementById('prompt-output')!;
+  const copyBtn = document.getElementById('btn-copiar') as HTMLButtonElement;
+
+  function val(id: string) { return (document.getElementById(id) as HTMLInputElement)?.value.trim() || ''; }
+  function or(id: string, fallback: string) { return val(id) || fallback; }
+
+  const TEMPLATE = () => `Você é um especialista em Comunicação Aumentativa e Alternativa (CAA), educação inclusiva, pedagogia e desenvolvimento infantil.
+
+Crie um tablet comunicador personalizado para uma criança com as seguintes características:
+
+Nome: ${or('nome', '[não informado]')}
+Idade: ${or('idade', '[não informada]')}
+Nível de suporte: ${or('nivel', '[não informado]')}
+Forma de comunicação atual: ${or('comunicacao', '[não informada]')}
+Interesses especiais: ${or('interesses', '[não informados]')}
+Hiperfocos: ${or('hiperfocos', '[não informados]')}
+Brincadeiras favoritas: ${or('brincadeiras', '[não informadas]')}
+Personagens favoritos: ${or('personagens', '[não informados]')}
+Alimentos preferidos: ${or('alimentos', '[não informados]')}
+Emoções observadas com frequência: ${or('emocoes', '[não informadas]')}
+Necessidades comunicativas frequentes: ${or('necessidades', '[não informadas]')}
+Contexto de utilização: ${or('contexto', '[não informado]')}
+Observações pedagógicas: ${or('observacoes', '[não informadas]')}
+
+Com base nessas informações:
+
+1. Personalize totalmente a interface do tablet comunicador.
+2. Sugira categorias prioritárias.
+3. Sugira os primeiros botões que devem aparecer na tela inicial.
+4. Crie frases úteis para a rotina da criança.
+5. Sugira pictogramas adequados.
+6. Adapte o vocabulário ao nível de suporte informado.
+7. Inclua elementos relacionados aos interesses da criança para aumentar o engajamento.
+8. Sugira estratégias para ampliação gradual do repertório comunicativo.
+9. Organize a interface para facilitar a autonomia.
+10. Explique brevemente as escolhas realizadas.
+
+Apresente o resultado em formato organizado e pronto para implementação.`;
+
+  document.getElementById('btn-gerar-prompt')!.addEventListener('click', () => {
+    if (!val('nome')) { alert('Informe ao menos o nome da criança.'); return; }
+    output.textContent = TEMPLATE();
+    copyBtn.disabled = false;
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(output.textContent || '');
+      copyBtn.textContent = 'Copiado!';
+      setTimeout(() => (copyBtn.textContent = 'Copiar Prompt'), 1800);
+    } catch (e) { alert('Não foi possível copiar automaticamente. Selecione o texto manualmente.'); }
+  });
+
+  // Geração inteligente do tablet
+  document.getElementById('btn-gerar-tablet')!.addEventListener('click', () => {
+    if (!val('nome')) { alert('Informe ao menos o nome da criança.'); return; }
+    const nivel = val('nivel');
+    const interesses = (val('interesses') + ' ' + val('hiperfocos') + ' ' + val('brincadeiras') + ' ' + val('personagens')).toLowerCase();
+    const necessidades = val('necessidades').toLowerCase();
+    const alimentos = val('alimentos').toLowerCase();
+
+    // Núcleo sempre presente
+    const selected = new Map<string, any>();
+    const núcleo = vocabulary.filter((v) => v.category === 'nucleo');
+    const baseNucleo = Number(nivel) >= 3 ? núcleo.slice(0, 6) : núcleo;
+    baseNucleo.forEach((v) => selected.set(v.id, v));
+
+    // Necessidades frequentes
+    vocabulary.forEach((v) => {
+      if (necessidades && (necessidades.includes(v.label.toLowerCase()) || v.label.toLowerCase().includes(necessidades.split(' ')[0]))) {
+        selected.set(v.id, { ...v, priority: true });
+      }
+    });
+    // sempre úteis
+    ['agua', 'banheiro', 'ajuda', 'comida', 'feliz', 'triste'].forEach((id) => {
+      const v = vocabulary.find((x) => x.id === id); if (v) selected.set(id, v);
+    });
+
+    // Interesses -> categorias temáticas
+    const themeCats = new Set<string>(['nucleo', 'emocoes']);
+    const kw = [
+      { words: ['dinossauro', 'animal', 'bicho'], cat: 'brincadeiras', items: ['brincar', 'video', 'musica'] },
+      { words: ['música', 'musica', 'som', 'cantar', 'instrumento'], cat: 'brincadeiras', items: ['musica', 'video', 'brincar'] },
+      { words: ['carro', 'trem', 'transporte', 'avião', 'aviao'], cat: 'transporte', items: ['carro', 'onibus', 'passear', 'aviao'] },
+      { words: ['comida', 'comer', 'alimento'], cat: 'alimentacao', items: ['comida', 'fruta', 'suco', 'leite'] },
+      { words: ['escola', 'desenhar', 'pintar', 'ler', 'livro'], cat: 'escola', items: ['desenhar', 'pintar', 'livro', 'amigo'] },
+    ];
+    kw.forEach((rule) => {
+      if (rule.words.some((w) => interesses.includes(w))) {
+        themeCats.add(rule.cat);
+        rule.items.forEach((id) => { const v = vocabulary.find((x) => x.id === id); if (v) selected.set(id, v); });
+      }
+    });
+
+    // alimentos preferidos
+    if (alimentos) {
+      ['agua', 'suco', 'leite', 'fruta', 'comida'].forEach((id) => { const v = vocabulary.find((x) => x.id === id); if (v) selected.set(id, v); });
+      themeCats.add('alimentacao');
+    }
+    // brincadeiras
+    ['brincar', 'bola', 'musica'].forEach((id) => { const v = vocabulary.find((x) => x.id === id); if (v) selected.set(id, v); });
+    themeCats.add('brincadeiras');
+
+    const cardsArr = [...selected.values()].slice(0, Number(nivel) >= 3 ? 12 : 20);
+
+    // Salvar configuração para o tablet
+    localStorage.setItem('nv-tablet-config', JSON.stringify({
+      nome: val('nome'),
+      cards: cardsArr.map((c) => c.id),
+      categorias: [...themeCats],
+      nivel,
+      generatedAt: Date.now(),
+    }));
+
+    // Render preview
+    renderPreview(val('nome'), cardsArr, [...themeCats], nivel, interesses);
+  });
+
+  function renderPreview(nome: string, cards: any[], cats: string[], nivel: string, interesses: string) {
+    const wrap = document.getElementById('tablet-preview')!;
+    wrap.removeAttribute('hidden');
+    document.getElementById('preview-sub')!.textContent = `Comunicador de ${nome} — ${cards.length} botões iniciais, ${cats.length} categorias priorizadas.`;
+
+    const catNames = document.getElementById('preview-cats')!;
+    catNames.innerHTML = cats.map((id) => {
+      const c = categories.find((x) => x.id === id);
+      return c ? `<span class="pc-chip" style="background:${c.color}1a;color:${c.color}"><span aria-hidden="true">${c.icon}</span> ${c.name}</span>` : '';
+    }).join('');
+
+    const grid = document.getElementById('preview-grid')!;
+    grid.innerHTML = cards.map((c) => `<div class="pv-card"><span class="pv-icon">${c.icon}</span><span class="pv-label">${c.label}</span></div>`).join('');
+
+    const interestText = interesses.trim() ? ` Incluímos itens ligados aos interesses informados para aumentar o engajamento.` : '';
+    document.getElementById('preview-explain')!.textContent =
+      `Escolhas: priorizamos o vocabulário núcleo (palavras que servem a muitas situações), destacamos necessidades frequentes e adaptamos a quantidade de botões ao nível de suporte ${nivel}.${interestText} Clique acima para usar este comunicador.`;
+
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
+
+<style>
+  .page-hero { background: linear-gradient(180deg, var(--bg-alt), var(--bg)); padding: 48px 0; }
+  .page-title { font-size: clamp(1.9rem, 5vw, 2.8rem); margin: 12px 0 10px; }
+  .page-lead { color: var(--text-soft); font-size: 1.1rem; max-width: 640px; }
+
+  .ai-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 26px; box-shadow: var(--shadow-sm); }
+  .panel-title { font-size: 1.15rem; margin-bottom: 16px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+  .result-panel { position: sticky; top: 90px; }
+  .result-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .result-head .panel-title { margin-bottom: 0; }
+  .prompt-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; white-space: pre-wrap; font-family: 'Quicksand', monospace; font-size: 0.86rem; line-height: 1.55; color: var(--text); max-height: 360px; overflow-y: auto; }
+
+  .tablet-preview { margin-top: 22px; border-top: 1px solid var(--border); padding-top: 20px; }
+  .preview-title { font-size: 1.05rem; }
+  .preview-sub { color: var(--text-soft); font-size: 0.92rem; margin: 6px 0 14px; }
+  .preview-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .pc-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-family: var(--font-head); font-size: 0.78rem; }
+  .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; }
+  .pv-card { background: var(--surface-2); border: 2px solid var(--border); border-radius: 14px; padding: 12px 6px; text-align: center; }
+  .pv-icon { display: block; font-size: 1.7rem; }
+  .pv-label { font-size: 0.74rem; font-weight: 700; font-family: var(--font-head); }
+  .preview-note { color: var(--text-muted); font-size: 0.82rem; margin-top: 14px; }
+
+  @media (max-width: 920px) {
+    .ai-layout { grid-template-columns: 1fr; }
+    .result-panel { position: static; }
+  }
+  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
+</style>

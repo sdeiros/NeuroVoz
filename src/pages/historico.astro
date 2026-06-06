@@ -1,0 +1,316 @@
+---
+import Base from '../layouts/Base.astro';
+import { categories } from '../data/vocabulary';
+---
+
+<Base title="Histórico e Dashboard — NeuroVoz" description="Linha do tempo de comunicação, dashboard pedagógico com gráficos e relatório exportável. Tudo armazenado localmente.">
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Histórico & Dashboard</span>
+      <h1 class="page-title">Acompanhe a evolução comunicativa</h1>
+      <p class="page-lead">Registro local de cada interação no comunicador, com indicadores automáticos e relatório pedagógico. Nenhum dado sai do seu dispositivo.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <!-- Indicadores rápidos -->
+      <div class="grid grid-4" id="kpis">
+        <div class="kpi card"><span class="kpi-num" id="kpi-total">0</span><span class="kpi-label">Interações</span></div>
+        <div class="kpi card"><span class="kpi-num" id="kpi-today">0</span><span class="kpi-label">Hoje</span></div>
+        <div class="kpi card"><span class="kpi-num" id="kpi-words">0</span><span class="kpi-label">Palavras distintas</span></div>
+        <div class="kpi card"><span class="kpi-num" id="kpi-top">—</span><span class="kpi-label">Mais usada</span></div>
+      </div>
+
+      <div class="toolbar">
+        <div class="filters">
+          <label class="ctrl"><span>Dia</span><input type="date" id="filter-date" /></label>
+          <label class="ctrl"><span>Categoria</span>
+            <select id="filter-cat">
+              <option value="all">Todas</option>
+              {categories.map((c) => <option value={c.id}>{c.name}</option>)}
+            </select>
+          </label>
+          <label class="ctrl"><span>Buscar</span><input type="search" id="filter-search" placeholder="palavra..." /></label>
+        </div>
+        <div class="actions">
+          <button class="btn btn-ghost" id="btn-csv">Exportar CSV</button>
+          <button class="btn btn-ghost" id="btn-pdf">Relatório PDF</button>
+          <button class="btn btn-ghost danger" id="btn-clear">Limpar Histórico</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section class="section-sm">
+    <div class="container">
+      <h2 class="section-title" style="font-size:1.6rem">Dashboard Pedagógico</h2>
+      <div class="dash-grid">
+        <div class="card chart-card">
+          <h3>Emoções mais utilizadas</h3>
+          <div class="bars" id="chart-emocoes"></div>
+        </div>
+        <div class="card chart-card">
+          <h3>Necessidades mais comunicadas</h3>
+          <div class="bars" id="chart-necessidades"></div>
+        </div>
+        <div class="card chart-card">
+          <h3>Comunicação por período</h3>
+          <div class="periods" id="chart-periodo"></div>
+        </div>
+        <div class="card chart-card">
+          <h3>Palavras mais utilizadas</h3>
+          <ol class="ranking" id="chart-ranking"></ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Linha do tempo -->
+  <section class="section-sm">
+    <div class="container">
+      <h2 class="section-title" style="font-size:1.6rem">Linha do Tempo</h2>
+      <div id="timeline" class="timeline-list"></div>
+      <p id="empty-state" class="empty-state">Nenhuma interação registrada ainda. Use o <a href="/tablet">Tablet Comunicador</a> para começar a registrar.</p>
+    </div>
+  </section>
+</Base>
+
+<script define:vars={{ categories }}>
+  function load() {
+    try { return JSON.parse(localStorage.getItem('nv-history') || '[]'); } catch (e) { return []; }
+  }
+  let history = load();
+
+  const catName = (id) => (categories.find((c) => c.id === id) || {}).name || id;
+  const catColor = (id) => (categories.find((c) => c.id === id) || {}).color || '#5b8def';
+
+  function period(ts) {
+    const h = new Date(ts).getHours();
+    if (h < 12) return 'Manhã';
+    if (h < 18) return 'Tarde';
+    return 'Noite';
+  }
+
+  function filtered() {
+    const date = document.getElementById('filter-date').value;
+    const cat = document.getElementById('filter-cat').value;
+    const q = document.getElementById('filter-search').value.trim().toLowerCase();
+    return history.filter((h) => {
+      if (date) {
+        const d = new Date(h.time).toISOString().slice(0, 10);
+        if (d !== date) return false;
+      }
+      if (cat !== 'all' && h.category !== cat) return false;
+      if (q && !h.label.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }
+
+  function countBy(items, key) {
+    const map = {};
+    items.forEach((i) => { map[i[key]] = (map[i[key]] || 0) + 1; });
+    return Object.entries(map).sort((a, b) => b[1] - a[1]);
+  }
+
+  function renderBars(elId, entries, opts = {}) {
+    const el = document.getElementById(elId);
+    if (!entries.length) { el.innerHTML = '<p class="no-data">Sem dados ainda.</p>'; return; }
+    const max = entries[0][1];
+    el.innerHTML = entries.slice(0, 6).map(([label, val]) => {
+      const item = history.find((h) => h.label === label);
+      const icon = item ? item.icon : '';
+      const color = opts.color || (item ? catColor(item.category) : '#5b8def');
+      return `<div class="bar-row">
+        <span class="bar-label">${icon} ${label}</span>
+        <span class="bar-track"><span class="bar-fill" style="width:${(val / max) * 100}%;background:${color}"></span></span>
+        <span class="bar-val">${val}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function renderDashboard() {
+    const all = history;
+    // KPIs
+    document.getElementById('kpi-total').textContent = all.length;
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('kpi-today').textContent = all.filter((h) => new Date(h.time).toISOString().slice(0, 10) === today).length;
+    document.getElementById('kpi-words').textContent = new Set(all.map((h) => h.label)).size;
+    const top = countBy(all, 'label')[0];
+    document.getElementById('kpi-top').textContent = top ? top[0] : '—';
+
+    // Emoções
+    renderBars('chart-emocoes', countBy(all.filter((h) => h.category === 'emocoes'), 'label'));
+    // Necessidades (núcleo + alimentação + higiene + saúde)
+    const needCats = ['nucleo', 'alimentacao', 'higiene', 'saude'];
+    renderBars('chart-necessidades', countBy(all.filter((h) => needCats.includes(h.category)), 'label'));
+    // Ranking geral
+    const ranking = countBy(all, 'label').slice(0, 8);
+    const rk = document.getElementById('chart-ranking');
+    rk.innerHTML = ranking.length ? ranking.map(([label, val], i) => {
+      const item = all.find((h) => h.label === label);
+      return `<li><span class="rk-pos">${i + 1}</span><span class="rk-label">${item?.icon || ''} ${label}</span><span class="rk-val">${val}×</span></li>`;
+    }).join('') : '<p class="no-data">Sem dados ainda.</p>';
+
+    // Período
+    const periods = { 'Manhã': 0, 'Tarde': 0, 'Noite': 0 };
+    all.forEach((h) => periods[period(h.time)]++);
+    const maxP = Math.max(1, ...Object.values(periods));
+    const icons = { 'Manhã': '🌅', 'Tarde': '☀️', 'Noite': '🌙' };
+    document.getElementById('chart-periodo').innerHTML = Object.entries(periods).map(([p, v]) =>
+      `<div class="period-col">
+        <span class="period-bar" style="height:${(v / maxP) * 100}%"></span>
+        <span class="period-val">${v}</span>
+        <span class="period-name">${icons[p]} ${p}</span>
+      </div>`).join('');
+  }
+
+  function renderTimeline() {
+    const items = filtered().slice().reverse();
+    const el = document.getElementById('timeline');
+    const empty = document.getElementById('empty-state');
+    if (!items.length) { el.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    // agrupar por dia
+    const groups = {};
+    items.forEach((h) => {
+      const d = new Date(h.time).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+      (groups[d] = groups[d] || []).push(h);
+    });
+
+    el.innerHTML = Object.entries(groups).map(([day, list]) => `
+      <div class="tl-day">
+        <h4 class="tl-date">${day}</h4>
+        ${list.map((h) => {
+          const time = new Date(h.time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          return `<div class="tl-item" style="border-left-color:${catColor(h.category)}">
+            <span class="tl-time">${time}</span>
+            <span class="tl-icon">${h.icon}</span>
+            <span class="tl-content"><strong>${h.label}</strong>${h.sentence && h.sentence !== h.label ? `<span class="tl-sentence">${h.sentence}</span>` : ''}</span>
+            <span class="tl-cat" style="background:${catColor(h.category)}1a;color:${catColor(h.category)}">${catName(h.category)}</span>
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+  }
+
+  function renderAll() { renderDashboard(); renderTimeline(); }
+
+  ['filter-date', 'filter-cat', 'filter-search'].forEach((id) =>
+    document.getElementById(id).addEventListener('input', renderTimeline));
+
+  // Limpar
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    if (confirm('Tem certeza? Isso apagará permanentemente todo o histórico de comunicação.')) {
+      localStorage.removeItem('nv-history');
+      history = [];
+      renderAll();
+    }
+  });
+
+  // CSV
+  document.getElementById('btn-csv').addEventListener('click', () => {
+    if (!history.length) { alert('Não há dados para exportar.'); return; }
+    const rows = [['Data', 'Hora', 'Comando', 'Categoria', 'Frase']];
+    history.forEach((h) => {
+      const d = new Date(h.time);
+      rows.push([d.toLocaleDateString('pt-BR'), d.toLocaleTimeString('pt-BR'), h.label, catName(h.category), (h.sentence || '').replace(/,/g, ';')]);
+    });
+    const csv = rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'neurovoz-historico.csv';
+    a.click();
+  });
+
+  // Relatório PDF (impressão)
+  document.getElementById('btn-pdf').addEventListener('click', () => {
+    if (!history.length) { alert('Não há dados para o relatório.'); return; }
+    const total = history.length;
+    const emocoes = countBy(history.filter((h) => h.category === 'emocoes'), 'label').slice(0, 5);
+    const ranking = countBy(history, 'label').slice(0, 10);
+    const periods = { 'Manhã': 0, 'Tarde': 0, 'Noite': 0 };
+    history.forEach((h) => periods[period(h.time)]++);
+
+    const win = window.open('', '_blank');
+    win.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório Pedagógico — NeuroVoz</title>
+      <style>
+        body { font-family: 'Nunito', system-ui, sans-serif; padding: 32px; color: #25324a; max-width: 800px; margin: 0 auto; }
+        h1 { color: #2a4d8f; } h2 { margin-top: 24px; border-bottom: 2px solid #e2ecf7; padding-bottom: 6px; }
+        .sub { color: #5a6b85; } li { margin: 4px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        td, th { text-align: left; padding: 6px 10px; border-bottom: 1px solid #e2ecf7; }
+      </style></head><body>
+      <h1>Relatório Pedagógico — NeuroVoz</h1>
+      <p class="sub">Gerado em ${new Date().toLocaleString('pt-BR')} · ${total} interações registradas</p>
+      <h2>Frequência por período</h2>
+      <ul>${Object.entries(periods).map(([p, v]) => `<li><strong>${p}:</strong> ${v} interações</li>`).join('')}</ul>
+      <h2>Emoções predominantes</h2>
+      <ul>${emocoes.length ? emocoes.map(([l, v]) => `<li>${l}: ${v}×</li>`).join('') : '<li>Sem registros de emoções.</li>'}</ul>
+      <h2>Palavras / necessidades mais comunicadas</h2>
+      <table><tr><th>#</th><th>Palavra</th><th>Frequência</th></tr>
+      ${ranking.map(([l, v], i) => `<tr><td>${i + 1}</td><td>${l}</td><td>${v}×</td></tr>`).join('')}</table>
+      <h2>Evolução do vocabulário</h2>
+      <p>Total de palavras distintas utilizadas: <strong>${new Set(history.map((h) => h.label)).size}</strong>.</p>
+      <p style="margin-top:30px;color:#8898b2;font-size:13px">NeuroVoz — dados armazenados localmente, em conformidade com práticas éticas de privacidade.</p>
+      <script>window.onload = () => setTimeout(() => window.print(), 400);<\/script>
+      </body></html>`);
+    win.document.close();
+  });
+
+  renderAll();
+</script>
+
+<style>
+  .page-hero { background: linear-gradient(180deg, var(--bg-alt), var(--bg)); padding: 48px 0; }
+  .page-title { font-size: clamp(1.8rem, 5vw, 2.6rem); margin: 12px 0 10px; }
+  .page-lead { color: var(--text-soft); font-size: 1.08rem; max-width: 640px; }
+
+  .kpi { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+  .kpi-num { font-family: var(--font-head); font-weight: 900; font-size: 2rem; color: var(--blue); }
+  .kpi-label { color: var(--text-soft); font-weight: 600; font-size: 0.9rem; }
+
+  .toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-top: 24px; }
+  .filters, .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .ctrl { display: flex; flex-direction: column; gap: 4px; font-family: var(--font-head); font-weight: 700; font-size: 0.78rem; color: var(--text-soft); }
+  .ctrl input, .ctrl select { padding: 8px 10px; border-radius: 10px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font-body); }
+  .danger { color: #c0392b; }
+  .danger:hover { border-color: #c0392b; }
+
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .chart-card h3 { font-size: 1.05rem; margin-bottom: 16px; }
+  .bars { display: flex; flex-direction: column; gap: 10px; }
+  .bar-row { display: grid; grid-template-columns: 130px 1fr 36px; gap: 10px; align-items: center; }
+  .bar-label { font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { background: var(--bg-alt); border-radius: 999px; height: 16px; overflow: hidden; }
+  .bar-fill { display: block; height: 100%; border-radius: 999px; transition: width 0.5s ease; min-width: 6px; }
+  .bar-val { font-family: var(--font-head); font-weight: 800; font-size: 0.85rem; text-align: right; }
+  .no-data { color: var(--text-muted); font-size: 0.9rem; }
+
+  .ranking { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .ranking li { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: var(--surface-2); border-radius: 12px; }
+  .rk-pos { width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-family: var(--font-head); font-weight: 900; font-size: 0.8rem; }
+  .rk-label { flex: 1; font-weight: 700; }
+  .rk-val { font-family: var(--font-head); font-weight: 800; color: var(--blue); }
+
+  .periods { display: flex; gap: 14px; align-items: flex-end; height: 160px; padding-top: 10px; }
+  .period-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
+  .period-bar { width: 56px; background: linear-gradient(180deg, var(--mint), var(--blue)); border-radius: 10px 10px 0 0; min-height: 6px; transition: height 0.5s ease; }
+  .period-val { font-family: var(--font-head); font-weight: 800; }
+  .period-name { font-size: 0.8rem; color: var(--text-soft); font-weight: 600; }
+
+  .timeline-list { display: flex; flex-direction: column; gap: 22px; }
+  .tl-date { font-size: 0.95rem; color: var(--text-soft); text-transform: capitalize; margin-bottom: 10px; }
+  .tl-item { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-left: 5px solid var(--blue); border-radius: 14px; padding: 12px 16px; margin-bottom: 8px; box-shadow: var(--shadow-sm); }
+  .tl-time { font-family: var(--font-head); font-weight: 800; color: var(--text-soft); font-size: 0.85rem; min-width: 44px; }
+  .tl-icon { font-size: 1.6rem; }
+  .tl-content { flex: 1; display: flex; flex-direction: column; }
+  .tl-sentence { font-size: 0.82rem; color: var(--text-muted); }
+  .tl-cat { padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; font-family: var(--font-head); }
+  .empty-state { color: var(--text-muted); text-align: center; padding: 40px; }
+  .empty-state a { color: var(--blue); font-weight: 700; }
+
+  @media (max-width: 760px) { .dash-grid { grid-template-columns: 1fr; } .bar-row { grid-template-columns: 100px 1fr 30px; } }
+</style>

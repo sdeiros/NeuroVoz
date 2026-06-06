@@ -1,17 +1,173 @@
 ---
+import Base from '../layouts/Base.astro';
 
+const quickAccess = [
+  { href: '/autismo', title: 'Entendendo o Autismo', desc: 'Conteúdo científico acessível sobre o TEA e a comunicação.', icon: '🧠', color: '#5b8def' },
+  { href: '/pedagogos', title: 'Guia para Pedagogos', desc: 'Passo a passo para criar pranchas de comunicação.', icon: '📚', color: '#5cc9b0' },
+  { href: '/pranchas', title: 'Criar Prancha', desc: 'Monte e exporte pranchas personalizadas.', icon: '🧩', color: '#ff9b85' },
+  { href: '/tablet', title: 'Tablet Comunicador', desc: 'Comunicador AAC com voz sintetizada.', icon: '📱', color: '#ffd166' },
+];
+
+const features = [
+  { icon: '🗣️', title: 'Comunicador com voz', desc: 'Construa frases por toque e ouça a fala sintetizada em tempo real.' },
+  { icon: '🤖', title: 'Personalização com IA', desc: 'Gere um tablet único a partir dos interesses e necessidades da criança.' },
+  { icon: '📊', title: 'Dashboard pedagógico', desc: 'Acompanhe a evolução comunicativa com gráficos automáticos.' },
+  { icon: '♿', title: 'Acessível de verdade', desc: 'Alto contraste, fonte ajustável, leitor de tela e WCAG 2.2.' },
+  { icon: '🔒', title: 'Privacidade total', desc: 'Tudo fica no seu dispositivo. Nenhum dado é enviado a servidores.' },
+  { icon: '🎨', title: 'Materiais para imprimir', desc: 'Exporte pranchas em PDF e PNG prontas para usar.' },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-text">
+        <span class="eyebrow">Inclusão · Comunicação · Educação</span>
+        <h1 class="hero-title">Toda criança tem <span class="hl">algo a dizer.</span></h1>
+        <p class="hero-lead">
+          O NeuroVoz reúne conhecimento sobre o autismo e ferramentas práticas de
+          Comunicação Aumentativa e Alternativa para apoiar crianças com dificuldades
+          na comunicação verbal — em casa, na escola e na clínica.
+        </p>
+        <div class="hero-cta">
+          <a href="/tablet" class="btn btn-primary btn-lg">Abrir Tablet Comunicador</a>
+          <a href="/autismo" class="btn btn-ghost btn-lg">Entender o Autismo</a>
+        </div>
+        <ul class="hero-tags">
+          <li>Sem cadastro</li>
+          <li>100% gratuito</li>
+          <li>Funciona offline</li>
+        </ul>
+      </div>
+      <div class="hero-art">
+        <img src="/images/hero.png" alt="Ilustração de crianças e uma professora utilizando um tablet de comunicação alternativa com pictogramas" width="640" height="640" />
+        <div class="float-card card-a" aria-hidden="true"><span>💧</span> Quero água</div>
+        <div class="float-card card-b" aria-hidden="true"><span>😀</span> Estou feliz</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACESSO RÁPIDO -->
+  <section class="section">
+    <div class="container">
+      <div class="head-center">
+        <span class="eyebrow">Acesso rápido</span>
+        <h2 class="section-title">Por onde você quer começar?</h2>
+      </div>
+      <div class="grid grid-4">
+        {quickAccess.map((q) => (
+          <a href={q.href} class="card card-hover quick reveal">
+            <span class="quick-icon" style={`background:${q.color}1a;color:${q.color}`} aria-hidden="true">{q.icon}</span>
+            <h3>{q.title}</h3>
+            <p>{q.desc}</p>
+            <span class="quick-arrow" aria-hidden="true">→</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- DESTAQUE INCLUSÃO -->
+  <section class="section band">
+    <div class="container band-inner">
+      <div class="reveal">
+        <span class="eyebrow">Comunicação para todos</span>
+        <h2 class="section-title">Da intenção à palavra falada</h2>
+        <p class="section-lead">
+          Muitas crianças autistas se comunicam de formas não verbais. A CAA oferece pontes —
+          imagens, símbolos e voz sintetizada — para que cada criança expresse vontades,
+          emoções e necessidades com autonomia e seja realmente compreendida.
+        </p>
+        <a href="/pedagogos" class="btn btn-mint" style="margin-top:18px">Ver guia para pedagogos</a>
+      </div>
+      <div class="mini-board reveal" role="img" aria-label="Exemplo de prancha com cartões de comunicação">
+        {['🙋 Eu quero','💧 Água','🍪 Bolacha','😀 Feliz','🧸 Brincar','🚻 Banheiro','🆘 Ajuda','💖 Obrigado'].map((c) => (
+          <div class="mini-cell">{c}</div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- RECURSOS -->
+  <section class="section">
+    <div class="container">
+      <div class="head-center">
+        <span class="eyebrow">Tudo em um só lugar</span>
+        <h2 class="section-title">Uma plataforma, muitas possibilidades</h2>
+        <p class="section-lead" style="margin:0 auto">Recursos pensados para educadores, famílias e profissionais.</p>
+      </div>
+      <div class="grid grid-3">
+        {features.map((f) => (
+          <div class="card card-hover reveal">
+            <span class="feat-icon" aria-hidden="true">{f.icon}</span>
+            <h3>{f.title}</h3>
+            <p class="muted">{f.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="section">
+    <div class="container">
+      <div class="cta-box reveal">
+        <h2>Comece a dar voz agora</h2>
+        <p>Crie um comunicador personalizado em minutos — sem instalar nada.</p>
+        <div class="hero-cta">
+          <a href="/assistente" class="btn btn-mint btn-lg">Personalizar com IA</a>
+          <a href="/pranchas" class="btn btn-ghost btn-lg">Criar uma prancha</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { background: linear-gradient(180deg, var(--bg-alt), var(--bg)); padding: 56px 0 40px; overflow: hidden; }
+  .hero-inner { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 40px; align-items: center; }
+  .hero-title { font-size: clamp(2.3rem, 5.5vw, 3.8rem); font-weight: 900; text-wrap: balance; }
+  .hero-title .hl { color: var(--blue); }
+  .hero-lead { font-size: 1.15rem; color: var(--text-soft); margin: 18px 0 26px; max-width: 540px; text-wrap: pretty; }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-tags { display: flex; gap: 18px; list-style: none; margin-top: 24px; flex-wrap: wrap; }
+  .hero-tags li { display: flex; align-items: center; gap: 8px; color: var(--text-soft); font-weight: 600; font-size: 0.92rem; }
+  .hero-tags li::before { content: '✓'; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--mint-soft); color: var(--mint-ink); font-weight: 900; font-size: 0.8rem; }
+
+  .hero-art { position: relative; }
+  .hero-art img { width: 100%; height: auto; border-radius: var(--radius-xl); animation: float 6s ease-in-out infinite; }
+  .float-card { position: absolute; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: 16px; padding: 10px 16px; font-family: var(--font-head); font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .float-card span { font-size: 1.3rem; }
+  .card-a { top: 12%; left: -6%; animation: float 5s ease-in-out infinite; }
+  .card-b { bottom: 14%; right: -4%; animation: float 7s ease-in-out infinite; }
+
+  .head-center { text-align: center; margin-bottom: 36px; }
+  .head-center .section-title { margin-top: 10px; }
+
+  .quick { display: flex; flex-direction: column; gap: 10px; position: relative; }
+  .quick-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; font-size: 1.7rem; }
+  .quick h3 { font-size: 1.12rem; }
+  .quick p { color: var(--text-soft); font-size: 0.95rem; }
+  .quick-arrow { color: var(--blue); font-weight: 900; font-size: 1.3rem; margin-top: auto; }
+
+  .band { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .band-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  .mini-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .mini-cell { background: var(--surface-2); border: 2px solid var(--border); border-radius: 16px; padding: 18px 10px; text-align: center; font-family: var(--font-head); font-weight: 800; font-size: 0.95rem; box-shadow: var(--shadow-sm); }
+
+  .feat-icon { font-size: 2rem; display: block; margin-bottom: 10px; }
+  .muted { color: var(--text-soft); }
+
+  .cta-box { background: linear-gradient(135deg, var(--blue), var(--mint)); color: #fff; border-radius: var(--radius-xl); padding: 56px 32px; text-align: center; }
+  .cta-box h2 { color: #fff; font-size: clamp(1.8rem, 4vw, 2.6rem); }
+  .cta-box p { font-size: 1.1rem; margin: 12px 0 26px; opacity: 0.95; }
+
+  @media (max-width: 900px) {
+    .hero-inner, .band-inner { grid-template-columns: 1fr; }
+    .hero-art { order: -1; max-width: 440px; margin: 0 auto; }
+    .float-card { display: none; }
+    .mini-board { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (max-width: 520px) { .mini-board { grid-template-columns: repeat(2, 1fr); } }
+</style>

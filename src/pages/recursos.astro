@@ -1,0 +1,130 @@
+---
+import Base from '../layouts/Base.astro';
+
+const tools = [
+  { title: 'Tablet Comunicador', desc: 'Comunicador AAC pronto para uso com voz sintetizada.', href: '/tablet', icon: '📱', tag: 'Ferramenta' },
+  { title: 'Gerador de Pranchas', desc: 'Monte pranchas personalizadas e exporte em PDF/PNG.', href: '/pranchas', icon: '🧩', tag: 'Ferramenta' },
+  { title: 'Personalização com IA', desc: 'Gere um comunicador único a partir do perfil da criança.', href: '/assistente', icon: '🤖', tag: 'Ferramenta' },
+  { title: 'Dashboard de Evolução', desc: 'Acompanhe o histórico e a evolução comunicativa.', href: '/historico', icon: '📊', tag: 'Ferramenta' },
+];
+
+const articles = [
+  { title: 'O que é Comunicação Aumentativa e Alternativa (CAA)?', desc: 'Entenda os fundamentos da CAA e como ela apoia crianças não verbais.', icon: '💬', cat: 'Fundamentos' },
+  { title: 'Como introduzir uma prancha de comunicação', desc: 'Estratégias práticas para os primeiros dias de uso em sala de aula.', icon: '🪜', cat: 'Prática' },
+  { title: 'PECS x Pranchas digitais', desc: 'Vantagens e limites de cada abordagem para a comunicação visual.', icon: '⚖️', cat: 'Comparativo' },
+  { title: 'Rotina visual e previsibilidade', desc: 'Por que antecipar as atividades reduz a ansiedade e crises.', icon: '🗓️', cat: 'Prática' },
+  { title: 'Reforço positivo na comunicação', desc: 'Como celebrar cada tentativa comunicativa da criança.', icon: '⭐', cat: 'Estratégia' },
+  { title: 'Parceria escola e família', desc: 'Mantendo o mesmo vocabulário em casa e na escola.', icon: '🤝', cat: 'Inclusão' },
+];
+
+const downloads = [
+  { title: 'Prancha de necessidades básicas', fmt: 'PDF', size: 'A4', icon: '🍽️' },
+  { title: 'Prancha de emoções', fmt: 'PDF', size: 'A4', icon: '😀' },
+  { title: 'Cartões de rotina escolar', fmt: 'PNG', size: 'Avulsos', icon: '🏫' },
+  { title: 'Quadro de escolhas (Sim/Não)', fmt: 'PDF', size: 'A4', icon: '✅' },
+];
+
+const faqs = [
+  { q: 'Preciso pagar para usar?', a: 'Não. Todas as ferramentas do NeuroVoz são gratuitas e funcionam direto no navegador.' },
+  { q: 'Os dados da criança ficam seguros?', a: 'Sim. Tudo é processado e armazenado localmente no seu dispositivo. Nada é enviado para servidores externos.' },
+  { q: 'Funciona em tablet e celular?', a: 'Sim. A plataforma é responsiva e o comunicador tem modo tela cheia, ideal para tablets.' },
+  { q: 'Posso usar offline?', a: 'Após o primeiro carregamento, as ferramentas principais continuam funcionando sem internet.' },
+];
+---
+
+<Base title="Biblioteca de Recursos">
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Biblioteca</span>
+      <h1 class="page-title">Recursos para apoiar a comunicação</h1>
+      <p class="page-lead">Ferramentas, artigos e materiais para imprimir, reunidos para educadores, terapeutas e famílias.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Ferramentas interativas</h2>
+      <div class="grid grid-4" style="margin-top:24px">
+        {tools.map((t) => (
+          <a href={t.href} class="card card-hover reveal">
+            <span class="r-icon" aria-hidden="true">{t.icon}</span>
+            <span class="pill">{t.tag}</span>
+            <h3>{t.title}</h3>
+            <p class="muted">{t.desc}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section band">
+    <div class="container">
+      <h2 class="section-title">Artigos e guias</h2>
+      <div class="grid grid-3" style="margin-top:24px">
+        {articles.map((a) => (
+          <article class="card card-hover reveal">
+            <span class="r-icon" aria-hidden="true">{a.icon}</span>
+            <span class="cat">{a.cat}</span>
+            <h3>{a.title}</h3>
+            <p class="muted">{a.desc}</p>
+            <span class="read">Ler artigo →</span>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Materiais para imprimir</h2>
+      <p class="section-lead">Pranchas prontas para baixar e usar imediatamente.</p>
+      <div class="grid grid-4" style="margin-top:24px">
+        {downloads.map((d) => (
+          <div class="card download reveal">
+            <span class="r-icon" aria-hidden="true">{d.icon}</span>
+            <h3>{d.title}</h3>
+            <p class="muted">{d.fmt} · {d.size}</p>
+            <a href="/pranchas" class="btn btn-primary" style="margin-top:auto">Personalizar e baixar</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section band">
+    <div class="container narrow">
+      <h2 class="section-title">Perguntas frequentes</h2>
+      <div class="faq-list" style="margin-top:24px">
+        {faqs.map((f) => (
+          <details class="faq">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-hero { background: linear-gradient(180deg, var(--bg-alt), var(--bg)); padding: 48px 0; text-align: center; }
+  .page-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; margin-top: 8px; }
+  .page-lead { color: var(--text-soft); font-size: 1.12rem; max-width: 640px; margin: 14px auto 0; text-wrap: pretty; }
+  .narrow { max-width: 760px; }
+
+  .r-icon { font-size: 2rem; display: block; margin-bottom: 10px; }
+  .muted { color: var(--text-soft); font-size: 0.95rem; }
+  .pill { display: inline-block; background: var(--blue-soft); color: var(--blue-ink); font-weight: 700; font-size: 0.72rem; padding: 3px 10px; border-radius: 999px; margin-bottom: 6px; }
+  .cat { display: inline-block; background: var(--mint-soft); color: var(--mint-ink); font-weight: 700; font-size: 0.72rem; padding: 3px 10px; border-radius: 999px; margin-bottom: 6px; }
+  .card h3 { font-size: 1.08rem; margin-bottom: 6px; }
+  .read { color: var(--blue); font-weight: 800; font-size: 0.9rem; margin-top: 10px; display: inline-block; }
+  .download { display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center; }
+  .download .btn { width: 100%; }
+
+  .faq-list { display: flex; flex-direction: column; gap: 12px; }
+  .faq { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 18px; box-shadow: var(--shadow-sm); }
+  .faq summary { cursor: pointer; font-family: var(--font-head); font-weight: 800; padding: 14px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  .faq summary::after { content: '+'; color: var(--blue); font-size: 1.5rem; font-weight: 900; }
+  .faq[open] summary::after { content: '−'; }
+  .faq p { color: var(--text-soft); padding-bottom: 16px; }
+</style>

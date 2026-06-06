@@ -1,0 +1,170 @@
+---
+import Base from '../layouts/Base.astro';
+
+const passos = [
+  {
+    n: 1,
+    title: 'Identificar as necessidades da criança',
+    text: 'Observe a rotina e os contextos onde a comunicação acontece. Quais mensagens a criança tenta transmitir hoje? O que gera frustração por não conseguir expressar?',
+    exemplos: 'Uma criança que aponta para a geladeira repetidamente provavelmente precisa de botões como "água", "comida" e "com fome".',
+    dicas: 'Converse com a família e demais profissionais. As necessidades mudam entre casa, escola e clínica.',
+    alerta: 'Evite começar com vocabulário escolar abstrato. Priorize o que é funcional e imediato para a criança.',
+  },
+  {
+    n: 2,
+    title: 'Selecionar vocabulário funcional',
+    text: 'Escolha palavras que dão autonomia e poder de escolha. Inclua o "vocabulário núcleo" (eu quero, mais, acabou, ajuda) que serve a inúmeras situações.',
+    exemplos: '"Mais", "acabou", "quero", "não quero" e "ajuda" cobrem grande parte das interações diárias.',
+    dicas: 'Vocabulário núcleo (~80% do uso) + vocabulário de borda (específico do interesse da criança).',
+    alerta: 'Não sobrecarregue. Comece com poucos itens muito úteis e amplie gradualmente.',
+  },
+  {
+    n: 3,
+    title: 'Escolher símbolos e imagens',
+    text: 'Selecione pictogramas claros e consistentes. Use fotos reais quando ajudarem no reconhecimento (rostos da família, objetos da casa).',
+    exemplos: 'Para "mamãe", uma foto real costuma funcionar melhor que um pictograma genérico.',
+    dicas: 'Mantenha um estilo visual consistente e associe sempre símbolo + texto + áudio.',
+    alerta: 'Cuidado com símbolos ambíguos. Valide se a criança realmente reconhece a imagem.',
+  },
+  {
+    n: 4,
+    title: 'Organizar categorias',
+    text: 'Agrupe o vocabulário por cor e categoria (alimentação, emoções, escola...). Posicione os itens mais usados em locais fixos e de fácil acesso.',
+    exemplos: 'Categorias por cor: verde para ações, laranja para objetos, amarelo para o núcleo.',
+    dicas: 'Mantenha a posição dos botões estável — a memória motora acelera muito o uso.',
+    alerta: 'Reorganizar tudo a cada semana confunde a criança. Mude com critério.',
+  },
+  {
+    n: 5,
+    title: 'Aplicar e adaptar conforme a evolução',
+    text: 'Modele o uso (use você mesmo a prancha), celebre cada tentativa e registre o progresso. Amplie o repertório à medida que a criança domina os itens.',
+    exemplos: 'Ao oferecer suco, aponte os botões "quero" + "suco" enquanto fala. Isso é modelagem.',
+    dicas: 'Use o Histórico e o Dashboard do NeuroVoz para decidir o que incluir em seguida.',
+    alerta: 'Nunca exija a fala como condição. A CAA é comunicação válida por si só.',
+  },
+];
+---
+
+<Base title="Guia para Pedagogos — NeuroVoz" description="Formação prática: aprenda a criar uma prancha de comunicação passo a passo com exemplos, dicas e boas práticas.">
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Guia interativo</span>
+      <h1 class="page-title">Como criar uma prancha de comunicação</h1>
+      <p class="page-lead">Um módulo de formação prática em 5 passos, com exemplos reais, dicas pedagógicas e alertas de boas práticas.</p>
+      <div class="progress-wrap" aria-hidden="true">
+        <div class="progress-bar"><span id="progress-fill"></span></div>
+        <span id="progress-label" class="progress-label">Passo 1 de 5</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container guide-layout">
+      <!-- Navegação lateral -->
+      <nav class="steps-nav" aria-label="Etapas do guia">
+        {passos.map((p) => (
+          <button class="step-tab" data-step={p.n} aria-current={p.n === 1 ? 'step' : 'false'}>
+            <span class="step-num">{p.n}</span>
+            <span class="step-name">{p.title}</span>
+          </button>
+        ))}
+      </nav>
+
+      <!-- Conteúdo dos passos -->
+      <div class="steps-content">
+        {passos.map((p) => (
+          <article class={`step-panel ${p.n === 1 ? 'active' : ''}`} data-panel={p.n}>
+            <span class="eyebrow">Passo {p.n} de 5</span>
+            <h2 class="step-title">{p.title}</h2>
+            <p class="step-text">{p.text}</p>
+
+            <div class="info-card example">
+              <h3>📌 Exemplo real</h3>
+              <p>{p.exemplos}</p>
+            </div>
+            <div class="info-card tip">
+              <h3>💡 Dica pedagógica</h3>
+              <p>{p.dicas}</p>
+            </div>
+            <div class="info-card warn">
+              <h3>⚠️ Boas práticas</h3>
+              <p>{p.alerta}</p>
+            </div>
+
+            <div class="step-actions">
+              <button class="btn btn-ghost" data-nav="prev" {...(p.n === 1 ? { disabled: true } : {})}>← Anterior</button>
+              {p.n < 5
+                ? <button class="btn btn-primary" data-nav="next">Próximo passo →</button>
+                : <a href="/pranchas" class="btn btn-mint">Criar minha prancha agora →</a>}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-hero { background: linear-gradient(180deg, var(--bg-alt), var(--bg)); padding: 48px 0; }
+  .page-title { font-size: clamp(1.9rem, 5vw, 2.8rem); margin: 12px 0 10px; }
+  .page-lead { color: var(--text-soft); font-size: 1.1rem; max-width: 640px; }
+  .progress-wrap { display: flex; align-items: center; gap: 14px; margin-top: 24px; max-width: 460px; }
+  .progress-bar { flex: 1; height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; }
+  .progress-bar span { display: block; height: 100%; width: 20%; background: var(--blue); border-radius: 999px; transition: width 0.3s ease; }
+  .progress-label { font-family: var(--font-head); font-weight: 700; font-size: 0.85rem; color: var(--text-soft); white-space: nowrap; }
+
+  .guide-layout { display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: start; }
+  .steps-nav { display: flex; flex-direction: column; gap: 8px; position: sticky; top: 90px; }
+  .step-tab { display: flex; align-items: center; gap: 12px; text-align: left; padding: 14px; border-radius: var(--radius); border: 2px solid var(--border); background: var(--surface); transition: all 0.18s; }
+  .step-tab:hover { border-color: var(--blue-soft); }
+  .step-tab[aria-current='step'] { border-color: var(--blue); background: var(--bg-alt); }
+  .step-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--border); color: var(--text); display: grid; place-items: center; font-family: var(--font-head); font-weight: 900; }
+  .step-tab[aria-current='step'] .step-num { background: var(--blue); color: #fff; }
+  .step-name { font-family: var(--font-head); font-weight: 700; font-size: 0.92rem; }
+
+  .step-panel { display: none; animation: fadeUp 0.4s ease; }
+  .step-panel.active { display: block; }
+  .step-title { font-size: clamp(1.4rem, 3vw, 2rem); margin: 12px 0; }
+  .step-text { color: var(--text-soft); font-size: 1.08rem; margin-bottom: 22px; }
+
+  .info-card { border-radius: var(--radius); padding: 18px 20px; margin-bottom: 14px; border: 1px solid var(--border); }
+  .info-card h3 { font-size: 1rem; margin-bottom: 6px; }
+  .info-card p { color: var(--text-soft); }
+  .example { background: #eef4ff; border-color: #d4e2ff; }
+  .tip { background: #eafaf4; border-color: #c9efe1; }
+  .warn { background: #fff5ec; border-color: #ffe0c7; }
+  :root[data-contrast='high'] .example, :root[data-contrast='high'] .tip, :root[data-contrast='high'] .warn { background: var(--surface-2); }
+
+  .step-actions { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+  .btn[disabled] { opacity: 0.4; pointer-events: none; }
+
+  @media (max-width: 860px) {
+    .guide-layout { grid-template-columns: 1fr; }
+    .steps-nav { position: static; flex-direction: row; overflow-x: auto; padding-bottom: 6px; }
+    .step-tab { flex-direction: column; min-width: 120px; text-align: center; }
+    .step-name { font-size: 0.78rem; }
+  }
+</style>
+
+<script>
+  const total = 5;
+  let current = 1;
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.step-tab');
+  const panels = document.querySelectorAll<HTMLElement>('.step-panel');
+  const fill = document.getElementById('progress-fill');
+  const label = document.getElementById('progress-label');
+
+  function show(step: number) {
+    current = Math.min(Math.max(step, 1), total);
+    tabs.forEach((t) => t.setAttribute('aria-current', Number(t.dataset.step) === current ? 'step' : 'false'));
+    panels.forEach((p) => p.classList.toggle('active', Number(p.dataset.panel) === current));
+    if (fill) fill.style.width = `${(current / total) * 100}%`;
+    if (label) label.textContent = `Passo ${current} de ${total}`;
+    document.querySelector('.steps-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  tabs.forEach((t) => t.addEventListener('click', () => show(Number(t.dataset.step))));
+  document.querySelectorAll<HTMLButtonElement>('[data-nav]').forEach((btn) => {
+    btn.addEventListener('click', () => show(btn.dataset.nav === 'next' ? current + 1 : current - 1));
+  });
+</script>

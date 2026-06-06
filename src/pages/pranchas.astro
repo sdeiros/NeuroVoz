@@ -1,0 +1,350 @@
+---
+import Base from '../layouts/Base.astro';
+import { categories, vocabulary } from '../data/vocabulary';
+---
+
+<Base title="Gerador de Pranchas — NeuroVoz" description="Crie pranchas de comunicação personalizadas com o nome da criança, categorias prontas e biblioteca visual. Exporte em PDF e PNG.">
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Gerador de Pranchas</span>
+      <h1 class="page-title">Monte uma prancha personalizada</h1>
+      <p class="page-lead">Preencha os dados, escolha cartões da biblioteca, organize por arrastar e soltar e exporte para imprimir ou usar no tablet.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container builder">
+      <!-- Painel de configuração -->
+      <aside class="panel">
+        <h2 class="panel-title">Dados da criança</h2>
+        <div class="field">
+          <label for="nome">Nome</label>
+          <input id="nome" type="text" placeholder="Ex.: Sofia" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="idade">Idade</label>
+          <input id="idade" type="number" min="0" max="18" placeholder="Ex.: 6" />
+        </div>
+        <div class="field">
+          <label for="pref">Preferências</label>
+          <input id="pref" type="text" placeholder="Ex.: dinossauros, música" />
+        </div>
+        <div class="field">
+          <label for="obs">Observações</label>
+          <textarea id="obs" placeholder="Anotações pedagógicas..."></textarea>
+        </div>
+
+        <hr class="div" />
+
+        <h2 class="panel-title">Categorias</h2>
+        <p class="panel-hint">Clique numa categoria para ver os cartões disponíveis.</p>
+        <div class="cat-list" id="cat-list">
+          {categories.map((c, i) => (
+            <button class={`cat-chip ${i === 0 ? 'active' : ''}`} data-cat={c.id} style={`--cc:${c.color}`}>
+              <span aria-hidden="true">{c.icon}</span> {c.name}
+            </button>
+          ))}
+        </div>
+
+        <hr class="div" />
+
+        <h2 class="panel-title">Biblioteca visual</h2>
+        <p class="panel-hint">Clique para adicionar à prancha.</p>
+        <div class="library" id="library"></div>
+
+        <hr class="div" />
+
+        <h2 class="panel-title">Imagem própria</h2>
+        <div class="field">
+          <label for="custom-label">Rótulo</label>
+          <input id="custom-label" type="text" placeholder="Ex.: Meu cachorro" />
+        </div>
+        <div class="field">
+          <label for="custom-img">Foto (do dispositivo)</label>
+          <input id="custom-img" type="file" accept="image/*" />
+        </div>
+        <button class="btn btn-ghost btn-block" id="add-custom">+ Adicionar cartão próprio</button>
+
+        <hr class="div" />
+
+        <h2 class="panel-title">Tamanho dos cartões</h2>
+        <div class="size-buttons" role="group" aria-label="Tamanho dos cartões">
+          <button class="chip" data-size="sm">Pequeno</button>
+          <button class="chip active" data-size="md">Médio</button>
+          <button class="chip" data-size="lg">Grande</button>
+        </div>
+      </aside>
+
+      <!-- Prancha -->
+      <div class="board-wrap">
+        <div class="board-toolbar">
+          <h2 id="board-title" class="board-title">Prancha de Comunicação</h2>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost" id="btn-clear">Limpar</button>
+            <button class="btn btn-ghost" id="btn-png">Exportar PNG</button>
+            <button class="btn btn-primary" id="btn-pdf">Exportar PDF</button>
+          </div>
+        </div>
+
+        <div id="board" class="board size-md" aria-label="Área da prancha. Arraste os cartões para reorganizar.">
+          <p class="board-empty" id="board-empty">Sua prancha está vazia. Escolha cartões na biblioteca ao lado para começar.</p>
+        </div>
+
+        <p class="board-tip">Dica: arraste os cartões para reordenar. Clique no X para remover. A prancha é salva automaticamente no seu dispositivo.</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script define:vars={{ vocabulary, categories }}>
+  const board = document.getElementById('board');
+  const boardEmpty = document.getElementById('board-empty');
+  const library = document.getElementById('library');
+  const boardTitle = document.getElementById('board-title');
+  const nomeInput = document.getElementById('nome');
+
+  let activeCat = categories[0].id;
+  let cards = [];
+  let cardSize = 'md';
+
+  // Restaurar estado salvo
+  try {
+    const saved = JSON.parse(localStorage.getItem('nv-prancha') || '{}');
+    if (saved.cards) cards = saved.cards;
+    if (saved.size) cardSize = saved.size;
+    if (saved.nome) nomeInput.value = saved.nome;
+    if (saved.idade) document.getElementById('idade').value = saved.idade;
+    if (saved.pref) document.getElementById('pref').value = saved.pref;
+    if (saved.obs) document.getElementById('obs').value = saved.obs;
+  } catch (e) {}
+
+  function persist() {
+    localStorage.setItem('nv-prancha', JSON.stringify({
+      cards, size: cardSize,
+      nome: nomeInput.value,
+      idade: document.getElementById('idade').value,
+      pref: document.getElementById('pref').value,
+      obs: document.getElementById('obs').value,
+    }));
+  }
+
+  function updateTitle() {
+    const nome = nomeInput.value.trim();
+    boardTitle.textContent = nome ? `Prancha de Comunicação de ${nome}` : 'Prancha de Comunicação';
+  }
+
+  function renderLibrary() {
+    const items = vocabulary.filter((v) => v.category === activeCat);
+    library.innerHTML = '';
+    items.forEach((item) => {
+      const btn = document.createElement('button');
+      btn.className = 'lib-card';
+      btn.innerHTML = `<span class="lib-icon">${item.icon}</span><span class="lib-text">${item.label}</span>`;
+      btn.addEventListener('click', () => addCard({ icon: item.icon, label: item.label, color: catColor(item.category) }));
+      library.appendChild(btn);
+    });
+  }
+
+  function catColor(id) {
+    return (categories.find((c) => c.id === id) || {}).color || '#5b8def';
+  }
+
+  function addCard(card) {
+    cards.push({ ...card, id: Date.now() + Math.random() });
+    renderBoard(); persist();
+  }
+
+  function renderBoard() {
+    board.className = `board size-${cardSize}`;
+    board.querySelectorAll('.b-card').forEach((n) => n.remove());
+    boardEmpty.style.display = cards.length ? 'none' : 'block';
+
+    cards.forEach((card) => {
+      const el = document.createElement('div');
+      el.className = 'b-card';
+      el.draggable = true;
+      el.dataset.id = card.id;
+      el.style.setProperty('--cc', card.color || '#5b8def');
+      const icon = card.img
+        ? `<img src="${card.img}" alt="" class="b-img" />`
+        : `<span class="b-icon">${card.icon}</span>`;
+      el.innerHTML = `${icon}<span class="b-label">${card.label}</span>
+        <button class="b-remove" aria-label="Remover ${card.label}">×</button>`;
+      el.querySelector('.b-remove').addEventListener('click', () => {
+        cards = cards.filter((c) => String(c.id) !== String(card.id));
+        renderBoard(); persist();
+      });
+      addDragEvents(el);
+      board.appendChild(el);
+    });
+  }
+
+  // Drag & drop reorder
+  let dragEl = null;
+  function addDragEvents(el) {
+    el.addEventListener('dragstart', () => { dragEl = el; setTimeout(() => el.classList.add('dragging'), 0); });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging'); dragEl = null;
+      // reconstruir ordem
+      const order = [...board.querySelectorAll('.b-card')].map((n) => n.dataset.id);
+      cards.sort((a, b) => order.indexOf(String(a.id)) - order.indexOf(String(b.id)));
+      persist();
+    });
+  }
+  board.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (!dragEl) return;
+    const after = getAfterElement(e.clientX, e.clientY);
+    if (after == null) board.appendChild(dragEl);
+    else board.insertBefore(dragEl, after);
+  });
+  function getAfterElement(x, y) {
+    const els = [...board.querySelectorAll('.b-card:not(.dragging)')];
+    return els.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) return { offset, element: child };
+      return closest;
+    }, { offset: -Infinity, element: null }).element;
+  }
+
+  // Categorias
+  document.querySelectorAll('.cat-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.cat-chip').forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeCat = chip.dataset.cat;
+      renderLibrary();
+    });
+  });
+
+  // Tamanho
+  document.querySelectorAll('[data-size]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-size]').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      cardSize = btn.dataset.size; renderBoard(); persist();
+    });
+  });
+
+  // Imagem própria
+  document.getElementById('add-custom').addEventListener('click', () => {
+    const label = document.getElementById('custom-label').value.trim();
+    const file = document.getElementById('custom-img').files[0];
+    if (!label) { alert('Informe um rótulo para o cartão.'); return; }
+    if (!file) { addCard({ icon: '🖼️', label, color: '#8898b2' }); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      addCard({ img: e.target.result, label, color: '#8898b2' });
+      document.getElementById('custom-label').value = '';
+      document.getElementById('custom-img').value = '';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Inputs da criança
+  ['nome', 'idade', 'pref', 'obs'].forEach((id) => {
+    document.getElementById(id).addEventListener('input', () => { if (id === 'nome') updateTitle(); persist(); });
+  });
+
+  // Limpar
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    if (confirm('Deseja limpar todos os cartões da prancha?')) { cards = []; renderBoard(); persist(); }
+  });
+
+  // Exportar PNG / PDF (impressão)
+  document.getElementById('btn-png').addEventListener('click', () => exportBoard('png'));
+  document.getElementById('btn-pdf').addEventListener('click', () => exportBoard('pdf'));
+
+  function exportBoard(type) {
+    if (!cards.length) { alert('Adicione cartões antes de exportar.'); return; }
+    const title = boardTitle.textContent;
+    const win = window.open('', '_blank');
+    const cardsHtml = cards.map((c) => {
+      const visual = c.img ? `<img src="${c.img}" />` : `<span class="ic">${c.icon}</span>`;
+      return `<div class="pc" style="border-color:${c.color}"><div class="pc-top" style="background:${c.color}1a">${visual}</div><div class="pc-label">${c.label}</div></div>`;
+    }).join('');
+    win.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${title}</title>
+      <style>
+        @page { size: A4 landscape; margin: 12mm; }
+        body { font-family: 'Nunito', system-ui, sans-serif; padding: 20px; color: #25324a; }
+        h1 { text-align: center; margin-bottom: 6px; }
+        .sub { text-align: center; color: #5a6b85; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .pc { border: 3px solid #5b8def; border-radius: 16px; overflow: hidden; text-align: center; page-break-inside: avoid; }
+        .pc-top { padding: 18px; font-size: 48px; }
+        .pc-top img { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; }
+        .pc-label { padding: 10px; font-weight: 800; font-size: 18px; }
+        @media print { .noprint { display: none; } }
+      </style></head><body>
+      <h1>${title}</h1>
+      <p class="sub">NeuroVoz — Prancha de Comunicação Aumentativa e Alternativa</p>
+      <div class="grid">${cardsHtml}</div>
+      <p class="noprint" style="text-align:center;margin-top:24px">
+        ${type === 'pdf' ? 'Use a opção "Salvar como PDF" na janela de impressão.' : 'Use "Salvar como PNG" ou tire um print desta página.'}
+      </p>
+      <script>window.onload = () => setTimeout(() => window.print(), 400);<\/script>
+      </body></html>`);
+    win.document.close();
+  }
+
+  // Init
+  updateTitle();
+  renderLibrary();
+  renderBoard();
+</script>
+
+<style>
+  .page-hero { background: linear-gradient(180deg, var(--bg-alt), var(--bg)); padding: 48px 0; }
+  .page-title { font-size: clamp(1.9rem, 5vw, 2.8rem); margin: 12px 0 10px; }
+  .page-lead { color: var(--text-soft); font-size: 1.1rem; max-width: 640px; }
+
+  .builder { display: grid; grid-template-columns: 340px 1fr; gap: 28px; align-items: start; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow-sm); position: sticky; top: 90px; max-height: calc(100vh - 110px); overflow-y: auto; }
+  .panel-title { font-size: 1.05rem; margin-bottom: 4px; }
+  .panel-hint { font-size: 0.84rem; color: var(--text-muted); margin-bottom: 12px; }
+  .div { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  .cat-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cat-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; border: 2px solid var(--border); background: var(--surface-2); font-weight: 700; font-family: var(--font-head); font-size: 0.85rem; color: var(--text); }
+  .cat-chip.active { border-color: var(--cc); background: color-mix(in srgb, var(--cc) 14%, white); color: var(--text); }
+
+  .library { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .lib-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface-2); transition: transform 0.12s, border-color 0.12s; }
+  .lib-card:hover { transform: translateY(-2px); border-color: var(--blue-soft); }
+  .lib-icon { font-size: 1.6rem; }
+  .lib-text { font-size: 0.74rem; font-weight: 700; font-family: var(--font-head); text-align: center; line-height: 1.1; }
+
+  .size-buttons { display: flex; gap: 6px; }
+  .chip { padding: 8px 14px; border-radius: 999px; border: 2px solid var(--border); background: var(--surface-2); font-weight: 700; font-family: var(--font-head); color: var(--text); }
+  .chip.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+  .board-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow-sm); min-height: 480px; }
+  .board-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+  .board-title { font-size: 1.3rem; }
+  .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .board { display: grid; gap: 14px; min-height: 360px; padding: 8px; border-radius: var(--radius); background: var(--surface-2); align-content: start; }
+  .board.size-sm { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+  .board.size-md { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  .board.size-lg { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+  .board-empty { grid-column: 1 / -1; color: var(--text-muted); text-align: center; padding: 60px 20px; font-weight: 600; }
+
+  .b-card { position: relative; background: var(--surface); border: 3px solid var(--cc); border-radius: 16px; overflow: hidden; text-align: center; cursor: grab; box-shadow: var(--shadow-sm); transition: transform 0.12s; }
+  .b-card:hover { transform: translateY(-2px); }
+  .b-card.dragging { opacity: 0.4; }
+  .b-icon { display: block; padding: 16px 8px 4px; font-size: 2.2rem; background: color-mix(in srgb, var(--cc) 12%, white); }
+  .size-sm .b-icon { font-size: 1.6rem; padding: 10px 4px 2px; }
+  .size-lg .b-icon { font-size: 2.8rem; padding: 22px 8px 6px; }
+  .b-img { width: 100%; height: 90px; object-fit: cover; }
+  .b-label { display: block; padding: 8px 4px; font-family: var(--font-head); font-weight: 800; font-size: 0.86rem; }
+  .b-remove { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; border: none; background: rgba(0,0,0,0.45); color: #fff; font-size: 1rem; line-height: 1; display: grid; place-items: center; }
+  .b-remove:hover { background: #e23b3b; }
+
+  .board-tip { color: var(--text-muted); font-size: 0.85rem; margin-top: 14px; }
+
+  @media (max-width: 920px) {
+    .builder { grid-template-columns: 1fr; }
+    .panel { position: static; max-height: none; }
+  }
+</style>
