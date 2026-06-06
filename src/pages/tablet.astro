@@ -149,7 +149,7 @@ import { categories, vocabulary } from '../data/vocabulary';
       const isPriority = custom && custom.cards && custom.cards.includes(item.id) && activeCat === 'all';
       btn.className = 'aac-btn' + (isPriority ? ' priority' : '');
       btn.style.setProperty('--cc', semanticColor(item));
-      btn.innerHTML = `<span class="aac-icon" aria-hidden="true">${item.icon}</span><span class="aac-label">${item.label}</span>`;
+      btn.innerHTML = `<span class="aac-icon-wrap"><span class="aac-icon" aria-hidden="true">${item.icon}</span></span><span class="aac-label-wrap"><span class="aac-label">${item.label}</span></span>`;
       btn.setAttribute('aria-label', item.label);
       btn.addEventListener('click', () => onPress(item, btn));
       grid.appendChild(btn);
@@ -309,43 +309,120 @@ import { categories, vocabulary } from '../data/vocabulary';
   .cat-pill span { font-size: 1.1rem; }
   .cat-pill.active { border-color: var(--cc, var(--blue)); background: color-mix(in srgb, var(--cc, #5b8def) 14%, white); }
 
-  .aac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 16px; }
+  .aac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 18px; }
+
   .aac-btn {
-    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 10px; padding: 18px 10px 16px; border-radius: 20px;
-    border: none; background: var(--surface);
-    aspect-ratio: 1 / 0.94; cursor: pointer; overflow: hidden;
-    box-shadow: 0 4px 0 color-mix(in srgb, var(--cc) 45%, #c7c7c7), 0 8px 18px rgba(20, 40, 80, 0.1);
-    transition: transform 0.14s ease, box-shadow 0.14s ease;
-  }
-  .aac-btn::before {
-    content: ''; position: absolute; inset: 0; border-radius: inherit;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--cc) 18%, white) 0%, color-mix(in srgb, var(--cc) 6%, white) 100%);
-    z-index: 0;
-  }
-  .aac-btn::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 7px;
-    background: var(--cc); z-index: 1;
-  }
-  .aac-btn > * { position: relative; z-index: 2; }
-  .aac-btn:hover { transform: translateY(-4px); box-shadow: 0 6px 0 color-mix(in srgb, var(--cc) 45%, #c7c7c7), 0 14px 26px rgba(20, 40, 80, 0.16); }
-  .aac-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb, var(--cc) 45%, #c7c7c7), 0 4px 10px rgba(20, 40, 80, 0.12); }
-  .aac-btn.priority { outline: 3px solid color-mix(in srgb, var(--cc) 60%, transparent); outline-offset: 2px; }
-  .aac-btn.priority::before { background: linear-gradient(180deg, color-mix(in srgb, var(--cc) 30%, white) 0%, color-mix(in srgb, var(--cc) 12%, white) 100%); }
-  .aac-icon { font-size: 2.7rem; line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.12)); }
-  .aac-label {
-    font-family: var(--font-head); font-weight: 800; font-size: 0.96rem; text-align: center;
-    color: color-mix(in srgb, var(--cc) 70%, #1f2937);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0;
+    padding: 0;
+    border-radius: 22px;
+    border: none;
+    background: transparent;
+    aspect-ratio: 1 / 1.05;
+    cursor: pointer;
+    overflow: hidden;
+    /* layered shadow: bottom edge (3-D effect) + ambient */
+    box-shadow:
+      0 5px 0 0 color-mix(in srgb, var(--cc) 55%, #9ca3af),
+      0 10px 24px rgba(20, 40, 80, 0.13);
+    transition: transform 0.13s cubic-bezier(.34,1.56,.64,1), box-shadow 0.13s ease;
+    outline-offset: 3px;
   }
 
-  .aac-btn.pressed { animation: aacPress 0.45s ease; }
+  /* Icon area — large coloured zone */
+  .aac-btn .aac-icon-wrap {
+    position: absolute;
+    inset: 0 0 44px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--cc) 22%, #ffffff) 0%,
+      color-mix(in srgb, var(--cc) 10%, #f8faff) 100%
+    );
+    border-radius: 22px 22px 0 0;
+    z-index: 1;
+  }
+
+  /* Label strip at bottom */
+  .aac-btn .aac-label-wrap {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cc);
+    z-index: 2;
+    border-radius: 0 0 22px 22px;
+    padding: 0 8px;
+  }
+
+  .aac-btn:hover {
+    transform: translateY(-5px);
+    box-shadow:
+      0 8px 0 0 color-mix(in srgb, var(--cc) 55%, #9ca3af),
+      0 18px 36px rgba(20, 40, 80, 0.18);
+  }
+  .aac-btn:active {
+    transform: translateY(3px);
+    box-shadow:
+      0 2px 0 0 color-mix(in srgb, var(--cc) 55%, #9ca3af),
+      0 4px 8px rgba(20, 40, 80, 0.1);
+  }
+
+  /* Priority (IA-picked) cards get a glowing ring */
+  .aac-btn.priority {
+    box-shadow:
+      0 5px 0 0 color-mix(in srgb, var(--cc) 55%, #9ca3af),
+      0 10px 24px rgba(20, 40, 80, 0.13),
+      0 0 0 3px color-mix(in srgb, var(--cc) 70%, transparent);
+  }
+  .aac-btn.priority .aac-icon-wrap {
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--cc) 34%, #ffffff) 0%,
+      color-mix(in srgb, var(--cc) 16%, #f0f7ff) 100%
+    );
+  }
+
+  .aac-icon {
+    font-size: 3rem;
+    line-height: 1;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.15));
+  }
+
+  .aac-label {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 0.92rem;
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+  }
+
+  /* Ripple ring on press */
+  .aac-btn.pressed { animation: aacPress 0.42s cubic-bezier(.34,1.4,.64,1); }
   @keyframes aacPress {
-    0% { transform: scale(1); }
-    40% { transform: scale(1.1); box-shadow: 0 0 0 8px color-mix(in srgb, var(--cc) 40%, transparent), 0 14px 26px rgba(20, 40, 80, 0.2); }
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.12);
+           box-shadow: 0 0 0 10px color-mix(in srgb, var(--cc) 30%, transparent),
+                       0 16px 32px rgba(20,40,80,0.22); }
     100% { transform: scale(1); }
   }
-  :root[data-contrast='high'] .aac-btn::before { background: var(--surface); }
-  :root[data-contrast='high'] .aac-label { color: var(--text); }
+
+  :root[data-contrast='high'] .aac-btn .aac-icon-wrap { background: var(--surface); }
+  :root[data-contrast='high'] .aac-btn .aac-label-wrap { background: var(--cc); }
+  :root[data-contrast='high'] .aac-label { color: #fff; }
 
   /* Flash de cor semântica em toda a tela */
   .flash-overlay {
@@ -364,9 +441,11 @@ import { categories, vocabulary } from '../data/vocabulary';
   }
 
   @media (max-width: 600px) {
-    .aac-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
-    .aac-icon { font-size: 2rem; }
-    .aac-label { font-size: 0.82rem; }
+    .aac-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+    .aac-icon { font-size: 2.2rem; }
+    .aac-label { font-size: 0.78rem; }
+    .aac-btn .aac-label-wrap { height: 38px; }
+    .aac-btn .aac-icon-wrap { bottom: 38px; }
     .sb-btn { width: 48px; height: 48px; font-size: 1.3rem; }
   }
 </style>
