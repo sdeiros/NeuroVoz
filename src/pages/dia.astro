@@ -2,94 +2,181 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="Plano do Dia — NeuroVoz" description="Centro de rotina visual para organizar atividades, transições, alarmes, contagens regressivas e histórico local.">
+<Base title="Plano do Dia — NeuroVoz" description="Centro de rotina visual com sequência Primeiro/Depois, progresso por tempo, arrastar para reordenar e edição de atividades.">
   <section class="day-page">
     <div class="container">
+
+      <!-- ── Header ──────────────────────────────────────────────────────── -->
       <header class="day-head">
-        <div>
+        <div class="day-head-text">
           <span class="eyebrow">Centro de Rotina</span>
           <h1>Plano do Dia</h1>
-          <p>Monte a sequência visual do dia, acompanhe o que já aconteceu e prepare transições com apoio visual e voz.</p>
+          <p>Monte a sequência de atividades, acompanhe o progresso e prepare transições com apoio visual.</p>
         </div>
-        <div class="routine-now" aria-live="polite">
-          <span>📍 Agora</span>
-          <strong id="routine-current">Nenhuma atividade atual</strong>
-          <span>📍 Depois</span>
-          <strong id="routine-next">Adicione a primeira atividade</strong>
-          <em id="routine-next-time">⏳ Sem atividades no plano</em>
+        <div class="day-meta">
+          <span class="day-date" id="day-date-label"></span>
+          <div class="day-stats">
+            <div class="day-stat">
+              <strong id="stat-done">0</strong>
+              <span>concluídas</span>
+            </div>
+            <div class="day-stat-divider"></div>
+            <div class="day-stat">
+              <strong id="stat-total">0</strong>
+              <span>no plano</span>
+            </div>
+            <div class="day-stat-divider"></div>
+            <div class="day-stat">
+              <strong id="stat-pct">0%</strong>
+              <span>completo</span>
+            </div>
+          </div>
         </div>
       </header>
 
+      <!-- ── Primeiro / Depois ──────────────────────────────────────────── -->
+      <div class="fd-strip" aria-live="polite" aria-label="Atividade atual e próxima">
+        <div class="fd-card fd-now" id="fd-now">
+          <span class="fd-badge">Primeiro</span>
+          <div class="fd-content">
+            <div class="fd-icon" id="fd-now-icon" aria-hidden="true">📍</div>
+            <div class="fd-text">
+              <strong id="fd-now-name">Nenhuma atividade</strong>
+              <span id="fd-now-time">—</span>
+            </div>
+          </div>
+          <div class="fd-time-bar-wrap" id="fd-now-bar-wrap">
+            <div class="fd-time-bar-track">
+              <div class="fd-time-bar-fill" id="fd-time-bar-fill"></div>
+            </div>
+            <span class="fd-time-bar-label" id="fd-time-bar-label">⏳</span>
+          </div>
+        </div>
+
+        <div class="fd-arrow" aria-hidden="true">→</div>
+
+        <div class="fd-card fd-next" id="fd-next">
+          <span class="fd-badge">Depois</span>
+          <div class="fd-content">
+            <div class="fd-icon" id="fd-next-icon" aria-hidden="true">⏳</div>
+            <div class="fd-text">
+              <strong id="fd-next-name">Adicione atividades</strong>
+              <span id="fd-next-time">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Global time progress bar ──────────────────────────────────── -->
+      <div class="global-progress-wrap" id="global-progress-wrap" hidden>
+        <div class="global-progress-row">
+          <span class="global-progress-label" id="global-progress-label">0 de 0 concluídas</span>
+          <span class="global-progress-pct" id="global-progress-pct">0%</span>
+        </div>
+        <div class="global-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="global-progress-track">
+          <div class="global-progress-fill" id="global-progress-fill"></div>
+          <!-- Time markers rendered by JS -->
+          <div class="global-progress-markers" id="global-progress-markers"></div>
+        </div>
+        <div class="global-progress-now-line" id="global-progress-now-line" aria-hidden="true"></div>
+      </div>
+
+      <!-- ── Layout ─────────────────────────────────────────────────────── -->
       <div class="routine-layout">
-        <form class="routine-form" id="routine-form">
-          <h2>Nova atividade</h2>
-          <div class="routine-form-grid">
-            <label class="routine-field">
+
+        <!-- Form: add / edit activity -->
+        <aside class="routine-form-panel" id="routine-form-panel">
+          <header class="form-panel-head">
+            <h2 id="form-panel-title">Nova atividade</h2>
+            <button class="form-cancel-btn" id="form-cancel-btn" hidden type="button" aria-label="Cancelar edição">×</button>
+          </header>
+
+          <form id="routine-form" autocomplete="off">
+            <input type="hidden" id="edit-id" />
+
+            <label class="rf-field">
               <span>Nome</span>
-              <input id="routine-name" type="text" required placeholder="Ex.: Banho" />
+              <input id="rf-name" type="text" required placeholder="Ex.: Banho" />
             </label>
-            <label class="routine-field">
-              <span>Tipo de horário</span>
-              <select id="routine-time-mode">
-                <option value="none">Sem horário</option>
-                <option value="time">Com horário</option>
-              </select>
-            </label>
-            <label class="routine-field routine-time-field" id="routine-time-field">
-              <span>Horário</span>
-              <input id="routine-time" type="time" />
-            </label>
-            <label class="routine-field">
-              <span>Ícone</span>
-              <input id="routine-icon" type="text" maxlength="4" placeholder="🛁" />
-            </label>
-            <label class="routine-field">
-              <span>Cor</span>
-              <input id="routine-color" type="color" value="#5b8def" />
-            </label>
-            <label class="routine-field routine-timed-option" hidden>
-              <span>Alarme</span>
-              <select id="routine-alarm">
+
+            <div class="rf-row">
+              <label class="rf-field">
+                <span>Ícone</span>
+                <input id="rf-icon" type="text" maxlength="4" placeholder="🛁" />
+              </label>
+              <label class="rf-field">
+                <span>Cor</span>
+                <input id="rf-color" type="color" value="#5b8def" />
+              </label>
+            </div>
+
+            <div class="rf-row">
+              <label class="rf-field">
+                <span>Horário início</span>
+                <input id="rf-time-start" type="time" />
+              </label>
+              <label class="rf-field">
+                <span>Horário fim</span>
+                <input id="rf-time-end" type="time" />
+              </label>
+            </div>
+
+            <label class="rf-field rf-alarm-row" id="rf-alarm-row" hidden>
+              <span>Alarme no horário</span>
+              <select id="rf-alarm">
                 <option value="true">Ativado</option>
                 <option value="false">Desativado</option>
               </select>
             </label>
-          </div>
-          <label class="routine-field">
-            <span>Observações</span>
-            <textarea id="routine-notes" rows="3" placeholder="Ex.: usar apoio visual, avisar com antecedência"></textarea>
-          </label>
-          <button class="btn btn-primary" type="submit">Adicionar atividade</button>
-        </form>
 
-        <div class="routine-panel">
-          <div class="routine-tools">
-            <label class="routine-field compact">
-              <span>Celebração</span>
-              <select id="routine-theme">
-                <option value="auto">Usar interesses do perfil</option>
-                <option value="dinossauros">🦖 Dinossauros</option>
-                <option value="carros">🚗 Carros</option>
-                <option value="flores">🌸 Flores</option>
-                <option value="estrelas">⭐ Estrelas</option>
-                <option value="unicornio">🦄 Unicórnios</option>
-                <option value="espaco">🚀 Espaço</option>
-                <option value="animais">🐶 Animais</option>
-                <option value="confetes">🎉 Confetes</option>
-                <option value="princesas">👑 Princesas</option>
-              </select>
+            <label class="rf-field">
+              <span>Observações</span>
+              <textarea id="rf-notes" rows="2" placeholder="Ex.: usar apoio visual"></textarea>
             </label>
-            <button class="btn btn-ghost" type="button" id="routine-show-widget">Mostrar widget</button>
-            <button class="btn btn-ghost" type="button" id="routine-hide-widget">Ocultar widget</button>
+
+            <div class="rf-actions">
+              <button class="btn btn-primary" type="submit" id="form-submit-btn">Adicionar</button>
+            </div>
+          </form>
+
+          <!-- Celebration theme picker -->
+          <div class="rf-divider"></div>
+          <label class="rf-field">
+            <span>Tema de celebração</span>
+            <select id="routine-theme">
+              <option value="auto">Usar interesses do perfil</option>
+              <option value="confetes">🎉 Confetes</option>
+              <option value="dinossauros">🦖 Dinossauros</option>
+              <option value="carros">🚗 Carros</option>
+              <option value="flores">🌸 Flores</option>
+              <option value="estrelas">⭐ Estrelas</option>
+              <option value="unicornio">🦄 Unicórnios</option>
+              <option value="espaco">🚀 Espaço</option>
+              <option value="animais">🐶 Animais</option>
+              <option value="princesas">👑 Princesas</option>
+            </select>
+          </label>
+        </aside>
+
+        <!-- Activity list -->
+        <div class="routine-panel">
+          <div class="routine-panel-head">
+            <h2>Atividades de hoje</h2>
+            <div class="routine-panel-tools">
+              <button class="btn btn-ghost rpt-btn" id="btn-clear-done" type="button" title="Remover concluídas">Limpar concluídas</button>
+              <button class="btn btn-ghost rpt-btn" id="btn-reset-day" type="button" title="Reiniciar dia">Reiniciar dia</button>
+            </div>
           </div>
-          <div class="routine-progress" aria-label="Progresso do plano do dia">
-            <span id="routine-progress-label">0 de 0 concluídas</span>
-            <div><i id="routine-progress-bar"></i></div>
+
+          <div class="routine-drag-hint" id="drag-hint" hidden>
+            <span>Segure e arraste para reordenar</span>
           </div>
-          <div class="routine-list" id="routine-list" aria-live="polite"></div>
+
+          <ul class="routine-list" id="routine-list" aria-live="polite" aria-label="Lista de atividades"></ul>
         </div>
       </div>
 
+      <!-- ── Stats row ─────────────────────────────────────────────────── -->
       <div class="routine-reports">
         <article>
           <span id="routine-report-done">0</span>
@@ -108,796 +195,931 @@ import Base from '../layouts/Base.astro';
           <strong>Histórico semanal</strong>
         </article>
       </div>
+
     </div>
   </section>
 </Base>
 
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <script>
   // @ts-nocheck
   const ROUTINE_KEY = 'nv-routine-plan';
   const ROUTINE_HISTORY_KEY = 'nv-routine-history';
   const ROUTINE_SETTINGS_KEY = 'nv-routine-settings';
 
-  const routineForm = document.getElementById('routine-form');
-  const routineList = document.getElementById('routine-list');
-  const routineTheme = document.getElementById('routine-theme');
-  const routineCurrent = document.getElementById('routine-current');
-  const routineNext = document.getElementById('routine-next');
-  const routineNextTime = document.getElementById('routine-next-time');
-  const routineProgressLabel = document.getElementById('routine-progress-label');
-  const routineProgressBar = document.getElementById('routine-progress-bar');
-  const routineReportDone = document.getElementById('routine-report-done');
-  const routineReportRate = document.getElementById('routine-report-rate');
-  const routineReportPeak = document.getElementById('routine-report-peak');
-  const routineReportWeek = document.getElementById('routine-report-week');
-  const routineShowWidget = document.getElementById('routine-show-widget');
-  const routineHideWidget = document.getElementById('routine-hide-widget');
-  const timeMode = document.getElementById('routine-time-mode');
-  const timeField = document.getElementById('routine-time-field');
-  const timedOptions = document.querySelectorAll('.routine-timed-option');
-
-  function todayKey() {
-    return new Date().toISOString().slice(0, 10);
-  }
-
+  // ─── Utils ──────────────────────────────────────────────────────────────
   function readJson(key, fallback) {
-    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch (e) { return fallback; }
+    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; }
   }
-
   function writeJson(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
     window.dispatchEvent(new Event('nv-routine-updated'));
     window.NVRoutine?.refreshUI?.();
   }
-
-  function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    }[char]));
+  function escHtml(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
+  function todayKey() { return new Date().toISOString().slice(0, 10); }
+  function nowMs() { return Date.now(); }
 
-  function isLegacyDefaultPlan(activities) {
-    const legacyNames = ['Acordar', 'Café da manhã', 'Escola', 'Atividade', 'Brincar', 'Banho', 'Dormir'];
-    return activities.length === legacyNames.length
-      && activities.every((item, index) => item.name === legacyNames[index] && !item.completed && item.order === undefined);
+  function minutesOf(t) {
+    if (!t) return null;
+    const [h, m] = t.split(':').map(Number);
+    return (isNaN(h) || isNaN(m)) ? null : h * 60 + m;
   }
-
-  function loadRoutine() {
-    const saved = readJson(ROUTINE_KEY, null);
-    if (saved?.day === todayKey() && Array.isArray(saved.activities)) {
-      if (isLegacyDefaultPlan(saved.activities)) {
-        writeJson(ROUTINE_KEY, { day: todayKey(), activities: [] });
-        return [];
-      }
-      return saved.activities;
-    }
-    writeJson(ROUTINE_KEY, { day: todayKey(), activities: [] });
-    return [];
+  function targetMs(act) {
+    if (!act?.timeStart) return null;
+    const [h, m] = String(act.timeStart).split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    const d = new Date(); d.setHours(h, m, 0, 0);
+    return d.getTime();
   }
-
-  function saveRoutine(activities) {
-    writeJson(ROUTINE_KEY, { day: todayKey(), activities });
-  }
-
-  function loadSettings() {
-    return readJson(ROUTINE_SETTINGS_KEY, { hidden: false, theme: 'auto' });
-  }
-
-  function saveSettings(settings) {
-    writeJson(ROUTINE_SETTINGS_KEY, settings);
-  }
-
-  function loadRoutineHistory() {
-    return readJson(ROUTINE_HISTORY_KEY, []);
-  }
-
-  function saveRoutineHistory(history) {
-    writeJson(ROUTINE_HISTORY_KEY, history.slice(0, 240));
-  }
-
-  function minutesOf(time) {
-    if (!time) return null;
-    const [hour, minute] = time.split(':').map(Number);
-    if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
-    return hour * 60 + minute;
-  }
-
-  function targetMs(activity) {
-    if (!activity?.time) return null;
-    const [hour, minute] = String(activity.time).split(':').map(Number);
-    if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
-    const d = new Date();
-    d.setHours(hour, minute, 0, 0);
+  function endMs(act) {
+    if (!act?.timeEnd) return null;
+    const [h, m] = String(act.timeEnd).split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    const d = new Date(); d.setHours(h, m, 0, 0);
     return d.getTime();
   }
 
-  function nowMs() { return Date.now(); }
+  // ─── Persistence ────────────────────────────────────────────────────────
+  function loadRoutine() {
+    const saved = readJson(ROUTINE_KEY, null);
+    if (saved?.day === todayKey() && Array.isArray(saved.activities)) return saved.activities;
+    writeJson(ROUTINE_KEY, { day: todayKey(), activities: [] });
+    return [];
+  }
+  function saveRoutine(acts) { writeJson(ROUTINE_KEY, { day: todayKey(), activities: acts }); }
+  function loadSettings() { return readJson(ROUTINE_SETTINGS_KEY, { hidden: false, theme: 'auto' }); }
+  function saveSettings(s) { writeJson(ROUTINE_SETTINGS_KEY, s); }
+  function loadHistory() { return readJson(ROUTINE_HISTORY_KEY, []); }
+  function saveHistory(h) { writeJson(ROUTINE_HISTORY_KEY, h.slice(0, 240)); }
 
+  // ─── Sorting ─────────────────────────────────────────────────────────────
   function sortedActivities() {
     return loadRoutine().sort((a, b) => {
-      const at = targetMs(a);
-      const bt = targetMs(b);
-      if (at === null && bt === null) return (a.order || 0) - (b.order || 0);
+      const at = targetMs(a), bt = targetMs(b);
+      if (at === null && bt === null) return (a.order ?? 0) - (b.order ?? 0);
       if (at === null) return 1;
       if (bt === null) return -1;
       return at - bt;
     });
   }
 
-  function getRoutineSnapshot() {
+  function getSnapshot() {
     const activities = sortedActivities();
     const now = nowMs();
-    const timed = activities.filter((item) => targetMs(item) !== null);
-    let current = timed.filter((item) => targetMs(item) <= now && !item.completed).at(-1)
-      || activities.find((item) => !item.completed && targetMs(item) === null)
-      || null;
-    if (!current) current = activities.find((item) => !item.completed) || null;
-    const next = activities.find((item) => !item.completed && item.id !== current?.id && (targetMs(item) ?? Infinity) > now)
-      || activities.find((item) => !item.completed && item.id !== current?.id)
-      || null;
+    const timed = activities.filter((i) => targetMs(i) !== null);
+    let current = timed.filter((i) => targetMs(i) <= now && !i.completed).at(-1)
+      || activities.find((i) => !i.completed && targetMs(i) === null) || null;
+    if (!current) current = activities.find((i) => !i.completed) || null;
+    const next = activities.find((i) => !i.completed && i.id !== current?.id && (targetMs(i) ?? Infinity) > now)
+      || activities.find((i) => !i.completed && i.id !== current?.id) || null;
     return { activities, current, next };
   }
 
-  function formatUntil(activity) {
-    const target = targetMs(activity);
-    if (target === null) return '⏳ Sem horário definido';
-    let diff = Math.floor((target - nowMs()) / 1000);
-    if (diff <= 0) return '⏳ Agora';
-    const h = Math.floor(diff / 3600);
-    const m = Math.floor((diff % 3600) / 60);
-    const s = diff % 60;
-    if (h > 0) return `⏳ Faltam ${h}h ${String(m).padStart(2,'0')}m`;
-    if (m > 0) return `⏳ Faltam ${m}m ${String(s).padStart(2,'0')}s`;
-    return `⏳ Faltam ${s}s`;
+  function formatUntil(act) {
+    const t = targetMs(act);
+    if (t === null) return 'Sem horário';
+    let diff = Math.floor((t - nowMs()) / 1000);
+    if (diff <= 0) return 'Agora';
+    const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
+    if (h > 0) return `Faltam ${h}h ${String(m).padStart(2,'0')}m`;
+    if (m > 0) return `Faltam ${m}m ${String(s).padStart(2,'0')}s`;
+    return `Faltam ${s}s`;
   }
 
-  function inferTheme() {
-    const settings = loadSettings();
-    if (settings.theme && settings.theme !== 'auto') return settings.theme;
-    const config = readJson('nv-tablet-config', {});
-    const text = `${config.interesses || ''} ${config.hiperfocos || ''} ${config.brincadeiras || ''} ${config.personagens || ''}`.toLowerCase();
+  // ─── Icon auto-detection ─────────────────────────────────────────────────
+  function guessIcon(raw) {
+    const t = (raw || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const rules = [
-      ['dinossauros', ['dinossauro', 'dino', 'jurassic']],
-      ['carros', ['carro', 'onibus', 'ônibus', 'caminhao', 'caminhão', 'moto']],
-      ['princesas', ['princesa', 'coroa', 'realeza']],
-      ['animais', ['animal', 'cachorro', 'gato', 'pet']],
-      ['espaco', ['espaco', 'espaço', 'foguete', 'planeta']],
-      ['flores', ['flor', 'jardim']],
-      ['unicornio', ['unicornio', 'unicórnio']],
+      [/banho|chuveiro|ducha/, '🛁'], [/escovar|dente/, '🪥'], [/dormir|cama|soneca/, '🛏️'],
+      [/acordar|levantar/, '⏰'], [/comer|refeicao|almoco|janta|lanche|merenda/, '🍎'],
+      [/cafe|desjejum/, '☕'], [/agua|beber/, '💧'], [/escola|aula|professor/, '👩‍🏫'],
+      [/tarefa|dever|estudo|ler|livro/, '📚'], [/brincar|jogo|jogar/, '🎮'],
+      [/parque|playground/, '🛝'], [/caminhar|passeio|correr/, '🚶'],
+      [/natacao|nadar|piscina/, '🏊'], [/bicicleta|pedalar/, '🚴'],
+      [/desenho|pintar|arte/, '🎨'], [/musica|cantar/, '🎵'],
+      [/terapia|fono|psicologo/, '🧩'], [/remedio|medicacao/, '💊'],
+      [/banheiro|xixi/, '🚽'], [/roupa|vestir/, '👕'],
+      [/carro|onibus/, '🚗'], [/compras|mercado/, '🛒'],
+      [/limpar|arrumar|organizar/, '🧹'], [/yoga|meditacao|respirar/, '🧘'],
+      [/tv|filme|serie|assistir/, '📺'], [/festa|aniversario/, '🎉'],
     ];
-    return rules.find(([, words]) => words.some((word) => text.includes(word)))?.[0] || 'confetes';
+    return rules.find(([re]) => re.test(t))?.[1] || '';
   }
 
-  function themeIcon(theme) {
-    return {
-      dinossauros: '🦖',
-      carros: '🚗',
-      flores: '🌸',
-      estrelas: '⭐',
-      unicornio: '🦄',
-      espaco: '🚀',
-      animais: '🐶',
-      confetes: '🎉',
-      princesas: '👑',
-    }[theme] || '🎉';
-  }
-
-  function guessIconFromName(rawName) {
-    const text = (rawName || '')
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
-    if (!text.trim()) return '';
-    const rules = [
-      [/\b(banho|banhar|banheira|chuveiro|ducha|lavar|lavar cabelo|tomar banho)\b/, '🛁'],
-      [/\b(escovar|escova|dente|dentes|dental|escovar os dentes|dentinhos|dente)\b/, '🪥'],
-      [/\b(casa|lar|chegar em casa|voltar pra casa|para casa)\b/, '🏠'],
-      [/\b(dormir|sono|cama|soneca|cochilo|deitar)\b/, '🛏️'],
-      [/\b(acordar|despertar|levantar|intervalo)\b/, '⏰'],
-      [/\b(dever|deveres|tarefa|licao|liçao|estudo|estudar|estudos|li(c|ç)ao de casa|prova|leitura|ler|livro|dever|atividade|palestra)\b/, '📚'],
-      [/\b(aula|professor|professora|escola|colegio|colégio|faculdade|prof|profa)\b/, '👩‍🏫'],
-      [/\b(laborat(o|ó)rio|ci(e|ê)ncia|ci(e|ê)ncias|experimento|qu(i|í)mica|biologia|f(i|í)sica)\b/, '🧠'],
-      [/\b(matem(a|á)tica|conta|contas|n(u|ú)mero|n(u|ú)meros)\b/, '🔢'],
-      [/\b(portugu(e|ê)s|reda(c|ç)(a|ã)o|escrever|escrita)\b/, '✍️'],
-      [/\b(ingl(e|ê)s|espanhol|idioma|franc(ê|e)s|francais|aleman|alem(ã|a)o|japones|japon(ê|e)s|chines|chino|italiano)\b/, '🗣️'],
-      [/\b(desenhar|desenho|pintar|pintura|colorir|arte|artes|giz)\b/, '🎨'],
-      [/\b(m(u|ú)sica|musical|cantar|tocar|piano|viol(a|ã)o|guitarra|teclado|piano)\b/, '🎵'],
-      [/\b(brincar|brincadeira|brinquedo|jogos|jogar|video ?game|game|console|jogo|jogos|playstation|xbox|ps|ps5)\b/, '🎮'],
-      [/\b(parque|playground|escorregar|balan(c|ç)o)\b/, '🛝'],
-      [/\b(correr|corrida|caminhar|caminhada|andar|passear|passeio)\b/, '🚶'],
-      [/\b(esporte|futebol|bola|basquete|volei)\b/, '⚽'],
-      [/\b(natacao|nata(c|ç)(a|ã)o|nadar|piscina|praia|mar|oceano)\b/, '🏊'],
-      [/\b(bicicleta|bike|pedalar|ciclismo)\b/, '🚴'],
-      [/\b(yoga|alongar|alongamento|medita(c|ç)(a|ã)o|meditar|respirar|respira(ç|c)(ã|a)o|relaxar)\b/, '🧘'],
-      [/\b(comer|comida|refei(c|ç)(a|ã)o|almo(c|ç)o|almo(c|ç)ar|janta|jantar|lanche|lanchinho|recreio|merenda|lanchar)\b/, '🍎'],
-      [/\b(caf(e|é)|caf(e|é) da manh(a|ã)|desjejum)\b/, '☕'],
-      [/\b(agua|(a|á)gua|beber|hidratar|garafa)\b/, '💧'],
-      [/\b(rem(e|é)dio|medica(c|ç)(a|ã)o|medicamento|comprimido|cura)\b/, '💊'],
-      [/\b(m(e|é)dico|consulta|dentista|hospital)\b/, '🏥'],
-      [/\b(terapia|psic(o|ó)logo|psicologa|fono|fonoaudi(o|ó)loga|to|terapeuta|psi|psico)\b/, '🧩'],
-      [/\b(filme|cinema|assistir|tv|televis(a|ã)o|serie|s(e|é)rie|desenho animado)\b/, '📺'],
-      [/\b(computador|pc|notebook|tablet|celular|tela|dispositivo)\b/, '💻'],
-      [/\b(roupa|vestir|trocar de roupa|uniforme)\b/, '👕'],
-      [/\b(banheiro|xixi|coco|c(o|ó)co|penico|vaso|mijar|mijo|banheira)\b/, '🚽'],
-      [/\b(compras|mercado|supermercado|loja|shopping|centro comercial)\b/, '🛒'],
-      [/\b(carro|dirigir|trajeto|viagem|viajar|carrinho)\b/, '🚗'],
-      [/\b(onibus|(o|ô)nibus|transporte|metro|metrô)\b/, '🚌'],
-      [/\b(arrumar|organizar|limpar|limpeza|faxina)\b/, '🧹'],
-      [/\b(cachorro|cao|c(a|ã)o|gato|pet|animal|animais)\b/, '🐶'],
-      [/\b(festa|aniversario|anivers(a|á)rio|comemorar|lanche coletivo|piquenique|pequinique|churrasco|parque|passeio|passear|pra(ç|c)a|pra(c|ç)inha)\b/, '🎉'],
-      [/\b(presente|surpresa)\b/, '🎁'],
-      [/\b(amigo|amigos|amiga|amigas|familia|fam(i|í)lia|mam(a|ã)e|m(ã|a)e)|pai|av(ó|o)|av(ó|o)|irm(a|ã)o|irma|tio|tia|padrasto|madrasta\b/, '👨‍👩‍👧'],
-      [/\b(igreja|ora(c|ç)(a|ã)o|rezar|culto|deus|jesus|cristo)\b/, '⛪'],
-    ];
-    const found = rules.find(([re]) => re.test(text));
-    return found ? found[1] : '';
-  }
-
-  function speakRoutine(text) {
+  // ─── TTS ─────────────────────────────────────────────────────────────────
+  function speak(text) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'pt-BR';
-    window.speechSynthesis.speak(utterance);
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'pt-BR';
+    window.speechSynthesis.speak(u);
   }
 
-  function celebrateRoutine(message = '⭐ Atividade concluída!') {
-    const celebration = document.getElementById('nv-timer-celebration');
-    if (!celebration) return;
-    const symbol = themeIcon(inferTheme());
-    celebration.innerHTML = '';
-    celebration.removeAttribute('hidden');
-    celebration.classList.add('active');
-    for (let i = 0; i < 24; i += 1) {
-      const drop = document.createElement('span');
-      drop.className = 'rain-item';
-      drop.textContent = symbol;
-      drop.style.left = `${Math.random() * 94}%`;
-      drop.style.animationDelay = `${Math.random() * 1.4}s`;
-      drop.style.fontSize = `${18 + Math.random() * 22}px`;
-      celebration.appendChild(drop);
+  // ─── Celebration ─────────────────────────────────────────────────────────
+  function inferTheme() {
+    const s = loadSettings();
+    if (s.theme && s.theme !== 'auto') return s.theme;
+    const c = readJson('nv-tablet-config', {});
+    const txt = `${c.interesses||''} ${c.hiperfocos||''} ${c.brincadeiras||''} ${c.personagens||''}`.toLowerCase();
+    const rules = [
+      ['dinossauros', ['dinossauro', 'dino']], ['carros', ['carro', 'caminhao', 'onibus']],
+      ['princesas', ['princesa', 'coroa']], ['animais', ['animal', 'cachorro', 'gato']],
+      ['espaco', ['espaco', 'foguete', 'planeta']], ['flores', ['flor']], ['unicornio', ['unicornio']],
+    ];
+    return rules.find(([, ws]) => ws.some((w) => txt.includes(w)))?.[0] || 'confetes';
+  }
+  const THEME_ICONS = { dinossauros:'🦖', carros:'🚗', flores:'🌸', estrelas:'⭐', unicornio:'🦄', espaco:'🚀', animais:'🐶', confetes:'🎉', princesas:'👑' };
+
+  function celebrate(msg = '🎉 Muito bem!') {
+    const el = document.getElementById('nv-timer-celebration');
+    if (!el) return;
+    const sym = THEME_ICONS[inferTheme()] || '🎉';
+    el.innerHTML = '';
+    el.removeAttribute('hidden');
+    el.classList.add('active');
+    for (let i = 0; i < 24; i++) {
+      const d = document.createElement('span');
+      d.className = 'rain-item';
+      d.textContent = sym;
+      d.style.left = `${Math.random() * 94}%`;
+      d.style.animationDelay = `${Math.random() * 1.4}s`;
+      d.style.fontSize = `${18 + Math.random() * 22}px`;
+      el.appendChild(d);
     }
     const card = document.createElement('div');
     card.className = 'celebration-message';
-    card.innerHTML = `<strong>${message}</strong><p>Vamos para a próxima atividade!</p>`;
-    celebration.appendChild(card);
-    setTimeout(() => {
-      celebration.classList.remove('active');
-      celebration.setAttribute('hidden', '');
-      celebration.innerHTML = '';
-    }, 5200);
+    card.innerHTML = `<strong>${msg}</strong><p>Vamos para a próxima atividade!</p>`;
+    el.appendChild(card);
+    setTimeout(() => { el.classList.remove('active'); el.setAttribute('hidden', ''); el.innerHTML = ''; }, 5200);
   }
 
-  function completeActivity(id, automatic = false) {
-    const activities = loadRoutine();
-    const item = activities.find((activity) => activity.id === id);
+  // ─── Complete / Remove ────────────────────────────────────────────────────
+  function completeActivity(id) {
+    const acts = loadRoutine();
+    const item = acts.find((a) => a.id === id);
     if (!item || item.completed) return;
     item.completed = true;
     item.completedAt = new Date().toISOString();
-    const completedTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const history = loadRoutineHistory();
-    history.unshift({
-      id: item.id,
-      name: item.name,
-      icon: item.icon,
-      time: item.time,
-      completedAt: completedTime,
-      date: todayKey(),
-      automatic,
-      type: 'completed',
+    const hist = loadHistory();
+    hist.unshift({
+      id: item.id, name: item.name, icon: item.icon,
+      time: item.timeStart, completedAt: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}),
+      date: todayKey(), type: 'completed',
     });
-    saveRoutineHistory(history);
-    saveRoutine(activities);
-    speakRoutine(`${item.name} concluído. Muito bem!`);
-    celebrateRoutine('🎉 Muito bem!');
-    renderRoutine();
+    saveHistory(hist);
+    saveRoutine(acts);
+    speak(`${item.name} concluído. Muito bem!`);
+    celebrate('🎉 Muito bem!');
+    render();
   }
 
   function removeActivity(id) {
-    saveRoutine(loadRoutine().filter((item) => item.id !== id));
-    renderRoutine();
+    saveRoutine(loadRoutine().filter((a) => a.id !== id));
+    render();
   }
 
+  // ─── Alarm / tick ─────────────────────────────────────────────────────────
   function notify(title, body) {
     try {
-      if ('Notification' in window && Notification.permission === 'granted') {
+      if ('Notification' in window && Notification.permission === 'granted')
         new Notification(title, { body, icon: '/icon.svg', tag: `nv-${title}` });
-      }
-    } catch (e) {}
+    } catch {}
   }
 
-  function fireAlarm(item, type) {
-    const history = loadRoutineHistory();
-    let label;
-    if (type === 'countdown') {
-      const target = targetMs(item);
-      const diffSec = Math.max(0, Math.floor((target - nowMs()) / 1000));
-      if (diffSec < 60) {
-        label = `Falta menos de um minuto para ${item.name}`;
-      } else {
-        const diffMin = Math.round(diffSec / 60);
-        const h = Math.floor(diffMin / 60);
-        const m = diffMin % 60;
-        let tempo;
-        if (h > 0 && m > 0) tempo = `${h} ${h === 1 ? 'hora' : 'horas'} e ${m} ${m === 1 ? 'minuto' : 'minutos'}`;
-        else if (h > 0) tempo = `${h} ${h === 1 ? 'hora' : 'horas'}`;
-        else tempo = `${m} ${m === 1 ? 'minuto' : 'minutos'}`;
-        label = `Faltam ${tempo} para ${item.name}`;
-      }
-    } else {
-      label = `Hora de ${item.name}`;
-    }
-    history.unshift({
-      id: item.id,
-      name: item.name,
-      icon: item.icon,
-      time: item.time,
-      completedAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      date: todayKey(),
-      type,
-      label,
-    });
-    saveRoutineHistory(history);
-    speakRoutine(type === 'countdown' ? label : `${item.name}. Vamos para a próxima atividade!`);
-    celebrateRoutine(type === 'countdown' ? '⏳ Prepare-se!' : `${item.icon || '📍'} Hora de ${item.name}!`);
-    notify(type === 'countdown' ? '⏳ Prepare-se' : `${item.icon || '📍'} ${item.name}`, label);
-  }
-
-  // Tick com precisão de segundo: usa Date.now() comparando com o alvo absoluto.
-  function tickRoutine() {
-    const activities = loadRoutine();
+  function tick() {
+    const acts = loadRoutine();
     const now = nowMs();
     let changed = false;
-
-    activities.forEach((item) => {
-      const target = targetMs(item);
-      if (target === null || item.completed) return;
-      const countdownMs = Number(item.countdown) * 60 * 1000;
-      if (countdownMs > 0 && !item.countdownFired && now >= target - countdownMs && now < target) {
-        item.countdownFired = true;
-        changed = true;
-        fireAlarm(item, 'countdown');
+    acts.forEach((item) => {
+      const t = targetMs(item);
+      if (t === null || item.completed) return;
+      const cdMs = (Number(item.countdown) || 5) * 60 * 1000;
+      if (cdMs > 0 && !item.countdownFired && now >= t - cdMs && now < t) {
+        item.countdownFired = true; changed = true;
+        const diff = Math.round((t - now) / 60000);
+        const label = diff < 1 ? `Falta menos de um minuto para ${item.name}` : `Faltam ${diff} minutos para ${item.name}`;
+        speak(label); celebrate('⏳ Prepare-se!'); notify('⏳ Prepare-se', label);
       }
-      // Dispara assim que o relógio do dispositivo atinge o horário (precisão de segundo)
-      if (item.alarm && !item.alarmFired && now >= target) {
-        item.alarmFired = true;
-        changed = true;
-        fireAlarm(item, 'alarm');
+      if (item.alarm && !item.alarmFired && now >= t) {
+        item.alarmFired = true; changed = true;
+        speak(`Hora de ${item.name}`); celebrate(`${item.icon||'📍'} Hora de ${item.name}!`);
+        notify(`${item.icon||'📍'} ${item.name}`, `Hora de ${item.name}`);
       }
     });
-
-    if (changed) saveRoutine(activities);
-    renderRoutine();
+    if (changed) saveRoutine(acts);
+    render();
   }
 
-  function renderEmptyState() {
-    routineList.innerHTML = `
-      <div class="routine-empty">
-        <strong>Seu plano está vazio.</strong>
-        <span>Adicione as atividades na ordem em que elas devem aparecer para a criança.</span>
-      </div>
-    `;
-  }
-
-  function renderRoutine() {
-    const { activities, current, next } = getRoutineSnapshot();
-    const done = activities.filter((item) => item.completed).length;
+  // ─── Render ───────────────────────────────────────────────────────────────
+  function render() {
+    const { activities, current, next } = getSnapshot();
+    const done = activities.filter((a) => a.completed).length;
     const total = activities.length;
-    const progress = total ? Math.round((done / total) * 100) : 0;
+    const pct = total ? Math.round((done / total) * 100) : 0;
 
-    routineCurrent.textContent = current ? `${current.icon || '📍'} ${current.name}` : 'Nenhuma atividade atual';
-    routineNext.textContent = next ? `${next.icon || '⏳'} ${next.name}` : total ? 'Plano finalizado' : 'Adicione a primeira atividade';
-    routineNextTime.textContent = next ? formatUntil(next) : total ? '🎉 Tudo concluído' : '⏳ Sem atividades no plano';
-    routineProgressLabel.textContent = `${done} de ${total} concluídas`;
-    routineProgressBar.style.width = `${progress}%`;
+    // Date label
+    const dateLabel = document.getElementById('day-date-label');
+    if (dateLabel) {
+      const d = new Date();
+      dateLabel.textContent = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
 
-    if (!total) {
-      renderEmptyState();
+    // Stats
+    document.getElementById('stat-done').textContent = String(done);
+    document.getElementById('stat-total').textContent = String(total);
+    document.getElementById('stat-pct').textContent = `${pct}%`;
+
+    // Primeiro / Depois cards
+    const nowIcon = document.getElementById('fd-now-icon');
+    const nowName = document.getElementById('fd-now-name');
+    const nowTime = document.getElementById('fd-now-time');
+    const nextIcon = document.getElementById('fd-next-icon');
+    const nextName = document.getElementById('fd-next-name');
+    const nextTime = document.getElementById('fd-next-time');
+    const nowCard = document.getElementById('fd-now');
+    const nextCard = document.getElementById('fd-next');
+
+    if (current) {
+      nowIcon.textContent = current.icon || '📍';
+      nowName.textContent = current.name;
+      nowTime.textContent = current.timeStart ? `${current.timeStart}${current.timeEnd ? ' – '+current.timeEnd : ''}` : 'Sem horário';
+      nowCard.style.setProperty('--act-color', current.color || '#5b8def');
+      nowCard.classList.toggle('has-time', !!current.timeStart);
     } else {
-      routineList.innerHTML = '';
-      activities.forEach((item) => {
-        const isCurrent = item.id === current?.id && !item.completed;
-        const row = document.createElement('article');
-        row.className = `routine-item ${item.completed ? 'done' : ''} ${isCurrent ? 'current' : ''}`;
-        row.style.setProperty('--routine-color', item.color || '#5b8def');
-        const status = item.completed ? '✅ Concluída' : isCurrent ? '🔵 Agora' : '⏳ Próxima';
-        row.innerHTML = `
-          <div class="routine-icon" aria-hidden="true">${escapeHtml(item.icon || '📍')}</div>
-          <div class="routine-info">
-            <div>
-              <strong>${escapeHtml(item.name)}</strong>
-              <span>${escapeHtml(item.time || 'Sem horário')} • ${status}</span>
-            </div>
-            ${item.notes ? `<p>${escapeHtml(item.notes)}</p>` : ''}
-            <div class="routine-countdown">
-              <i style="width:${isCurrent || item.completed ? '100' : '30'}%"></i>
-            </div>
-          </div>
-          <div class="routine-actions">
-            <button type="button" data-complete="${item.id}" aria-label="Concluir ${escapeHtml(item.name)}">✓</button>
-            <button type="button" data-remove="${item.id}" aria-label="Remover ${escapeHtml(item.name)}">×</button>
-          </div>
-        `;
-        routineList.appendChild(row);
+      nowIcon.textContent = total ? '🎉' : '📍';
+      nowName.textContent = total ? 'Tudo concluído!' : 'Nenhuma atividade';
+      nowTime.textContent = '—';
+      nowCard.style.removeProperty('--act-color');
+    }
+
+    if (next) {
+      nextIcon.textContent = next.icon || '⏳';
+      nextName.textContent = next.name;
+      nextTime.textContent = next.timeStart ? `${next.timeStart}${next.timeEnd ? ' – '+next.timeEnd : ''}` : formatUntil(next);
+      nextCard.style.setProperty('--act-color', next.color || '#5b8def');
+    } else {
+      nextIcon.textContent = '—';
+      nextName.textContent = total ? 'Última atividade' : 'Adicione atividades';
+      nextTime.textContent = '—';
+      nextCard.style.removeProperty('--act-color');
+    }
+
+    // Time-based progress bar for current activity
+    const barWrap = document.getElementById('fd-now-bar-wrap');
+    const barFill = document.getElementById('fd-time-bar-fill');
+    const barLabel = document.getElementById('fd-time-bar-label');
+    if (current && current.timeStart && current.timeEnd) {
+      barWrap.hidden = false;
+      const start = targetMs(current);
+      const end = endMs(current);
+      const now2 = nowMs();
+      const elapsed = Math.max(0, Math.min(1, (now2 - start) / (end - start)));
+      barFill.style.width = `${elapsed * 100}%`;
+      barLabel.textContent = elapsed >= 1 ? '✅ Tempo esgotado' : formatUntil({timeStart: current.timeEnd});
+    } else if (current && current.timeStart) {
+      barWrap.hidden = false;
+      barFill.style.width = '100%';
+      barLabel.textContent = formatUntil(current);
+    } else {
+      barWrap.hidden = true;
+    }
+
+    // Global timeline bar
+    const globalWrap = document.getElementById('global-progress-wrap');
+    const globalFill = document.getElementById('global-progress-fill');
+    const globalLabel = document.getElementById('global-progress-label');
+    const globalPct = document.getElementById('global-progress-pct');
+    const globalTrack = document.getElementById('global-progress-track');
+    const globalMarkers = document.getElementById('global-progress-markers');
+    const nowLine = document.getElementById('global-progress-now-line');
+
+    const timedActs = activities.filter((a) => a.timeStart);
+    if (timedActs.length >= 2) {
+      globalWrap.hidden = false;
+      const earliest = Math.min(...timedActs.map((a) => targetMs(a)));
+      const latest = Math.max(...timedActs.map((a) => endMs(a) || targetMs(a)));
+      const span = latest - earliest;
+      const nowPos = span > 0 ? Math.max(0, Math.min(100, ((nowMs() - earliest) / span) * 100)) : 0;
+
+      globalFill.style.width = `${pct}%`;
+      globalFill.style.background = `linear-gradient(90deg, var(--mint), var(--blue))`;
+      globalLabel.textContent = `${done} de ${total} concluídas`;
+      globalPct.textContent = `${pct}%`;
+      globalTrack.setAttribute('aria-valuenow', String(pct));
+
+      // Render time markers
+      globalMarkers.innerHTML = '';
+      timedActs.forEach((a) => {
+        if (span <= 0) return;
+        const pos = ((targetMs(a) - earliest) / span) * 100;
+        const mk = document.createElement('span');
+        mk.className = `gp-marker${a.completed ? ' done' : ''}${a.id === current?.id ? ' active' : ''}`;
+        mk.style.left = `${pos}%`;
+        mk.title = `${a.icon||'📍'} ${a.name} (${a.timeStart})`;
+        mk.setAttribute('aria-hidden', 'true');
+        mk.textContent = a.icon || '📍';
+        globalMarkers.appendChild(mk);
       });
+
+      // Now line
+      nowLine.style.left = `calc(${nowPos}% + 0px)`;
+      nowLine.hidden = false;
+    } else {
+      globalWrap.hidden = timedActs.length === 0;
+      globalFill.style.width = `${pct}%`;
+      globalLabel.textContent = `${done} de ${total} concluídas`;
+      globalPct.textContent = `${pct}%`;
+      globalMarkers.innerHTML = '';
+      nowLine.hidden = true;
     }
 
-    routineList.querySelectorAll('[data-complete]').forEach((button) => {
-      button.addEventListener('click', () => completeActivity(button.dataset.complete));
-    });
-    routineList.querySelectorAll('[data-remove]').forEach((button) => {
-      button.addEventListener('click', () => removeActivity(button.dataset.remove));
-    });
+    // Drag hint
+    document.getElementById('drag-hint').hidden = total < 2;
 
-    const history = loadRoutineHistory();
-    const todayDone = history.filter((entry) => entry.date === todayKey() && entry.type === 'completed');
+    // List
+    renderList(activities, current);
+
+    // Reports
+    const hist = loadHistory();
+    const todayDone = hist.filter((e) => e.date === todayKey() && e.type === 'completed');
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const weekDone = history.filter((entry) => entry.type === 'completed' && new Date(entry.date).getTime() >= weekAgo);
-    const peak = todayDone.reduce((acc, entry) => {
-      const hour = (entry.completedAt || '').slice(0, 2);
-      if (!hour) return acc;
-      acc[hour] = (acc[hour] || 0) + 1;
-      return acc;
+    const weekDone = hist.filter((e) => e.type === 'completed' && new Date(e.date).getTime() >= weekAgo);
+    const peak = todayDone.reduce((acc, e) => {
+      const h = (e.completedAt||'').slice(0,2); if (h) acc[h] = (acc[h]||0) + 1; return acc;
     }, {});
-    const peakHour = Object.entries(peak).sort(([, a], [, b]) => b - a)[0]?.[0];
-    routineReportDone.textContent = String(todayDone.length);
-    routineReportRate.textContent = `${progress}%`;
-    routineReportPeak.textContent = peakHour ? `${peakHour}:00` : '--:--';
-    routineReportWeek.textContent = String(weekDone.length);
+    const peakHour = Object.entries(peak).sort(([,a],[,b]) => b-a)[0]?.[0];
+    document.getElementById('routine-report-done').textContent = String(todayDone.length);
+    document.getElementById('routine-report-rate').textContent = `${pct}%`;
+    document.getElementById('routine-report-peak').textContent = peakHour ? `${peakHour}:00` : '--:--';
+    document.getElementById('routine-report-week').textContent = String(weekDone.length);
 
-    routineTheme.value = loadSettings().theme || 'auto';
-    window.NVRoutine?.refreshUI?.();
+    // Theme select sync
+    const themeEl = document.getElementById('routine-theme');
+    if (themeEl) themeEl.value = loadSettings().theme || 'auto';
   }
 
-  function updateTimeMode() {
-    const hasTime = timeMode.value === 'time';
-    timeField.hidden = false; // sempre visível para permitir digitar direto
-    timedOptions.forEach((field) => { field.hidden = !hasTime; });
-    if (!hasTime) {
-      document.getElementById('routine-time').value = '';
-      document.getElementById('routine-alarm').value = 'false';
+  // ─── List rendering ────────────────────────────────────────────────────────
+  function renderList(activities, current) {
+    const list = document.getElementById('routine-list');
+    if (!list) return;
+
+    if (!activities.length) {
+      list.innerHTML = `
+        <li class="routine-empty">
+          <strong>Plano vazio.</strong>
+          <span>Adicione a primeira atividade no formulário ao lado.</span>
+        </li>`;
+      return;
     }
+
+    // Preserve drag state
+    const draggingId = list.querySelector('[draggable][aria-grabbed="true"]')?.dataset.id;
+    list.innerHTML = '';
+
+    activities.forEach((item, idx) => {
+      const isCurrent = item.id === current?.id && !item.completed;
+      const li = document.createElement('li');
+      li.className = `routine-item${item.completed ? ' done' : ''}${isCurrent ? ' current' : ''}`;
+      li.dataset.id = item.id;
+      li.draggable = !item.completed;
+      li.setAttribute('aria-grabbed', 'false');
+      li.style.setProperty('--rc', item.color || '#5b8def');
+
+      // Time-based progress for each item with start+end
+      let itemBarHtml = '';
+      if (item.timeStart && item.timeEnd && !item.completed) {
+        const start = targetMs(item), end = endMs(item), now = nowMs();
+        const pct2 = Math.max(0, Math.min(100, ((now - start) / (end - start)) * 100));
+        itemBarHtml = `<div class="item-time-bar"><div class="item-time-bar-fill" style="width:${pct2}%"></div></div>`;
+      }
+
+      const timeLabel = item.timeStart
+        ? `${item.timeStart}${item.timeEnd ? ' – '+item.timeEnd : ''}`
+        : 'Sem horário';
+      const statusLabel = item.completed ? '✅ Concluída' : isCurrent ? '🔵 Agora' : '⏳ Próxima';
+
+      li.innerHTML = `
+        <div class="ri-drag" aria-label="Arrastar para reordenar" title="Arrastar">⠿</div>
+        <div class="ri-icon" aria-hidden="true">${escHtml(item.icon||'📍')}</div>
+        <div class="ri-info">
+          <div class="ri-name">${escHtml(item.name)}</div>
+          <div class="ri-sub">${escHtml(timeLabel)} · ${statusLabel}</div>
+          ${item.notes ? `<div class="ri-notes">${escHtml(item.notes)}</div>` : ''}
+          ${itemBarHtml}
+        </div>
+        <div class="ri-actions">
+          <button class="ri-btn ri-complete" data-id="${item.id}" title="Marcar como concluída" aria-label="Concluir ${escHtml(item.name)}">✓</button>
+          <button class="ri-btn ri-edit" data-id="${item.id}" title="Editar" aria-label="Editar ${escHtml(item.name)}">✎</button>
+          <button class="ri-btn ri-remove" data-id="${item.id}" title="Remover" aria-label="Remover ${escHtml(item.name)}">×</button>
+        </div>`;
+      list.appendChild(li);
+    });
+
+    // Wire buttons
+    list.querySelectorAll('.ri-complete').forEach((btn) => btn.addEventListener('click', () => completeActivity(btn.dataset.id)));
+    list.querySelectorAll('.ri-remove').forEach((btn) => btn.addEventListener('click', () => removeActivity(btn.dataset.id)));
+    list.querySelectorAll('.ri-edit').forEach((btn) => btn.addEventListener('click', () => startEdit(btn.dataset.id)));
+
+    // Drag-and-drop
+    setupDnd(list);
   }
 
-  timeMode?.addEventListener('change', updateTimeMode);
+  // ─── Drag-and-drop ────────────────────────────────────────────────────────
+  let dragSrc = null;
 
-  // Se o usuário digitar/escolher um horário direto, já assume "Com horário".
-  document.getElementById('routine-time')?.addEventListener('input', (event) => {
-    if (event.target.value && timeMode.value !== 'time') {
-      timeMode.value = 'time';
-      updateTimeMode();
-    }
+  function setupDnd(list) {
+    list.querySelectorAll('li[draggable]').forEach((li) => {
+      li.addEventListener('dragstart', (e) => {
+        dragSrc = li;
+        li.setAttribute('aria-grabbed', 'true');
+        li.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', li.dataset.id);
+      });
+      li.addEventListener('dragend', () => {
+        li.setAttribute('aria-grabbed', 'false');
+        li.classList.remove('dragging');
+        list.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
+        dragSrc = null;
+      });
+      li.addEventListener('dragover', (e) => {
+        if (!dragSrc || dragSrc === li) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        list.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
+        li.classList.add('drag-over');
+      });
+      li.addEventListener('drop', (e) => {
+        if (!dragSrc || dragSrc === li) return;
+        e.preventDefault();
+        const acts = loadRoutine();
+        const srcIdx = acts.findIndex((a) => a.id === dragSrc.dataset.id);
+        const dstIdx = acts.findIndex((a) => a.id === li.dataset.id);
+        if (srcIdx === -1 || dstIdx === -1) return;
+        const [moved] = acts.splice(srcIdx, 1);
+        acts.splice(dstIdx, 0, moved);
+        // Reassign order
+        acts.forEach((a, i) => { a.order = i; });
+        saveRoutine(acts);
+        render();
+      });
+    });
+
+    // Touch drag (mobile)
+    let touchItem = null, touchClone = null, startY = 0;
+    list.querySelectorAll('li[draggable]').forEach((li) => {
+      li.addEventListener('touchstart', (e) => {
+        touchItem = li;
+        startY = e.touches[0].clientY;
+        touchClone = li.cloneNode(true);
+        touchClone.style.cssText = `position:fixed;left:${li.getBoundingClientRect().left}px;top:${li.getBoundingClientRect().top}px;width:${li.offsetWidth}px;opacity:0.88;z-index:200;pointer-events:none;transition:none;box-shadow:0 12px 36px rgba(0,0,0,0.22)`;
+        document.body.appendChild(touchClone);
+        li.classList.add('dragging');
+      }, { passive: true });
+      li.addEventListener('touchmove', (e) => {
+        if (!touchItem || !touchClone) return;
+        const dy = e.touches[0].clientY - startY;
+        touchClone.style.top = `${touchItem.getBoundingClientRect().top + dy}px`;
+        // Find target under touch
+        const target = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY)?.closest('li.routine-item');
+        list.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
+        if (target && target !== touchItem) target.classList.add('drag-over');
+      }, { passive: true });
+      li.addEventListener('touchend', (e) => {
+        if (!touchItem) return;
+        const target = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY)?.closest('li.routine-item');
+        if (target && target !== touchItem) {
+          const acts = loadRoutine();
+          const srcIdx = acts.findIndex((a) => a.id === touchItem.dataset.id);
+          const dstIdx = acts.findIndex((a) => a.id === target.dataset.id);
+          if (srcIdx !== -1 && dstIdx !== -1) {
+            const [moved] = acts.splice(srcIdx, 1);
+            acts.splice(dstIdx, 0, moved);
+            acts.forEach((a, i) => { a.order = i; });
+            saveRoutine(acts);
+          }
+        }
+        touchClone?.remove(); touchClone = null;
+        touchItem.classList.remove('dragging');
+        list.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
+        touchItem = null;
+        render();
+      }, { passive: true });
+    });
+  }
+
+  // ─── Edit ─────────────────────────────────────────────────────────────────
+  function startEdit(id) {
+    const acts = loadRoutine();
+    const item = acts.find((a) => a.id === id);
+    if (!item) return;
+    document.getElementById('edit-id').value = item.id;
+    document.getElementById('rf-name').value = item.name;
+    document.getElementById('rf-icon').value = item.icon || '';
+    document.getElementById('rf-color').value = item.color || '#5b8def';
+    document.getElementById('rf-time-start').value = item.timeStart || '';
+    document.getElementById('rf-time-end').value = item.timeEnd || '';
+    document.getElementById('rf-notes').value = item.notes || '';
+    document.getElementById('rf-alarm').value = String(item.alarm ?? false);
+    document.getElementById('rf-alarm-row').hidden = !item.timeStart;
+    document.getElementById('form-panel-title').textContent = `Editar: ${item.name}`;
+    document.getElementById('form-submit-btn').textContent = 'Salvar alterações';
+    document.getElementById('form-cancel-btn').hidden = false;
+    document.getElementById('rf-name').focus();
+    // Scroll form into view on mobile
+    document.getElementById('routine-form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function cancelEdit() {
+    document.getElementById('edit-id').value = '';
+    document.getElementById('routine-form').reset();
+    document.getElementById('rf-color').value = '#5b8def';
+    document.getElementById('rf-alarm-row').hidden = true;
+    document.getElementById('form-panel-title').textContent = 'Nova atividade';
+    document.getElementById('form-submit-btn').textContent = 'Adicionar';
+    document.getElementById('form-cancel-btn').hidden = true;
+  }
+
+  // ─── Form wiring ──────────────────────────────────────────────────────────
+  const nameInput = document.getElementById('rf-name');
+  const iconInput = document.getElementById('rf-icon');
+  const timeStartInput = document.getElementById('rf-time-start');
+  const alarmRow = document.getElementById('rf-alarm-row');
+
+  nameInput?.addEventListener('input', () => {
+    const g = guessIcon(nameInput.value);
+    if (g) iconInput.placeholder = g;
   });
 
-  const routineNameInput = document.getElementById('routine-name');
-  const routineIconInput = document.getElementById('routine-icon');
-  routineNameInput?.addEventListener('input', () => {
-    const guess = guessIconFromName(routineNameInput.value);
-    if (routineIconInput) routineIconInput.placeholder = guess || '📍';
+  timeStartInput?.addEventListener('input', () => {
+    alarmRow.hidden = !timeStartInput.value;
   });
 
-  routineForm?.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const activities = loadRoutine();
-    const hasTime = timeMode.value === 'time';
-    activities.push({
-      id: `routine-${Date.now()}`,
-      order: activities.length,
-      name: document.getElementById('routine-name').value.trim(),
-      time: hasTime ? document.getElementById('routine-time').value : '',
-      icon: document.getElementById('routine-icon').value.trim() || guessIconFromName(document.getElementById('routine-name').value) || '📍',
-      color: document.getElementById('routine-color').value,
-      notes: document.getElementById('routine-notes').value.trim(),
-      alarm: hasTime && document.getElementById('routine-alarm').value === 'true',
-      countdown: hasTime ? 5 : 0,
+  document.getElementById('routine-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('edit-id').value;
+    const acts = loadRoutine();
+    const data = {
+      name: document.getElementById('rf-name').value.trim(),
+      icon: document.getElementById('rf-icon').value.trim() || guessIcon(document.getElementById('rf-name').value) || '📍',
+      color: document.getElementById('rf-color').value,
+      timeStart: document.getElementById('rf-time-start').value || '',
+      timeEnd: document.getElementById('rf-time-end').value || '',
+      notes: document.getElementById('rf-notes').value.trim(),
+      alarm: document.getElementById('rf-time-start').value ? document.getElementById('rf-alarm').value === 'true' : false,
+      countdown: 5,
       completed: false,
       completedAt: null,
       alarmFired: false,
       countdownFired: false,
-    });
-    saveRoutine(activities);
-    routineForm.reset();
-    document.getElementById('routine-color').value = '#5b8def';
-    updateTimeMode();
-    renderRoutine();
+    };
+
+    if (editId) {
+      const idx = acts.findIndex((a) => a.id === editId);
+      if (idx !== -1) {
+        // Preserve completion state on edit
+        data.completed = acts[idx].completed;
+        data.completedAt = acts[idx].completedAt;
+        data.alarmFired = acts[idx].alarmFired;
+        data.countdownFired = acts[idx].countdownFired;
+        data.order = acts[idx].order;
+        acts[idx] = { ...acts[idx], ...data };
+      }
+    } else {
+      data.id = `r-${Date.now()}`;
+      data.order = acts.length;
+      acts.push(data);
+    }
+
+    saveRoutine(acts);
+    cancelEdit();
+    render();
   });
 
-  routineTheme?.addEventListener('change', () => {
-    saveSettings({ ...loadSettings(), theme: routineTheme.value });
-    renderRoutine();
+  document.getElementById('form-cancel-btn')?.addEventListener('click', cancelEdit);
+
+  document.getElementById('routine-theme')?.addEventListener('change', (e) => {
+    saveSettings({ ...loadSettings(), theme: e.target.value });
   });
 
-  routineShowWidget?.addEventListener('click', () => {
-    saveSettings({ ...loadSettings(), hidden: false });
-    window.NVRoutine?.refreshUI?.();
+  document.getElementById('btn-clear-done')?.addEventListener('click', () => {
+    saveRoutine(loadRoutine().filter((a) => !a.completed));
+    render();
   });
 
-  routineHideWidget?.addEventListener('click', () => {
-    saveSettings({ ...loadSettings(), hidden: true });
-    window.NVRoutine?.refreshUI?.();
+  document.getElementById('btn-reset-day')?.addEventListener('click', () => {
+    if (!confirm('Reiniciar o plano do dia? As atividades serão mantidas mas marcadas como pendentes.')) return;
+    const acts = loadRoutine().map((a) => ({ ...a, completed: false, completedAt: null, alarmFired: false, countdownFired: false }));
+    saveRoutine(acts);
+    render();
   });
 
-  updateTimeMode();
-  renderRoutine();
-  // Pede permissão de notificação para alertas no horário exato
+  // ─── Init ─────────────────────────────────────────────────────────────────
   if ('Notification' in window && Notification.permission === 'default') {
-    try { Notification.requestPermission(); } catch (e) {}
+    try { Notification.requestPermission(); } catch {}
   }
-  // 500ms mantém o cronômetro "Faltam Xs" preciso na própria página /dia.
-  // A checagem global de alarmes vive no Base.astro e usa as mesmas flags
-  // (alarmFired/countdownFired) gravadas em localStorage, então não há
-  // disparo duplicado.
-  setInterval(tickRoutine, 500);
+  render();
+  setInterval(tick, 500);
 </script>
 
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <style>
-  .day-page {
-    padding: 28px 0 64px;
-  }
+  .day-page { padding: 28px 0 72px; }
+
+  /* ── Header ─────────────────────────────────────────────────────────────── */
   .day-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 20px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .day-head-text h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 10px 0 6px; }
+  .day-head-text p { color: var(--text-soft); max-width: 560px; }
+  .day-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .day-date {
+    font-family: var(--font-head); font-weight: 700; font-size: 0.85rem;
+    color: var(--text-muted); text-transform: capitalize;
+  }
+  .day-stats {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 999px; padding: 10px 20px; box-shadow: var(--shadow-sm);
+  }
+  .day-stat { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .day-stat strong { font-family: var(--font-head); font-size: 1.1rem; font-weight: 900; color: var(--blue-ink); }
+  .day-stat span { font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+  .day-stat-divider { width: 1px; height: 28px; background: var(--border); }
+
+  /* ── Primeiro / Depois ───────────────────────────────────────────────────── */
+  .fd-strip {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
-    gap: 20px;
-    align-items: end;
-    margin-bottom: 22px;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px; align-items: stretch;
+    margin-bottom: 20px;
   }
-  .day-head h1 {
-    margin: 12px 0 8px;
-    font-size: clamp(1.8rem, 4vw, 2.6rem);
-  }
-  .day-head p {
-    color: var(--text-soft);
-    max-width: 660px;
-  }
-  .routine-now {
-    display: grid;
-    gap: 6px;
-    padding: 16px;
-    border-radius: 18px;
+  .fd-card {
     background: var(--surface);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
-  }
-  .routine-now span,
-  .routine-now em {
-    color: var(--text-soft);
-    font-style: normal;
-    font-weight: 800;
-    font-size: 0.84rem;
-  }
-  .routine-now strong {
-    font-family: var(--font-head);
-    font-size: 1.05rem;
-  }
-  .routine-layout {
-    display: grid;
-    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
-    gap: 18px;
-    align-items: start;
-  }
-  .routine-form,
-  .routine-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 18px;
-    box-shadow: var(--shadow-sm);
-  }
-  .routine-form h2 {
-    margin-bottom: 12px;
-    font-size: 1.25rem;
-  }
-  .routine-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-  .routine-time-field {
-    grid-column: span 2;
-  }
-  .routine-field {
-    display: grid;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .routine-field span {
-    font-family: var(--font-head);
-    font-weight: 800;
-    color: var(--text-soft);
-    font-size: 0.82rem;
-  }
-  .routine-field input,
-  .routine-field select,
-  .routine-field textarea {
-    width: 100%;
-    min-height: 44px;
     border: 2px solid var(--border);
-    border-radius: 14px;
-    background: var(--surface-2);
-    color: var(--text);
-    font: inherit;
-    padding: 10px 12px;
-  }
-  .routine-field input[type="color"] {
-    padding: 4px;
-  }
-  .routine-tools {
-    display: grid;
-    grid-template-columns: minmax(180px, 1fr) auto auto;
-    gap: 10px;
-    align-items: end;
-    margin-bottom: 14px;
-  }
-  .routine-field.compact {
-    margin-bottom: 0;
-  }
-  .routine-progress {
-    display: grid;
-    gap: 8px;
-    margin-bottom: 14px;
-    color: var(--text-soft);
-    font-weight: 800;
-  }
-  .routine-progress div,
-  .routine-countdown {
-    height: 12px;
-    border-radius: 999px;
-    background: var(--bg-alt);
-    overflow: hidden;
-  }
-  .routine-progress i,
-  .routine-countdown i {
-    display: block;
-    height: 100%;
-    width: 0;
-    border-radius: inherit;
-    background: linear-gradient(90deg, var(--mint), var(--blue));
-    transition: width 0.3s ease;
-  }
-  .routine-list {
-    display: grid;
-    gap: 10px;
-    min-height: 220px;
-    max-height: 560px;
-    overflow: auto;
-    padding-right: 4px;
-  }
-  .routine-empty {
-    display: grid;
-    place-items: center;
-    align-content: center;
-    gap: 6px;
-    min-height: 220px;
-    border: 2px dashed var(--border);
-    border-radius: 18px;
-    background: var(--surface-2);
-    text-align: center;
-    color: var(--text-soft);
-    padding: 24px;
-  }
-  .routine-empty strong {
-    color: var(--text);
-    font-family: var(--font-head);
-    font-size: 1.1rem;
-  }
-  .routine-item {
-    display: grid;
-    grid-template-columns: 58px minmax(0, 1fr) auto;
-    gap: 12px;
-    align-items: center;
-    padding: 12px;
-    border-radius: 18px;
-    border: 2px solid color-mix(in srgb, var(--routine-color) 24%, var(--border));
-    background: color-mix(in srgb, var(--routine-color) 8%, white);
-  }
-  .routine-item.current {
-    border-color: var(--routine-color);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--routine-color) 16%, transparent);
-  }
-  .routine-item.done {
-    opacity: 0.72;
-  }
-  .routine-icon {
-    width: 58px;
-    height: 58px;
-    display: grid;
-    place-items: center;
-    border-radius: 16px;
-    background: var(--surface);
-    font-size: 1.8rem;
-  }
-  .routine-info {
-    display: grid;
-    gap: 7px;
-    min-width: 0;
-  }
-  .routine-info div:first-child {
-    display: grid;
-    gap: 2px;
-  }
-  .routine-info strong {
-    font-family: var(--font-head);
-    font-size: 1.02rem;
-  }
-  .routine-info span,
-  .routine-info p {
-    color: var(--text-soft);
-    font-size: 0.86rem;
-  }
-  .routine-actions {
-    display: flex;
-    gap: 8px;
-  }
-  .routine-actions button {
-    width: 42px !important;
-    height: 42px !important;
-    min-height: 42px !important;
-    padding: 0 !important;
-    border-radius: 14px !important;
-    font-size: 1.1rem;
-    font-weight: 900;
-  }
-  .routine-reports {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-top: 18px;
-  }
-  .routine-reports article {
-    display: grid;
-    gap: 4px;
-    padding: 14px;
-    border-radius: 18px;
-    background: var(--surface);
-    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 20px;
     box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column; gap: 14px;
+    position: relative; overflow: hidden;
   }
-  .routine-reports span {
-    font-family: var(--font-head);
-    font-size: 1.45rem;
-    font-weight: 900;
-    color: var(--blue-ink);
+  .fd-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: var(--act-color, var(--blue));
+    border-radius: 22px 22px 0 0;
+    opacity: 0.7;
   }
-  .routine-reports strong {
-    color: var(--text-soft);
-    font-size: 0.82rem;
+  .fd-now { border-color: color-mix(in srgb, var(--act-color, var(--blue)) 30%, var(--border)); }
+  .fd-now.has-time { box-shadow: 0 0 0 3px color-mix(in srgb, var(--act-color, var(--blue)) 15%, transparent), var(--shadow-sm); }
+  .fd-badge {
+    display: inline-flex; align-items: center;
+    font-family: var(--font-head); font-weight: 900; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--act-color, var(--blue)); background: color-mix(in srgb, var(--act-color, var(--blue)) 12%, transparent);
+    padding: 4px 12px; border-radius: 999px; width: fit-content;
+  }
+  .fd-next .fd-badge { color: var(--text-muted); background: var(--bg-alt); }
+  .fd-content { display: flex; align-items: center; gap: 16px; }
+  .fd-icon {
+    width: 64px; height: 64px; flex-shrink: 0;
+    display: grid; place-items: center;
+    font-size: 2.4rem; border-radius: 18px;
+    background: color-mix(in srgb, var(--act-color, var(--blue)) 12%, var(--bg-alt));
+  }
+  .fd-text { flex: 1; min-width: 0; }
+  .fd-text strong { display: block; font-size: 1.2rem; font-family: var(--font-head); font-weight: 900; margin-bottom: 4px; }
+  .fd-text span { font-size: 0.9rem; color: var(--text-soft); font-weight: 700; }
+  .fd-arrow {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; color: var(--text-muted); font-weight: 900;
+    padding: 0 4px;
   }
 
-  @media (max-width: 760px) {
-    .day-page {
-      padding: 14px 0 42px;
-    }
-    .day-head,
-    .routine-layout,
-    .routine-tools,
-    .routine-reports {
-      grid-template-columns: 1fr;
-    }
-    .routine-form-grid {
-      grid-template-columns: 1fr;
-    }
-    .routine-time-field {
-      grid-column: auto;
-    }
-    .routine-item {
-      grid-template-columns: 48px minmax(0, 1fr);
-    }
-    .routine-icon {
-      width: 48px;
-      height: 48px;
-      font-size: 1.5rem;
-    }
-    .routine-actions {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-    }
-    .routine-actions button {
-      width: 100% !important;
-    }
+  /* Time bar inside fd-now */
+  .fd-time-bar-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .fd-time-bar-track {
+    height: 10px; border-radius: 999px;
+    background: var(--bg-alt); overflow: hidden;
+  }
+  .fd-time-bar-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--act-color, var(--mint)), color-mix(in srgb, var(--act-color, var(--blue)) 80%, white));
+    transition: width 0.5s ease;
+  }
+  .fd-time-bar-label { font-size: 0.8rem; font-weight: 800; color: var(--text-soft); }
+
+  /* ── Global timeline bar ─────────────────────────────────────────────────── */
+  .global-progress-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 16px 20px; margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .global-progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .global-progress-label { font-weight: 800; font-size: 0.9rem; color: var(--text-soft); }
+  .global-progress-pct { font-family: var(--font-head); font-weight: 900; color: var(--blue-ink); }
+  .global-progress-track {
+    position: relative; height: 22px; border-radius: 999px;
+    background: var(--bg-alt); overflow: visible;
+  }
+  .global-progress-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--mint), var(--blue));
+    transition: width 0.5s ease;
+    min-width: 0;
+  }
+  .global-progress-markers { position: absolute; inset: 0; pointer-events: none; }
+  .gp-marker {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    font-size: 1.1rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
+    transition: opacity 0.2s;
+  }
+  .gp-marker.done { opacity: 0.45; filter: grayscale(1); }
+  .gp-marker.active { font-size: 1.35rem; filter: drop-shadow(0 2px 5px rgba(0,0,0,.3)); }
+  .global-progress-now-line {
+    position: absolute; top: -4px; bottom: -4px; width: 3px;
+    background: var(--coral); border-radius: 999px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    box-shadow: 0 0 0 2px rgba(255,155,133,.3);
+  }
+
+  /* ── Layout ─────────────────────────────────────────────────────────────── */
+  .routine-layout {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 20px; align-items: start;
+    margin-bottom: 20px;
+  }
+
+  /* ── Form panel ──────────────────────────────────────────────────────────── */
+  .routine-form-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 22px; padding: 22px; box-shadow: var(--shadow-sm);
+    position: sticky; top: 88px;
+  }
+  .form-panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .form-panel-head h2 { font-size: 1.15rem; margin: 0; }
+  .form-cancel-btn {
+    width: 34px !important; height: 34px !important; min-height: 34px !important;
+    padding: 0 !important; border-radius: 10px !important;
+    font-size: 1.2rem; font-weight: 900;
+    background: var(--bg-alt) !important; border: 1px solid var(--border) !important;
+    box-shadow: none !important; color: var(--text-soft) !important;
+  }
+  .form-cancel-btn:hover { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
+
+  .rf-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .rf-field span { font-family: var(--font-head); font-weight: 800; font-size: 0.8rem; color: var(--text-soft); }
+  .rf-field input, .rf-field select, .rf-field textarea {
+    font: inherit; font-size: 0.95rem; color: var(--text);
+    background: var(--surface-2); border: 2px solid var(--border);
+    border-radius: 12px; padding: 9px 12px; width: 100%;
+    transition: border-color 0.15s;
+  }
+  .rf-field input:focus, .rf-field select:focus, .rf-field textarea:focus {
+    border-color: var(--blue); outline: none;
+  }
+  .rf-field input[type="color"] { padding: 4px 6px; height: 42px; cursor: pointer; }
+  .rf-field textarea { resize: vertical; min-height: 64px; }
+  .rf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .rf-actions { margin-top: 4px; }
+  .rf-actions .btn { width: 100%; }
+  .rf-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* ── Routine panel ─────────────────────────────────────────────────────── */
+  .routine-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 22px; padding: 22px; box-shadow: var(--shadow-sm);
+  }
+  .routine-panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+  .routine-panel-head h2 { font-size: 1.15rem; margin: 0; }
+  .routine-panel-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  .rpt-btn { font-size: 0.82rem !important; padding: 8px 14px !important; min-height: 36px !important; }
+
+  .routine-drag-hint {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.8rem; color: var(--text-muted); font-weight: 700;
+    margin-bottom: 12px; padding: 8px 12px;
+    background: var(--bg-alt); border-radius: 10px;
+  }
+  .routine-drag-hint span::before { content: '⠿  '; font-size: 1rem; }
+
+  /* ── Activity list ─────────────────────────────────────────────────────── */
+  .routine-list {
+    list-style: none; display: flex; flex-direction: column; gap: 10px;
+    min-height: 200px;
+  }
+  .routine-empty {
+    display: grid; place-items: center; align-content: center;
+    gap: 6px; min-height: 200px;
+    border: 2px dashed var(--border); border-radius: 18px;
+    background: var(--surface-2); text-align: center;
+    color: var(--text-soft); padding: 28px;
+  }
+  .routine-empty strong { font-family: var(--font-head); font-size: 1.05rem; color: var(--text); }
+
+  .routine-item {
+    display: grid;
+    grid-template-columns: 28px 52px minmax(0, 1fr) auto;
+    gap: 12px; align-items: center;
+    padding: 14px 14px 14px 10px;
+    border-radius: 18px;
+    border: 2px solid color-mix(in srgb, var(--rc) 20%, var(--border));
+    background: color-mix(in srgb, var(--rc) 5%, white);
+    transition: border-color 0.15s, box-shadow 0.15s, opacity 0.2s;
+    cursor: default;
+  }
+  .routine-item.current {
+    border-color: var(--rc);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--rc) 15%, transparent);
+  }
+  .routine-item.done { opacity: 0.55; }
+  .routine-item.dragging { opacity: 0.5; transform: scale(0.98); }
+  .routine-item.drag-over {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px rgba(91,141,239,.2);
+  }
+
+  .ri-drag {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; color: var(--text-muted); cursor: grab;
+    user-select: none; line-height: 1;
+  }
+  .ri-drag:active { cursor: grabbing; }
+  .routine-item.done .ri-drag { cursor: default; opacity: 0.3; }
+
+  .ri-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: grid; place-items: center; font-size: 1.8rem;
+    background: color-mix(in srgb, var(--rc) 14%, var(--surface));
+    flex-shrink: 0;
+  }
+
+  .ri-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .ri-name { font-family: var(--font-head); font-weight: 800; font-size: 1rem; }
+  .ri-sub { font-size: 0.82rem; color: var(--text-soft); }
+  .ri-notes { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+
+  /* Per-item time bar */
+  .item-time-bar {
+    height: 6px; border-radius: 999px; background: var(--bg-alt); overflow: hidden; margin-top: 4px;
+  }
+  .item-time-bar-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--rc), color-mix(in srgb, var(--rc) 60%, white));
+    transition: width 0.5s ease;
+  }
+
+  .ri-actions { display: flex; gap: 6px; align-items: center; }
+  .ri-btn {
+    width: 36px !important; height: 36px !important; min-height: 36px !important;
+    padding: 0 !important; border-radius: 10px !important; font-size: 1rem;
+    font-weight: 900; flex-shrink: 0;
+    background: var(--surface-2) !important; border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow-sm) !important; color: var(--text-soft) !important;
+    transition: background 0.13s, color 0.13s, border-color 0.13s !important;
+  }
+  .ri-complete:hover { background: var(--mint) !important; color: #fff !important; border-color: var(--mint) !important; }
+  .ri-edit:hover { background: var(--sun) !important; color: #5a3c00 !important; border-color: var(--sun) !important; }
+  .ri-remove:hover { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
+
+  /* ── Stats row ──────────────────────────────────────────────────────────── */
+  .routine-reports {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-top: 20px;
+  }
+  .routine-reports article {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 16px; border-radius: 18px;
+    background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  }
+  .routine-reports span {
+    font-family: var(--font-head); font-size: 1.5rem; font-weight: 900; color: var(--blue-ink);
+  }
+  .routine-reports strong { color: var(--text-soft); font-size: 0.82rem; }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .routine-layout { grid-template-columns: 1fr; }
+    .routine-form-panel { position: static; }
+  }
+  @media (max-width: 700px) {
+    .fd-strip { grid-template-columns: 1fr; }
+    .fd-arrow { display: none; }
+    .day-head { flex-direction: column; align-items: flex-start; }
+    .day-meta { align-items: flex-start; }
+    .routine-reports { grid-template-columns: repeat(2, 1fr); }
+    .routine-item { grid-template-columns: 24px 44px minmax(0, 1fr); }
+    .ri-actions { grid-column: 3; justify-content: flex-end; }
+    .routine-item.done .ri-actions { display: none; }
+  }
+  @media (max-width: 420px) {
+    .routine-reports { grid-template-columns: 1fr 1fr; }
   }
 </style>
