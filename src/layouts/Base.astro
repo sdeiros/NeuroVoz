@@ -673,31 +673,42 @@ const {
         modal?.setAttribute('hidden', '');
       }
 
+      function dismissCelebration() {
+        if (!celebration || celebration.hasAttribute('hidden')) return;
+        if (celebration._dismissTimer) { clearTimeout(celebration._dismissTimer); celebration._dismissTimer = null; }
+        celebration.classList.add('dismissing');
+        setTimeout(() => {
+          celebration.classList.remove('active', 'dismissing');
+          celebration.setAttribute('hidden', '');
+          celebration.innerHTML = '';
+          widget?.setAttribute('hidden', '');
+        }, 600);
+      }
+
+      celebration?.addEventListener('click', dismissCelebration);
+      celebration?.addEventListener('touchstart', dismissCelebration, { passive: true });
+
       function showCelebration(timer) {
         if (!celebration) return;
         celebration.innerHTML = '';
         celebration.style.setProperty('--celebration-color', timer.color || 'var(--blue)');
         celebration.removeAttribute('hidden');
+        celebration.classList.remove('dismissing');
         celebration.classList.add('active');
 
         const icons = {
-          dinossauros: '🦖',
-          carros: '🚗',
-          flores: '🌸',
-          estrelas: '⭐',
-          confetes: '🎉',
-          unicornio: '🦄',
-          espaco: '🚀',
-          animais: '🐶',
+          dinossauros: '🦖', carros: '🚗', flores: '🌸',
+          estrelas: '⭐', confetes: '🎉', unicornio: '🦄',
+          espaco: '🚀', animais: '🐶', princesas: '👑',
         };
         const symbol = icons[timer.theme] || '🎉';
-        for (let i = 0; i < 16; i += 1) {
+        for (let i = 0; i < 24; i += 1) {
           const drop = document.createElement('span');
           drop.className = 'rain-item';
           drop.textContent = symbol;
-          drop.style.left = `${Math.random() * 90}%`;
-          drop.style.animationDelay = `${Math.random() * 1.2}s`;
-          drop.style.fontSize = `${14 + Math.random() * 18}px`;
+          drop.style.left = `${Math.random() * 94}%`;
+          drop.style.animationDelay = `${Math.random() * 1.4}s`;
+          drop.style.fontSize = `${18 + Math.random() * 22}px`;
           celebration.appendChild(drop);
         }
 
@@ -705,16 +716,12 @@ const {
         message.className = 'celebration-message';
         message.innerHTML = `
           <strong>🎉 Muito bem!</strong>
-          <p>O tempo acabou. Atividade concluída com sucesso.</p>
+          <p>O tempo acabou. Atividade concluída!</p>
+          <span class="celebration-tap-hint">Toque para continuar</span>
         `;
         celebration.appendChild(message);
 
-        setTimeout(() => {
-          celebration.classList.remove('active');
-          celebration.setAttribute('hidden', '');
-          celebration.innerHTML = '';
-          widget?.setAttribute('hidden', '');
-        }, 7000);
+        celebration._dismissTimer = setTimeout(dismissCelebration, 7000);
       }
 
       function sync() {

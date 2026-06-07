@@ -2,127 +2,142 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="Plano do Dia — NeuroVoz" description="Centro de rotina visual com sequência Primeiro/Depois, progresso por tempo, arrastar para reordenar e edição de atividades.">
+<Base title="Plano do Dia — NeuroVoz" description="Rotina visual com Primeiro/Depois, progresso por tempo e atividades com alarme.">
   <section class="day-page">
     <div class="container">
 
       <!-- ── Header ──────────────────────────────────────────────────────── -->
       <header class="day-head">
-        <div class="day-head-text">
-          <span class="eyebrow">Centro de Rotina</span>
+        <div>
+          <span class="eyebrow">Minha Rotina</span>
           <h1>Plano do Dia</h1>
-          <p>Monte a sequência de atividades, acompanhe o progresso e prepare transições com apoio visual.</p>
+          <p class="day-lead">Veja o que vem primeiro e o que vem depois!</p>
         </div>
         <div class="day-meta">
           <span class="day-date" id="day-date-label"></span>
           <div class="day-stats">
             <div class="day-stat">
               <strong id="stat-done">0</strong>
-              <span>concluídas</span>
+              <span>feitas</span>
             </div>
             <div class="day-stat-divider"></div>
             <div class="day-stat">
               <strong id="stat-total">0</strong>
-              <span>no plano</span>
+              <span>total</span>
             </div>
             <div class="day-stat-divider"></div>
             <div class="day-stat">
               <strong id="stat-pct">0%</strong>
-              <span>completo</span>
+              <span>pronto</span>
             </div>
           </div>
         </div>
       </header>
 
       <!-- ── Primeiro / Depois ──────────────────────────────────────────── -->
-      <div class="fd-strip" aria-live="polite" aria-label="Atividade atual e próxima">
+      <div class="fd-strip" aria-live="polite" aria-label="Atividade atual e próxima" id="fd-strip">
         <div class="fd-card fd-now" id="fd-now">
-          <span class="fd-badge">Primeiro</span>
-          <div class="fd-content">
-            <div class="fd-icon" id="fd-now-icon" aria-hidden="true">📍</div>
-            <div class="fd-text">
-              <strong id="fd-now-name">Nenhuma atividade</strong>
-              <span id="fd-now-time">—</span>
-            </div>
+          <div class="fd-badge fd-badge-now">PRIMEIRO</div>
+          <div class="fd-icon-wrap" id="fd-now-icon-wrap">
+            <span class="fd-icon" id="fd-now-icon" aria-hidden="true">📍</span>
           </div>
-          <div class="fd-time-bar-wrap" id="fd-now-bar-wrap">
-            <div class="fd-time-bar-track">
-              <div class="fd-time-bar-fill" id="fd-time-bar-fill"></div>
+          <strong class="fd-name" id="fd-now-name">Nenhuma atividade</strong>
+          <span class="fd-time" id="fd-now-time"></span>
+          <div class="fd-bar-wrap" id="fd-now-bar-wrap" hidden>
+            <div class="fd-bar-track">
+              <div class="fd-bar-fill" id="fd-bar-fill"></div>
             </div>
-            <span class="fd-time-bar-label" id="fd-time-bar-label">⏳</span>
+            <span class="fd-bar-label" id="fd-bar-label">⏳</span>
           </div>
+          <button class="fd-complete-btn" id="fd-complete-btn" hidden type="button">✓ Concluir!</button>
         </div>
 
-        <div class="fd-arrow" aria-hidden="true">→</div>
+        <div class="fd-divider" aria-hidden="true">
+          <span class="fd-divider-arrow">→</span>
+        </div>
 
         <div class="fd-card fd-next" id="fd-next">
-          <span class="fd-badge">Depois</span>
-          <div class="fd-content">
-            <div class="fd-icon" id="fd-next-icon" aria-hidden="true">⏳</div>
-            <div class="fd-text">
-              <strong id="fd-next-name">Adicione atividades</strong>
-              <span id="fd-next-time">—</span>
-            </div>
+          <div class="fd-badge fd-badge-next">DEPOIS</div>
+          <div class="fd-icon-wrap fd-icon-wrap-next">
+            <span class="fd-icon" id="fd-next-icon" aria-hidden="true">⏳</span>
           </div>
+          <strong class="fd-name" id="fd-next-name">Adicione atividades</strong>
+          <span class="fd-time" id="fd-next-time"></span>
         </div>
       </div>
 
-      <!-- ── Global time progress bar ──────────────────────────────────── -->
-      <div class="global-progress-wrap" id="global-progress-wrap" hidden>
-        <div class="global-progress-row">
-          <span class="global-progress-label" id="global-progress-label">0 de 0 concluídas</span>
-          <span class="global-progress-pct" id="global-progress-pct">0%</span>
+      <!-- ── Global progress ────────────────────────────────────────────── -->
+      <div class="global-prog" id="global-prog" hidden>
+        <div class="global-prog-head">
+          <span id="global-prog-label">0 de 0 feitas</span>
+          <strong id="global-prog-pct">0%</strong>
         </div>
-        <div class="global-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="global-progress-track">
-          <div class="global-progress-fill" id="global-progress-fill"></div>
-          <!-- Time markers rendered by JS -->
-          <div class="global-progress-markers" id="global-progress-markers"></div>
+        <div class="global-prog-track" id="global-prog-track">
+          <div class="global-prog-fill" id="global-prog-fill"></div>
+          <div class="global-prog-markers" id="global-prog-markers"></div>
+          <div class="global-prog-now" id="global-prog-now" hidden></div>
         </div>
-        <div class="global-progress-now-line" id="global-progress-now-line" aria-hidden="true"></div>
       </div>
 
       <!-- ── Layout ─────────────────────────────────────────────────────── -->
       <div class="routine-layout">
 
-        <!-- Form: add / edit activity -->
-        <aside class="routine-form-panel" id="routine-form-panel">
-          <header class="form-panel-head">
-            <h2 id="form-panel-title">Nova atividade</h2>
-            <button class="form-cancel-btn" id="form-cancel-btn" hidden type="button" aria-label="Cancelar edição">×</button>
+        <!-- Form panel -->
+        <aside class="form-panel" id="form-panel">
+          <header class="form-head">
+            <h2 id="form-title">Nova atividade</h2>
+            <button class="form-cancel" id="form-cancel" hidden type="button" aria-label="Cancelar edição">✕</button>
           </header>
+
+          <!-- Quick emoji picks -->
+          <div class="emoji-grid" id="emoji-grid" aria-label="Sugestões de atividades">
+            <button type="button" class="emoji-pick" data-name="Banho" data-icon="🛁">🛁<span>Banho</span></button>
+            <button type="button" class="emoji-pick" data-name="Comer" data-icon="🍎">🍎<span>Comer</span></button>
+            <button type="button" class="emoji-pick" data-name="Escola" data-icon="🎒">🎒<span>Escola</span></button>
+            <button type="button" class="emoji-pick" data-name="Brincar" data-icon="🎮">🎮<span>Brincar</span></button>
+            <button type="button" class="emoji-pick" data-name="Dormir" data-icon="🛏️">🛏️<span>Dormir</span></button>
+            <button type="button" class="emoji-pick" data-name="Terapia" data-icon="🧩">🧩<span>Terapia</span></button>
+            <button type="button" class="emoji-pick" data-name="Passeio" data-icon="🚶">🚶<span>Passeio</span></button>
+            <button type="button" class="emoji-pick" data-name="Remédio" data-icon="💊">💊<span>Remédio</span></button>
+          </div>
 
           <form id="routine-form" autocomplete="off">
             <input type="hidden" id="edit-id" />
 
             <label class="rf-field">
-              <span>Nome</span>
-              <input id="rf-name" type="text" required placeholder="Ex.: Banho" />
+              <span class="rf-label">O que vai fazer?</span>
+              <div class="rf-name-row">
+                <input id="rf-icon" type="text" maxlength="4" placeholder="🛁" class="rf-icon-input" aria-label="Ícone da atividade" />
+                <input id="rf-name" type="text" required placeholder="Escreva a atividade..." class="rf-name-input" aria-label="Nome da atividade" />
+              </div>
+            </label>
+
+            <label class="rf-field">
+              <span class="rf-label">Cor</span>
+              <div class="rf-color-row">
+                <button type="button" class="rf-color-swatch active" data-color="#5b8def" style="background:#5b8def" aria-label="Azul"></button>
+                <button type="button" class="rf-color-swatch" data-color="#5cc9b0" style="background:#5cc9b0" aria-label="Verde"></button>
+                <button type="button" class="rf-color-swatch" data-color="#ff9b85" style="background:#ff9b85" aria-label="Coral"></button>
+                <button type="button" class="rf-color-swatch" data-color="#ffd166" style="background:#ffd166" aria-label="Amarelo"></button>
+                <button type="button" class="rf-color-swatch" data-color="#c084fc" style="background:#c084fc" aria-label="Roxo"></button>
+                <button type="button" class="rf-color-swatch" data-color="#f97316" style="background:#f97316" aria-label="Laranja"></button>
+                <input id="rf-color" type="color" value="#5b8def" class="rf-color-custom" title="Cor personalizada" aria-label="Escolher cor" />
+              </div>
             </label>
 
             <div class="rf-row">
               <label class="rf-field">
-                <span>Ícone</span>
-                <input id="rf-icon" type="text" maxlength="4" placeholder="🛁" />
-              </label>
-              <label class="rf-field">
-                <span>Cor</span>
-                <input id="rf-color" type="color" value="#5b8def" />
-              </label>
-            </div>
-
-            <div class="rf-row">
-              <label class="rf-field">
-                <span>Horário início</span>
+                <span class="rf-label">Começa às</span>
                 <input id="rf-time-start" type="time" />
               </label>
               <label class="rf-field">
-                <span>Horário fim</span>
+                <span class="rf-label">Termina às</span>
                 <input id="rf-time-end" type="time" />
               </label>
             </div>
 
             <label class="rf-field rf-alarm-row" id="rf-alarm-row" hidden>
-              <span>Alarme no horário</span>
+              <span class="rf-label">🔔 Alarme</span>
               <select id="rf-alarm">
                 <option value="true">Ativado</option>
                 <option value="false">Desativado</option>
@@ -130,21 +145,20 @@ import Base from '../layouts/Base.astro';
             </label>
 
             <label class="rf-field">
-              <span>Observações</span>
+              <span class="rf-label">Observações (opcional)</span>
               <textarea id="rf-notes" rows="2" placeholder="Ex.: usar apoio visual"></textarea>
             </label>
 
             <div class="rf-actions">
-              <button class="btn btn-primary" type="submit" id="form-submit-btn">Adicionar</button>
+              <button class="btn btn-primary rf-submit" type="submit" id="form-submit-btn">+ Adicionar</button>
             </div>
           </form>
 
-          <!-- Celebration theme picker -->
           <div class="rf-divider"></div>
           <label class="rf-field">
-            <span>Tema de celebração</span>
+            <span class="rf-label">🎉 Tema de celebração</span>
             <select id="routine-theme">
-              <option value="auto">Usar interesses do perfil</option>
+              <option value="auto">Do perfil da criança</option>
               <option value="confetes">🎉 Confetes</option>
               <option value="dinossauros">🦖 Dinossauros</option>
               <option value="carros">🚗 Carros</option>
@@ -159,41 +173,21 @@ import Base from '../layouts/Base.astro';
         </aside>
 
         <!-- Activity list -->
-        <div class="routine-panel">
-          <div class="routine-panel-head">
+        <div class="act-panel">
+          <div class="act-panel-head">
             <h2>Atividades de hoje</h2>
-            <div class="routine-panel-tools">
-              <button class="btn btn-ghost rpt-btn" id="btn-clear-done" type="button" title="Remover concluídas">Limpar concluídas</button>
-              <button class="btn btn-ghost rpt-btn" id="btn-reset-day" type="button" title="Reiniciar dia">Reiniciar dia</button>
+            <div class="act-panel-tools">
+              <button class="btn btn-ghost rpt-btn" id="btn-clear-done" type="button">Limpar feitas</button>
+              <button class="btn btn-ghost rpt-btn" id="btn-reset-day" type="button">Reiniciar</button>
             </div>
           </div>
 
-          <div class="routine-drag-hint" id="drag-hint" hidden>
-            <span>Segure e arraste para reordenar</span>
+          <div class="drag-hint" id="drag-hint" hidden>
+            Segure e arraste para mudar a ordem
           </div>
 
-          <ul class="routine-list" id="routine-list" aria-live="polite" aria-label="Lista de atividades"></ul>
+          <ul class="act-list" id="routine-list" aria-live="polite" aria-label="Lista de atividades"></ul>
         </div>
-      </div>
-
-      <!-- ── Stats row ─────────────────────────────────────────────────── -->
-      <div class="routine-reports">
-        <article>
-          <span id="routine-report-done">0</span>
-          <strong>Concluídas hoje</strong>
-        </article>
-        <article>
-          <span id="routine-report-rate">0%</span>
-          <strong>Taxa diária</strong>
-        </article>
-        <article>
-          <span id="routine-report-peak">--:--</span>
-          <strong>Maior participação</strong>
-        </article>
-        <article>
-          <span id="routine-report-week">0</span>
-          <strong>Histórico semanal</strong>
-        </article>
       </div>
 
     </div>
@@ -207,7 +201,6 @@ import Base from '../layouts/Base.astro';
   const ROUTINE_HISTORY_KEY = 'nv-routine-history';
   const ROUTINE_SETTINGS_KEY = 'nv-routine-settings';
 
-  // ─── Utils ──────────────────────────────────────────────────────────────
   function readJson(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; }
   }
@@ -222,11 +215,6 @@ import Base from '../layouts/Base.astro';
   function todayKey() { return new Date().toISOString().slice(0, 10); }
   function nowMs() { return Date.now(); }
 
-  function minutesOf(t) {
-    if (!t) return null;
-    const [h, m] = t.split(':').map(Number);
-    return (isNaN(h) || isNaN(m)) ? null : h * 60 + m;
-  }
   function targetMs(act) {
     if (!act?.timeStart) return null;
     const [h, m] = String(act.timeStart).split(':').map(Number);
@@ -242,7 +230,6 @@ import Base from '../layouts/Base.astro';
     return d.getTime();
   }
 
-  // ─── Persistence ────────────────────────────────────────────────────────
   function loadRoutine() {
     const saved = readJson(ROUTINE_KEY, null);
     if (saved?.day === todayKey() && Array.isArray(saved.activities)) return saved.activities;
@@ -253,9 +240,7 @@ import Base from '../layouts/Base.astro';
   function loadSettings() { return readJson(ROUTINE_SETTINGS_KEY, { hidden: false, theme: 'auto' }); }
   function saveSettings(s) { writeJson(ROUTINE_SETTINGS_KEY, s); }
   function loadHistory() { return readJson(ROUTINE_HISTORY_KEY, []); }
-  function saveHistory(h) { writeJson(ROUTINE_HISTORY_KEY, h.slice(0, 240)); }
 
-  // ─── Sorting ─────────────────────────────────────────────────────────────
   function sortedActivities() {
     return loadRoutine().sort((a, b) => {
       const at = targetMs(a), bt = targetMs(b);
@@ -280,22 +265,22 @@ import Base from '../layouts/Base.astro';
 
   function formatUntil(act) {
     const t = targetMs(act);
-    if (t === null) return 'Sem horário';
+    if (t === null) return '';
     let diff = Math.floor((t - nowMs()) / 1000);
     if (diff <= 0) return 'Agora';
     const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
-    if (h > 0) return `Faltam ${h}h ${String(m).padStart(2,'0')}m`;
-    if (m > 0) return `Faltam ${m}m ${String(s).padStart(2,'0')}s`;
-    return `Faltam ${s}s`;
+    if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m`;
+    if (m > 0) return `${m}m ${String(s).padStart(2,'0')}s`;
+    return `${s}s`;
   }
 
-  // ─── Icon auto-detection ─────────────────────────────────────────────────
+  // Icon auto-detection
   function guessIcon(raw) {
     const t = (raw || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const rules = [
       [/banho|chuveiro|ducha/, '🛁'], [/escovar|dente/, '🪥'], [/dormir|cama|soneca/, '🛏️'],
       [/acordar|levantar/, '⏰'], [/comer|refeicao|almoco|janta|lanche|merenda/, '🍎'],
-      [/cafe|desjejum/, '☕'], [/agua|beber/, '💧'], [/escola|aula|professor/, '👩‍🏫'],
+      [/cafe|desjejum/, '☕'], [/agua|beber/, '💧'], [/escola|aula|professor/, '🎒'],
       [/tarefa|dever|estudo|ler|livro/, '📚'], [/brincar|jogo|jogar/, '🎮'],
       [/parque|playground/, '🛝'], [/caminhar|passeio|correr/, '🚶'],
       [/natacao|nadar|piscina/, '🏊'], [/bicicleta|pedalar/, '🚴'],
@@ -309,7 +294,6 @@ import Base from '../layouts/Base.astro';
     return rules.find(([re]) => re.test(t))?.[1] || '';
   }
 
-  // ─── TTS ─────────────────────────────────────────────────────────────────
   function speak(text) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -318,7 +302,7 @@ import Base from '../layouts/Base.astro';
     window.speechSynthesis.speak(u);
   }
 
-  // ─── Celebration ─────────────────────────────────────────────────────────
+  // Celebration
   function inferTheme() {
     const s = loadSettings();
     if (s.theme && s.theme !== 'auto') return s.theme;
@@ -340,23 +324,36 @@ import Base from '../layouts/Base.astro';
     el.innerHTML = '';
     el.removeAttribute('hidden');
     el.classList.add('active');
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < 28; i++) {
       const d = document.createElement('span');
       d.className = 'rain-item';
       d.textContent = sym;
       d.style.left = `${Math.random() * 94}%`;
-      d.style.animationDelay = `${Math.random() * 1.4}s`;
-      d.style.fontSize = `${18 + Math.random() * 22}px`;
+      d.style.animationDelay = `${Math.random() * 1.6}s`;
+      d.style.fontSize = `${20 + Math.random() * 28}px`;
       el.appendChild(d);
     }
     const card = document.createElement('div');
     card.className = 'celebration-message';
-    card.innerHTML = `<strong>${msg}</strong><p>Vamos para a próxima atividade!</p>`;
+    card.innerHTML = `<strong>${msg}</strong><p>Toque na tela para continuar!</p>`;
     el.appendChild(card);
-    setTimeout(() => { el.classList.remove('active'); el.setAttribute('hidden', ''); el.innerHTML = ''; }, 5200);
+
+    let dismissed = false;
+    const dismiss = () => {
+      if (dismissed) return;
+      dismissed = true;
+      el.classList.add('dismissing');
+      setTimeout(() => {
+        el.classList.remove('active', 'dismissing');
+        el.setAttribute('hidden', '');
+        el.innerHTML = '';
+      }, 600);
+    };
+    el._dismissFn = dismiss;
+    setTimeout(dismiss, 6000);
   }
 
-  // ─── Complete / Remove ────────────────────────────────────────────────────
+  // Completion
   function completeActivity(id) {
     const acts = loadRoutine();
     const item = acts.find((a) => a.id === id);
@@ -366,13 +363,14 @@ import Base from '../layouts/Base.astro';
     const hist = loadHistory();
     hist.unshift({
       id: item.id, name: item.name, icon: item.icon,
-      time: item.timeStart, completedAt: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}),
+      time: item.timeStart,
+      completedAt: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}),
       date: todayKey(), type: 'completed',
     });
-    saveHistory(hist);
+    writeJson(ROUTINE_HISTORY_KEY, hist.slice(0, 240));
     saveRoutine(acts);
     speak(`${item.name} concluído. Muito bem!`);
-    celebrate('🎉 Muito bem!');
+    celebrate(`${item.icon || '🎉'} Muito bem!`);
     render();
   }
 
@@ -381,7 +379,6 @@ import Base from '../layouts/Base.astro';
     render();
   }
 
-  // ─── Alarm / tick ─────────────────────────────────────────────────────────
   function notify(title, body) {
     try {
       if ('Notification' in window && Notification.permission === 'granted')
@@ -427,136 +424,115 @@ import Base from '../layouts/Base.astro';
       dateLabel.textContent = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
     }
 
-    // Stats
     document.getElementById('stat-done').textContent = String(done);
     document.getElementById('stat-total').textContent = String(total);
     document.getElementById('stat-pct').textContent = `${pct}%`;
 
-    // Primeiro / Depois cards
-    const nowIcon = document.getElementById('fd-now-icon');
-    const nowName = document.getElementById('fd-now-name');
-    const nowTime = document.getElementById('fd-now-time');
-    const nextIcon = document.getElementById('fd-next-icon');
-    const nextName = document.getElementById('fd-next-name');
-    const nextTime = document.getElementById('fd-next-time');
+    // Primeiro / Depois
+    const nowIconEl = document.getElementById('fd-now-icon');
+    const nowNameEl = document.getElementById('fd-now-name');
+    const nowTimeEl = document.getElementById('fd-now-time');
+    const nextIconEl = document.getElementById('fd-next-icon');
+    const nextNameEl = document.getElementById('fd-next-name');
+    const nextTimeEl = document.getElementById('fd-next-time');
     const nowCard = document.getElementById('fd-now');
     const nextCard = document.getElementById('fd-next');
+    const completeBtn = document.getElementById('fd-complete-btn');
 
     if (current) {
-      nowIcon.textContent = current.icon || '📍';
-      nowName.textContent = current.name;
-      nowTime.textContent = current.timeStart ? `${current.timeStart}${current.timeEnd ? ' – '+current.timeEnd : ''}` : 'Sem horário';
-      nowCard.style.setProperty('--act-color', current.color || '#5b8def');
-      nowCard.classList.toggle('has-time', !!current.timeStart);
+      nowIconEl.textContent = current.icon || '📍';
+      nowNameEl.textContent = current.name;
+      nowTimeEl.textContent = current.timeStart ? `${current.timeStart}${current.timeEnd ? ' – '+current.timeEnd : ''}` : '';
+      nowCard.style.setProperty('--ac', current.color || '#5b8def');
+      nowCard.classList.add('has-activity');
+      if (completeBtn) { completeBtn.hidden = false; completeBtn.dataset.id = current.id; }
     } else {
-      nowIcon.textContent = total ? '🎉' : '📍';
-      nowName.textContent = total ? 'Tudo concluído!' : 'Nenhuma atividade';
-      nowTime.textContent = '—';
-      nowCard.style.removeProperty('--act-color');
+      nowIconEl.textContent = total ? '🎉' : '📍';
+      nowNameEl.textContent = total ? 'Tudo feito!' : 'Adicione atividades';
+      nowTimeEl.textContent = '';
+      nowCard.style.removeProperty('--ac');
+      nowCard.classList.remove('has-activity');
+      if (completeBtn) completeBtn.hidden = true;
     }
 
     if (next) {
-      nextIcon.textContent = next.icon || '⏳';
-      nextName.textContent = next.name;
-      nextTime.textContent = next.timeStart ? `${next.timeStart}${next.timeEnd ? ' – '+next.timeEnd : ''}` : formatUntil(next);
-      nextCard.style.setProperty('--act-color', next.color || '#5b8def');
+      nextIconEl.textContent = next.icon || '⏳';
+      nextNameEl.textContent = next.name;
+      nextTimeEl.textContent = next.timeStart ? `${next.timeStart}${next.timeEnd ? ' – '+next.timeEnd : ''}` : formatUntil(next);
+      nextCard.style.setProperty('--ac', next.color || '#5b8def');
+      nextCard.classList.add('has-activity');
     } else {
-      nextIcon.textContent = '—';
-      nextName.textContent = total ? 'Última atividade' : 'Adicione atividades';
-      nextTime.textContent = '—';
-      nextCard.style.removeProperty('--act-color');
+      nextIconEl.textContent = total ? '✅' : '⏳';
+      nextNameEl.textContent = total ? 'Todas feitas!' : 'Adicione mais';
+      nextTimeEl.textContent = '';
+      nextCard.style.removeProperty('--ac');
+      nextCard.classList.remove('has-activity');
     }
 
-    // Time-based progress bar for current activity
+    // Time bar in fd-now
     const barWrap = document.getElementById('fd-now-bar-wrap');
-    const barFill = document.getElementById('fd-time-bar-fill');
-    const barLabel = document.getElementById('fd-time-bar-label');
+    const barFill = document.getElementById('fd-bar-fill');
+    const barLabel = document.getElementById('fd-bar-label');
     if (current && current.timeStart && current.timeEnd) {
       barWrap.hidden = false;
-      const start = targetMs(current);
-      const end = endMs(current);
-      const now2 = nowMs();
+      const start = targetMs(current), end = endMs(current), now2 = nowMs();
       const elapsed = Math.max(0, Math.min(1, (now2 - start) / (end - start)));
       barFill.style.width = `${elapsed * 100}%`;
-      barLabel.textContent = elapsed >= 1 ? '✅ Tempo esgotado' : formatUntil({timeStart: current.timeEnd});
+      barFill.style.background = `linear-gradient(90deg, ${current.color||'#5cc9b0'}, color-mix(in srgb, ${current.color||'#5b8def'} 70%, white))`;
+      barLabel.textContent = elapsed >= 1 ? '✅ Concluir!' : formatUntil({timeStart: current.timeEnd});
     } else if (current && current.timeStart) {
       barWrap.hidden = false;
       barFill.style.width = '100%';
-      barLabel.textContent = formatUntil(current);
+      barLabel.textContent = formatUntil(current) || 'Agora';
     } else {
-      barWrap.hidden = true;
+      if (barWrap) barWrap.hidden = true;
     }
 
-    // Global timeline bar
-    const globalWrap = document.getElementById('global-progress-wrap');
-    const globalFill = document.getElementById('global-progress-fill');
-    const globalLabel = document.getElementById('global-progress-label');
-    const globalPct = document.getElementById('global-progress-pct');
-    const globalTrack = document.getElementById('global-progress-track');
-    const globalMarkers = document.getElementById('global-progress-markers');
-    const nowLine = document.getElementById('global-progress-now-line');
+    // Global progress
+    const globalWrap = document.getElementById('global-prog');
+    const globalFill = document.getElementById('global-prog-fill');
+    const globalLabel = document.getElementById('global-prog-label');
+    const globalPct = document.getElementById('global-prog-pct');
+    const globalMarkers = document.getElementById('global-prog-markers');
+    const nowLine = document.getElementById('global-prog-now');
 
     const timedActs = activities.filter((a) => a.timeStart);
-    if (timedActs.length >= 2) {
+    if (total > 0) {
       globalWrap.hidden = false;
-      const earliest = Math.min(...timedActs.map((a) => targetMs(a)));
-      const latest = Math.max(...timedActs.map((a) => endMs(a) || targetMs(a)));
-      const span = latest - earliest;
-      const nowPos = span > 0 ? Math.max(0, Math.min(100, ((nowMs() - earliest) / span) * 100)) : 0;
-
       globalFill.style.width = `${pct}%`;
-      globalFill.style.background = `linear-gradient(90deg, var(--mint), var(--blue))`;
-      globalLabel.textContent = `${done} de ${total} concluídas`;
+      globalLabel.textContent = `${done} de ${total} feitas`;
       globalPct.textContent = `${pct}%`;
-      globalTrack.setAttribute('aria-valuenow', String(pct));
 
-      // Render time markers
-      globalMarkers.innerHTML = '';
-      timedActs.forEach((a) => {
-        if (span <= 0) return;
-        const pos = ((targetMs(a) - earliest) / span) * 100;
-        const mk = document.createElement('span');
-        mk.className = `gp-marker${a.completed ? ' done' : ''}${a.id === current?.id ? ' active' : ''}`;
-        mk.style.left = `${pos}%`;
-        mk.title = `${a.icon||'📍'} ${a.name} (${a.timeStart})`;
-        mk.setAttribute('aria-hidden', 'true');
-        mk.textContent = a.icon || '📍';
-        globalMarkers.appendChild(mk);
-      });
+      if (timedActs.length >= 2) {
+        const earliest = Math.min(...timedActs.map((a) => targetMs(a)));
+        const latest = Math.max(...timedActs.map((a) => endMs(a) || targetMs(a)));
+        const span = latest - earliest;
+        const nowPos = span > 0 ? Math.max(0, Math.min(100, ((nowMs() - earliest) / span) * 100)) : 0;
 
-      // Now line
-      nowLine.style.left = `calc(${nowPos}% + 0px)`;
-      nowLine.hidden = false;
+        globalMarkers.innerHTML = '';
+        timedActs.forEach((a) => {
+          if (span <= 0) return;
+          const pos = ((targetMs(a) - earliest) / span) * 100;
+          const mk = document.createElement('span');
+          mk.className = `gp-marker${a.completed ? ' done' : ''}${a.id === current?.id ? ' active' : ''}`;
+          mk.style.left = `${pos}%`;
+          mk.title = `${a.icon||'📍'} ${a.name} (${a.timeStart})`;
+          mk.textContent = a.icon || '📍';
+          globalMarkers.appendChild(mk);
+        });
+        nowLine.style.left = `${nowPos}%`;
+        nowLine.hidden = false;
+      } else {
+        globalMarkers.innerHTML = '';
+        nowLine.hidden = true;
+      }
     } else {
-      globalWrap.hidden = timedActs.length === 0;
-      globalFill.style.width = `${pct}%`;
-      globalLabel.textContent = `${done} de ${total} concluídas`;
-      globalPct.textContent = `${pct}%`;
-      globalMarkers.innerHTML = '';
-      nowLine.hidden = true;
+      globalWrap.hidden = true;
     }
 
-    // Drag hint
     document.getElementById('drag-hint').hidden = total < 2;
-
-    // List
     renderList(activities, current);
 
-    // Reports
-    const hist = loadHistory();
-    const todayDone = hist.filter((e) => e.date === todayKey() && e.type === 'completed');
-    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const weekDone = hist.filter((e) => e.type === 'completed' && new Date(e.date).getTime() >= weekAgo);
-    const peak = todayDone.reduce((acc, e) => {
-      const h = (e.completedAt||'').slice(0,2); if (h) acc[h] = (acc[h]||0) + 1; return acc;
-    }, {});
-    const peakHour = Object.entries(peak).sort(([,a],[,b]) => b-a)[0]?.[0];
-    document.getElementById('routine-report-done').textContent = String(todayDone.length);
-    document.getElementById('routine-report-rate').textContent = `${pct}%`;
-    document.getElementById('routine-report-peak').textContent = peakHour ? `${peakHour}:00` : '--:--';
-    document.getElementById('routine-report-week').textContent = String(weekDone.length);
-
-    // Theme select sync
     const themeEl = document.getElementById('routine-theme');
     if (themeEl) themeEl.value = loadSettings().theme || 'auto';
   }
@@ -568,62 +544,56 @@ import Base from '../layouts/Base.astro';
 
     if (!activities.length) {
       list.innerHTML = `
-        <li class="routine-empty">
-          <strong>Plano vazio.</strong>
-          <span>Adicione a primeira atividade no formulário ao lado.</span>
+        <li class="act-empty">
+          <span class="act-empty-icon">🌟</span>
+          <strong>Ainda vazio!</strong>
+          <span>Use o formulário ao lado para<br>adicionar a primeira atividade.</span>
         </li>`;
       return;
     }
 
-    // Preserve drag state
-    const draggingId = list.querySelector('[draggable][aria-grabbed="true"]')?.dataset.id;
     list.innerHTML = '';
-
-    activities.forEach((item, idx) => {
+    activities.forEach((item) => {
       const isCurrent = item.id === current?.id && !item.completed;
       const li = document.createElement('li');
-      li.className = `routine-item${item.completed ? ' done' : ''}${isCurrent ? ' current' : ''}`;
+      li.className = `act-item${item.completed ? ' done' : ''}${isCurrent ? ' current' : ''}`;
       li.dataset.id = item.id;
       li.draggable = !item.completed;
       li.setAttribute('aria-grabbed', 'false');
       li.style.setProperty('--rc', item.color || '#5b8def');
 
-      // Time-based progress for each item with start+end
       let itemBarHtml = '';
       if (item.timeStart && item.timeEnd && !item.completed) {
         const start = targetMs(item), end = endMs(item), now = nowMs();
-        const pct2 = Math.max(0, Math.min(100, ((now - start) / (end - start)) * 100));
-        itemBarHtml = `<div class="item-time-bar"><div class="item-time-bar-fill" style="width:${pct2}%"></div></div>`;
+        const p2 = Math.max(0, Math.min(100, ((now - start) / (end - start)) * 100));
+        itemBarHtml = `<div class="act-time-bar"><div class="act-time-bar-fill" style="width:${p2}%;background:${item.color||'#5b8def'}"></div></div>`;
       }
 
       const timeLabel = item.timeStart
         ? `${item.timeStart}${item.timeEnd ? ' – '+item.timeEnd : ''}`
-        : 'Sem horário';
-      const statusLabel = item.completed ? '✅ Concluída' : isCurrent ? '🔵 Agora' : '⏳ Próxima';
+        : '';
+      const statusLabel = item.completed ? '✅ Feita' : isCurrent ? '🔵 Agora' : '';
 
       li.innerHTML = `
-        <div class="ri-drag" aria-label="Arrastar para reordenar" title="Arrastar">⠿</div>
-        <div class="ri-icon" aria-hidden="true">${escHtml(item.icon||'📍')}</div>
-        <div class="ri-info">
-          <div class="ri-name">${escHtml(item.name)}</div>
-          <div class="ri-sub">${escHtml(timeLabel)} · ${statusLabel}</div>
-          ${item.notes ? `<div class="ri-notes">${escHtml(item.notes)}</div>` : ''}
+        <div class="act-drag" aria-label="Arrastar" title="Arrastar para reordenar">⠿</div>
+        <div class="act-icon">${escHtml(item.icon||'📍')}</div>
+        <div class="act-info">
+          <div class="act-name">${escHtml(item.name)}</div>
+          ${timeLabel || statusLabel ? `<div class="act-sub">${timeLabel ? escHtml(timeLabel) : ''}${statusLabel ? (timeLabel ? ' · ' : '') + statusLabel : ''}</div>` : ''}
+          ${item.notes ? `<div class="act-notes">${escHtml(item.notes)}</div>` : ''}
           ${itemBarHtml}
         </div>
-        <div class="ri-actions">
-          <button class="ri-btn ri-complete" data-id="${item.id}" title="Marcar como concluída" aria-label="Concluir ${escHtml(item.name)}">✓</button>
-          <button class="ri-btn ri-edit" data-id="${item.id}" title="Editar" aria-label="Editar ${escHtml(item.name)}">✎</button>
-          <button class="ri-btn ri-remove" data-id="${item.id}" title="Remover" aria-label="Remover ${escHtml(item.name)}">×</button>
+        <div class="act-actions">
+          ${!item.completed ? `<button class="act-btn act-complete" data-id="${item.id}" title="Concluir" aria-label="Concluir ${escHtml(item.name)}">✓</button>` : ''}
+          <button class="act-btn act-edit" data-id="${item.id}" title="Editar" aria-label="Editar ${escHtml(item.name)}">✎</button>
+          <button class="act-btn act-remove" data-id="${item.id}" title="Remover" aria-label="Remover ${escHtml(item.name)}">×</button>
         </div>`;
       list.appendChild(li);
     });
 
-    // Wire buttons
-    list.querySelectorAll('.ri-complete').forEach((btn) => btn.addEventListener('click', () => completeActivity(btn.dataset.id)));
-    list.querySelectorAll('.ri-remove').forEach((btn) => btn.addEventListener('click', () => removeActivity(btn.dataset.id)));
-    list.querySelectorAll('.ri-edit').forEach((btn) => btn.addEventListener('click', () => startEdit(btn.dataset.id)));
-
-    // Drag-and-drop
+    list.querySelectorAll('.act-complete').forEach((btn) => btn.addEventListener('click', () => completeActivity(btn.dataset.id)));
+    list.querySelectorAll('.act-remove').forEach((btn) => btn.addEventListener('click', () => removeActivity(btn.dataset.id)));
+    list.querySelectorAll('.act-edit').forEach((btn) => btn.addEventListener('click', () => startEdit(btn.dataset.id)));
     setupDnd(list);
   }
 
@@ -637,7 +607,6 @@ import Base from '../layouts/Base.astro';
         li.setAttribute('aria-grabbed', 'true');
         li.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', li.dataset.id);
       });
       li.addEventListener('dragend', () => {
         li.setAttribute('aria-grabbed', 'false');
@@ -648,7 +617,6 @@ import Base from '../layouts/Base.astro';
       li.addEventListener('dragover', (e) => {
         if (!dragSrc || dragSrc === li) return;
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
         list.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
         li.classList.add('drag-over');
       });
@@ -661,36 +629,34 @@ import Base from '../layouts/Base.astro';
         if (srcIdx === -1 || dstIdx === -1) return;
         const [moved] = acts.splice(srcIdx, 1);
         acts.splice(dstIdx, 0, moved);
-        // Reassign order
         acts.forEach((a, i) => { a.order = i; });
         saveRoutine(acts);
         render();
       });
     });
 
-    // Touch drag (mobile)
-    let touchItem = null, touchClone = null, startY = 0;
+    let touchItem = null, touchClone = null, touchStartY = 0;
     list.querySelectorAll('li[draggable]').forEach((li) => {
       li.addEventListener('touchstart', (e) => {
         touchItem = li;
-        startY = e.touches[0].clientY;
+        touchStartY = e.touches[0].clientY;
+        const rect = li.getBoundingClientRect();
         touchClone = li.cloneNode(true);
-        touchClone.style.cssText = `position:fixed;left:${li.getBoundingClientRect().left}px;top:${li.getBoundingClientRect().top}px;width:${li.offsetWidth}px;opacity:0.88;z-index:200;pointer-events:none;transition:none;box-shadow:0 12px 36px rgba(0,0,0,0.22)`;
+        touchClone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.9;z-index:200;pointer-events:none;box-shadow:0 16px 40px rgba(0,0,0,0.24);border-radius:18px;transform:scale(1.03);`;
         document.body.appendChild(touchClone);
         li.classList.add('dragging');
       }, { passive: true });
       li.addEventListener('touchmove', (e) => {
         if (!touchItem || !touchClone) return;
-        const dy = e.touches[0].clientY - startY;
+        const dy = e.touches[0].clientY - touchStartY;
         touchClone.style.top = `${touchItem.getBoundingClientRect().top + dy}px`;
-        // Find target under touch
-        const target = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY)?.closest('li.routine-item');
+        const target = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY)?.closest('li.act-item');
         list.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
         if (target && target !== touchItem) target.classList.add('drag-over');
       }, { passive: true });
       li.addEventListener('touchend', (e) => {
         if (!touchItem) return;
-        const target = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY)?.closest('li.routine-item');
+        const target = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY)?.closest('li.act-item');
         if (target && target !== touchItem) {
           const acts = loadRoutine();
           const srcIdx = acts.findIndex((a) => a.id === touchItem.dataset.id);
@@ -713,34 +679,40 @@ import Base from '../layouts/Base.astro';
 
   // ─── Edit ─────────────────────────────────────────────────────────────────
   function startEdit(id) {
-    const acts = loadRoutine();
-    const item = acts.find((a) => a.id === id);
+    const item = loadRoutine().find((a) => a.id === id);
     if (!item) return;
     document.getElementById('edit-id').value = item.id;
     document.getElementById('rf-name').value = item.name;
     document.getElementById('rf-icon').value = item.icon || '';
+    setColorSwatch(item.color || '#5b8def');
     document.getElementById('rf-color').value = item.color || '#5b8def';
     document.getElementById('rf-time-start').value = item.timeStart || '';
     document.getElementById('rf-time-end').value = item.timeEnd || '';
     document.getElementById('rf-notes').value = item.notes || '';
     document.getElementById('rf-alarm').value = String(item.alarm ?? false);
     document.getElementById('rf-alarm-row').hidden = !item.timeStart;
-    document.getElementById('form-panel-title').textContent = `Editar: ${item.name}`;
-    document.getElementById('form-submit-btn').textContent = 'Salvar alterações';
-    document.getElementById('form-cancel-btn').hidden = false;
+    document.getElementById('form-title').textContent = `Editar: ${item.name}`;
+    document.getElementById('form-submit-btn').textContent = 'Salvar';
+    document.getElementById('form-cancel').hidden = false;
     document.getElementById('rf-name').focus();
-    // Scroll form into view on mobile
-    document.getElementById('routine-form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function cancelEdit() {
     document.getElementById('edit-id').value = '';
     document.getElementById('routine-form').reset();
+    setColorSwatch('#5b8def');
     document.getElementById('rf-color').value = '#5b8def';
     document.getElementById('rf-alarm-row').hidden = true;
-    document.getElementById('form-panel-title').textContent = 'Nova atividade';
-    document.getElementById('form-submit-btn').textContent = 'Adicionar';
-    document.getElementById('form-cancel-btn').hidden = true;
+    document.getElementById('form-title').textContent = 'Nova atividade';
+    document.getElementById('form-submit-btn').textContent = '+ Adicionar';
+    document.getElementById('form-cancel').hidden = true;
+  }
+
+  function setColorSwatch(color) {
+    document.querySelectorAll('.rf-color-swatch').forEach((s) => {
+      s.classList.toggle('active', s.dataset.color === color);
+    });
   }
 
   // ─── Form wiring ──────────────────────────────────────────────────────────
@@ -748,8 +720,8 @@ import Base from '../layouts/Base.astro';
   const iconInput = document.getElementById('rf-icon');
   const timeStartInput = document.getElementById('rf-time-start');
   const alarmRow = document.getElementById('rf-alarm-row');
+  const colorInput = document.getElementById('rf-color');
 
-  // Pre-fill start time with current time for new activities
   function setCurrentTime() {
     if (!timeStartInput.value) {
       const now = new Date();
@@ -768,6 +740,35 @@ import Base from '../layouts/Base.astro';
     alarmRow.hidden = !timeStartInput.value;
   });
 
+  // Color swatches
+  document.querySelectorAll('.rf-color-swatch').forEach((swatch) => {
+    swatch.addEventListener('click', () => {
+      const c = swatch.dataset.color;
+      colorInput.value = c;
+      setColorSwatch(c);
+    });
+  });
+
+  colorInput?.addEventListener('input', () => {
+    setColorSwatch(colorInput.value);
+  });
+
+  // Quick emoji picks
+  document.querySelectorAll('.emoji-pick').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      nameInput.value = btn.dataset.name;
+      iconInput.value = btn.dataset.icon;
+      iconInput.placeholder = btn.dataset.icon;
+      nameInput.focus();
+    });
+  });
+
+  // Complete button in fd-now
+  document.getElementById('fd-complete-btn')?.addEventListener('click', (e) => {
+    const id = e.currentTarget.dataset.id;
+    if (id) completeActivity(id);
+  });
+
   document.getElementById('routine-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const editId = document.getElementById('edit-id').value;
@@ -775,7 +776,7 @@ import Base from '../layouts/Base.astro';
     const data = {
       name: document.getElementById('rf-name').value.trim(),
       icon: document.getElementById('rf-icon').value.trim() || guessIcon(document.getElementById('rf-name').value) || '📍',
-      color: document.getElementById('rf-color').value,
+      color: colorInput.value,
       timeStart: document.getElementById('rf-time-start').value || '',
       timeEnd: document.getElementById('rf-time-end').value || '',
       notes: document.getElementById('rf-notes').value.trim(),
@@ -790,7 +791,6 @@ import Base from '../layouts/Base.astro';
     if (editId) {
       const idx = acts.findIndex((a) => a.id === editId);
       if (idx !== -1) {
-        // Preserve completion state on edit
         data.completed = acts[idx].completed;
         data.completedAt = acts[idx].completedAt;
         data.alarmFired = acts[idx].alarmFired;
@@ -810,7 +810,7 @@ import Base from '../layouts/Base.astro';
     render();
   });
 
-  document.getElementById('form-cancel-btn')?.addEventListener('click', () => { cancelEdit(); setCurrentTime(); });
+  document.getElementById('form-cancel')?.addEventListener('click', () => { cancelEdit(); setCurrentTime(); });
 
   document.getElementById('routine-theme')?.addEventListener('change', (e) => {
     saveSettings({ ...loadSettings(), theme: e.target.value });
@@ -822,13 +822,12 @@ import Base from '../layouts/Base.astro';
   });
 
   document.getElementById('btn-reset-day')?.addEventListener('click', () => {
-    if (!confirm('Reiniciar o plano do dia? As atividades serão mantidas mas marcadas como pendentes.')) return;
+    if (!confirm('Reiniciar o plano do dia? As atividades ficam, mas serão marcadas como pendentes.')) return;
     const acts = loadRoutine().map((a) => ({ ...a, completed: false, completedAt: null, alarmFired: false, countdownFired: false }));
     saveRoutine(acts);
     render();
   });
 
-  // ─── Init ─────────────────────────────────────────────────────────────────
   if ('Notification' in window && Notification.permission === 'default') {
     try { Notification.requestPermission(); } catch {}
   }
@@ -838,155 +837,207 @@ import Base from '../layouts/Base.astro';
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <style>
-  .day-page { padding: 28px 0 72px; }
+  .day-page { padding: 24px 0 80px; }
 
-  /* ── Header ─────────────────────────────────────────────────────────────── */
+  /* Header */
   .day-head {
     display: flex; justify-content: space-between; align-items: flex-end;
-    gap: 20px; flex-wrap: wrap; margin-bottom: 24px;
+    gap: 20px; flex-wrap: wrap; margin-bottom: 28px;
   }
-  .day-head-text h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 10px 0 6px; }
-  .day-head-text p { color: var(--text-soft); max-width: 560px; }
+  .day-lead { color: var(--text-soft); margin-top: 6px; font-size: 1.05rem; }
+  .day-head h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); margin: 8px 0 0; }
   .day-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
   .day-date {
-    font-family: var(--font-head); font-weight: 700; font-size: 0.85rem;
+    font-family: var(--font-head); font-weight: 700; font-size: 0.82rem;
     color: var(--text-muted); text-transform: capitalize;
   }
   .day-stats {
     display: flex; align-items: center; gap: 16px;
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 999px; padding: 10px 20px; box-shadow: var(--shadow-sm);
+    border-radius: 999px; padding: 10px 22px; box-shadow: var(--shadow-sm);
   }
   .day-stat { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-  .day-stat strong { font-family: var(--font-head); font-size: 1.1rem; font-weight: 900; color: var(--blue-ink); }
-  .day-stat span { font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+  .day-stat strong { font-family: var(--font-head); font-size: 1.2rem; font-weight: 900; color: var(--blue-ink); }
+  .day-stat span { font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
   .day-stat-divider { width: 1px; height: 28px; background: var(--border); }
 
   /* ── Primeiro / Depois ───────────────────────────────────────────────────── */
   .fd-strip {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 16px; align-items: stretch;
+    grid-template-columns: 1fr 56px 1fr;
+    gap: 0; align-items: center;
     margin-bottom: 20px;
   }
+
   .fd-card {
     background: var(--surface);
-    border: 2px solid var(--border);
-    border-radius: 22px;
-    padding: 20px;
-    box-shadow: var(--shadow-sm);
-    transition: border-color 0.2s, box-shadow 0.2s;
-    display: flex; flex-direction: column; gap: 14px;
+    border: 2.5px solid var(--border);
+    border-radius: 28px;
+    padding: 28px 24px 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    text-align: center;
     position: relative; overflow: hidden;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    min-height: 240px; justify-content: center;
   }
-  .fd-card::before {
+  .fd-card::after {
     content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 5px;
-    background: var(--act-color, var(--blue));
-    border-radius: 22px 22px 0 0;
-    opacity: 0.7;
+    position: absolute; bottom: 0; left: 0; right: 0; height: 6px;
+    background: var(--ac, var(--blue));
+    border-radius: 0 0 26px 26px;
+    opacity: 0.5;
+    transition: opacity 0.25s;
   }
-  .fd-now { border-color: color-mix(in srgb, var(--act-color, var(--blue)) 30%, var(--border)); }
-  .fd-now.has-time { box-shadow: 0 0 0 3px color-mix(in srgb, var(--act-color, var(--blue)) 15%, transparent), var(--shadow-sm); }
+  .fd-now.has-activity {
+    border-color: var(--ac, var(--blue));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ac, var(--blue)) 12%, transparent), var(--shadow);
+  }
+  .fd-now.has-activity::after { opacity: 1; }
+
   .fd-badge {
     display: inline-flex; align-items: center;
-    font-family: var(--font-head); font-weight: 900; font-size: 0.72rem;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--act-color, var(--blue)); background: color-mix(in srgb, var(--act-color, var(--blue)) 12%, transparent);
-    padding: 4px 12px; border-radius: 999px; width: fit-content;
+    font-family: var(--font-head); font-weight: 900; font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    padding: 4px 14px; border-radius: 999px;
   }
-  .fd-next .fd-badge { color: var(--text-muted); background: var(--bg-alt); }
-  .fd-content { display: flex; align-items: center; gap: 16px; }
-  .fd-icon {
-    width: 64px; height: 64px; flex-shrink: 0;
+  .fd-badge-now {
+    color: var(--ac, var(--blue-ink));
+    background: color-mix(in srgb, var(--ac, var(--blue)) 14%, transparent);
+  }
+  .fd-badge-next { color: var(--text-muted); background: var(--bg-alt); }
+
+  .fd-icon-wrap {
+    width: 96px; height: 96px;
+    border-radius: 28px;
+    background: color-mix(in srgb, var(--ac, var(--blue)) 12%, var(--bg-alt));
     display: grid; place-items: center;
-    font-size: 2.4rem; border-radius: 18px;
-    background: color-mix(in srgb, var(--act-color, var(--blue)) 12%, var(--bg-alt));
+    transition: background 0.25s;
   }
-  .fd-text { flex: 1; min-width: 0; }
-  .fd-text strong { display: block; font-size: 1.2rem; font-family: var(--font-head); font-weight: 900; margin-bottom: 4px; }
-  .fd-text span { font-size: 0.9rem; color: var(--text-soft); font-weight: 700; }
-  .fd-arrow {
+  .fd-icon-wrap-next {
+    width: 80px; height: 80px;
+    border-radius: 24px;
+    background: var(--bg-alt);
+    opacity: 0.85;
+  }
+  .fd-icon { font-size: 3.6rem; line-height: 1; }
+  .fd-icon-wrap-next .fd-icon { font-size: 2.8rem; }
+
+  .fd-name { font-family: var(--font-head); font-weight: 900; font-size: 1.35rem; color: var(--text); line-height: 1.2; }
+  .fd-next .fd-name { font-size: 1.1rem; color: var(--text-soft); }
+  .fd-time { font-size: 0.88rem; color: var(--text-muted); font-weight: 700; min-height: 1.2em; }
+
+  /* Progress bar in fd-now */
+  .fd-bar-wrap { width: 100%; display: flex; flex-direction: column; gap: 5px; }
+  .fd-bar-track { height: 10px; border-radius: 999px; background: var(--bg-alt); overflow: hidden; }
+  .fd-bar-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+  .fd-bar-label { font-size: 0.8rem; font-weight: 800; color: var(--text-soft); text-align: center; }
+
+  /* Complete button */
+  .fd-complete-btn {
+    margin-top: 4px;
+    background: var(--ac, var(--blue)) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 14px !important;
+    padding: 12px 28px !important;
+    font-family: var(--font-head) !important;
+    font-weight: 900 !important; font-size: 1rem !important;
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.15s !important;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--ac, var(--blue)) 35%, transparent) !important;
+    min-height: unset !important; line-height: 1.3 !important;
+  }
+  .fd-complete-btn:hover { transform: scale(1.04); }
+  .fd-complete-btn:active { transform: scale(0.97); }
+
+  /* Arrow divider */
+  .fd-divider {
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.8rem; color: var(--text-muted); font-weight: 900;
-    padding: 0 4px;
+    flex-direction: column; gap: 0;
+  }
+  .fd-divider-arrow {
+    font-size: 2rem; color: var(--text-muted);
+    font-weight: 900; animation: arrow-pulse 2s ease-in-out infinite;
+  }
+  @keyframes arrow-pulse {
+    0%, 100% { opacity: 0.5; transform: translateX(0); }
+    50% { opacity: 1; transform: translateX(4px); }
   }
 
-  /* Time bar inside fd-now */
-  .fd-time-bar-wrap { display: flex; flex-direction: column; gap: 6px; }
-  .fd-time-bar-track {
-    height: 10px; border-radius: 999px;
-    background: var(--bg-alt); overflow: hidden;
-  }
-  .fd-time-bar-fill {
-    height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, var(--act-color, var(--mint)), color-mix(in srgb, var(--act-color, var(--blue)) 80%, white));
-    transition: width 0.5s ease;
-  }
-  .fd-time-bar-label { font-size: 0.8rem; font-weight: 800; color: var(--text-soft); }
-
-  /* ── Global timeline bar ─────────────────────────────────────────────────── */
-  .global-progress-wrap {
+  /* ── Global progress ─────────────────────────────────────────────────── */
+  .global-prog {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 18px; padding: 16px 20px; margin-bottom: 20px;
+    border-radius: 20px; padding: 14px 20px; margin-bottom: 20px;
     box-shadow: var(--shadow-sm);
   }
-  .global-progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .global-progress-label { font-weight: 800; font-size: 0.9rem; color: var(--text-soft); }
-  .global-progress-pct { font-family: var(--font-head); font-weight: 900; color: var(--blue-ink); }
-  .global-progress-track {
-    position: relative; height: 22px; border-radius: 999px;
+  .global-prog-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .global-prog-head span { font-weight: 800; font-size: 0.88rem; color: var(--text-soft); }
+  .global-prog-head strong { font-family: var(--font-head); font-weight: 900; color: var(--blue-ink); }
+  .global-prog-track {
+    position: relative; height: 20px; border-radius: 999px;
     background: var(--bg-alt); overflow: visible;
   }
-  .global-progress-fill {
+  .global-prog-fill {
     height: 100%; border-radius: 999px;
     background: linear-gradient(90deg, var(--mint), var(--blue));
     transition: width 0.5s ease;
-    min-width: 0;
   }
-  .global-progress-markers { position: absolute; inset: 0; pointer-events: none; }
+  .global-prog-markers { position: absolute; inset: 0; pointer-events: none; }
   .gp-marker {
     position: absolute; top: 50%; transform: translate(-50%, -50%);
-    font-size: 1.1rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
+    font-size: 1.1rem;
     transition: opacity 0.2s;
   }
-  .gp-marker.done { opacity: 0.45; filter: grayscale(1); }
-  .gp-marker.active { font-size: 1.35rem; filter: drop-shadow(0 2px 5px rgba(0,0,0,.3)); }
-  .global-progress-now-line {
+  .gp-marker.done { opacity: 0.4; filter: grayscale(1); }
+  .gp-marker.active { font-size: 1.3rem; }
+  .global-prog-now {
     position: absolute; top: -4px; bottom: -4px; width: 3px;
     background: var(--coral); border-radius: 999px;
     transform: translateX(-50%);
-    pointer-events: none;
-    box-shadow: 0 0 0 2px rgba(255,155,133,.3);
+    pointer-events: none; box-shadow: 0 0 0 2px rgba(255,155,133,.35);
   }
 
-  /* ── Layout ─────────────────────────────────────────────────────────────── */
+  /* ── Layout ──────────────────────────────────────────────────────────── */
   .routine-layout {
     display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-columns: 340px minmax(0, 1fr);
     gap: 20px; align-items: start;
-    margin-bottom: 20px;
   }
 
-  /* ── Form panel ──────────────────────────────────────────────────────────── */
-  .routine-form-panel {
+  /* ── Form panel ──────────────────────────────────────────────────────── */
+  .form-panel {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 22px; padding: 22px; box-shadow: var(--shadow-sm);
+    border-radius: 24px; padding: 24px; box-shadow: var(--shadow-sm);
     position: sticky; top: 88px;
   }
-  .form-panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .form-panel-head h2 { font-size: 1.15rem; margin: 0; }
-  .form-cancel-btn {
+  .form-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .form-head h2 { font-size: 1.15rem; margin: 0; }
+  .form-cancel {
     width: 34px !important; height: 34px !important; min-height: 34px !important;
     padding: 0 !important; border-radius: 10px !important;
-    font-size: 1.2rem; font-weight: 900;
+    font-size: 1rem; font-weight: 900;
     background: var(--bg-alt) !important; border: 1px solid var(--border) !important;
     box-shadow: none !important; color: var(--text-soft) !important;
   }
-  .form-cancel-btn:hover { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
+  .form-cancel:hover { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
 
-  .rf-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
-  .rf-field span { font-family: var(--font-head); font-weight: 800; font-size: 0.8rem; color: var(--text-soft); }
+  /* Emoji quick picks */
+  .emoji-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 6px; margin-bottom: 16px;
+  }
+  .emoji-pick {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 8px 4px; border-radius: 14px;
+    background: var(--bg-alt); border: 2px solid transparent;
+    cursor: pointer; font-size: 1.5rem; transition: border-color 0.15s, background 0.15s;
+  }
+  .emoji-pick span { font-size: 0.62rem; font-weight: 800; color: var(--text-soft); font-family: var(--font-head); white-space: nowrap; }
+  .emoji-pick:hover { border-color: var(--blue); background: var(--surface); }
+  .emoji-pick:active { transform: scale(0.95); }
+
+  /* Form fields */
+  .rf-label { font-family: var(--font-head); font-weight: 800; font-size: 0.78rem; color: var(--text-soft); margin-bottom: 5px; display: block; }
+  .rf-field { display: flex; flex-direction: column; margin-bottom: 12px; }
   .rf-field input, .rf-field select, .rf-field textarea {
     font: inherit; font-size: 0.95rem; color: var(--text);
     background: var(--surface-2); border: 2px solid var(--border);
@@ -996,141 +1047,144 @@ import Base from '../layouts/Base.astro';
   .rf-field input:focus, .rf-field select:focus, .rf-field textarea:focus {
     border-color: var(--blue); outline: none;
   }
-  .rf-field input[type="color"] { padding: 4px 6px; height: 42px; cursor: pointer; }
-  .rf-field textarea { resize: vertical; min-height: 64px; }
+  .rf-field textarea { resize: vertical; min-height: 60px; }
   .rf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .rf-actions { margin-top: 4px; }
-  .rf-actions .btn { width: 100%; }
+
+  /* Name row with icon */
+  .rf-name-row { display: flex; gap: 8px; }
+  .rf-icon-input {
+    width: 56px !important; flex-shrink: 0; text-align: center;
+    font-size: 1.4rem !important; padding: 6px !important;
+    border-radius: 12px;
+  }
+  .rf-name-input { flex: 1; }
+
+  /* Color swatches */
+  .rf-color-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .rf-color-swatch {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 3px solid transparent; cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .rf-color-swatch:hover { transform: scale(1.15); }
+  .rf-color-swatch.active { border-color: var(--text) !important; transform: scale(1.18); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text); }
+  .rf-color-custom { width: 30px; height: 30px; padding: 2px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; }
+
+  .rf-actions { margin-top: 6px; }
+  .rf-submit { width: 100%; font-size: 1rem !important; padding: 12px 20px !important; border-radius: 14px !important; font-weight: 900 !important; }
   .rf-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
-  /* ── Routine panel ─────────────────────────────────────────────────────── */
-  .routine-panel {
+  /* ── Activity panel ──────────────────────────────────────────────────── */
+  .act-panel {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 22px; padding: 22px; box-shadow: var(--shadow-sm);
+    border-radius: 24px; padding: 22px; box-shadow: var(--shadow-sm);
   }
-  .routine-panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
-  .routine-panel-head h2 { font-size: 1.15rem; margin: 0; }
-  .routine-panel-tools { display: flex; gap: 8px; flex-wrap: wrap; }
-  .rpt-btn { font-size: 0.82rem !important; padding: 8px 14px !important; min-height: 36px !important; }
+  .act-panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+  .act-panel-head h2 { font-size: 1.15rem; margin: 0; }
+  .act-panel-tools { display: flex; gap: 8px; }
+  .rpt-btn { font-size: 0.8rem !important; padding: 7px 12px !important; min-height: 34px !important; }
 
-  .routine-drag-hint {
-    display: flex; align-items: center; gap: 6px;
+  .drag-hint {
     font-size: 0.8rem; color: var(--text-muted); font-weight: 700;
     margin-bottom: 12px; padding: 8px 12px;
     background: var(--bg-alt); border-radius: 10px;
+    text-align: center;
   }
-  .routine-drag-hint span::before { content: '⠿  '; font-size: 1rem; }
 
-  /* ── Activity list ─────────────────────────────────────────────────────── */
-  .routine-list {
-    list-style: none; display: flex; flex-direction: column; gap: 10px;
-    min-height: 200px;
-  }
-  .routine-empty {
-    display: grid; place-items: center; align-content: center;
-    gap: 6px; min-height: 200px;
-    border: 2px dashed var(--border); border-radius: 18px;
+  /* ── Activity list ────────────────────────────────────────────────────── */
+  .act-list { list-style: none; display: flex; flex-direction: column; gap: 8px; min-height: 180px; }
+
+  .act-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; min-height: 200px;
+    border: 2.5px dashed var(--border); border-radius: 20px;
     background: var(--surface-2); text-align: center;
-    color: var(--text-soft); padding: 28px;
+    color: var(--text-soft); padding: 32px;
   }
-  .routine-empty strong { font-family: var(--font-head); font-size: 1.05rem; color: var(--text); }
+  .act-empty-icon { font-size: 3rem; }
+  .act-empty strong { font-family: var(--font-head); font-size: 1.1rem; color: var(--text); }
+  .act-empty span { font-size: 0.9rem; line-height: 1.5; }
 
-  .routine-item {
+  .act-item {
     display: grid;
-    grid-template-columns: 28px 52px minmax(0, 1fr) auto;
+    grid-template-columns: 28px 56px minmax(0, 1fr) auto;
     gap: 12px; align-items: center;
     padding: 14px 14px 14px 10px;
-    border-radius: 18px;
+    border-radius: 20px;
     border: 2px solid color-mix(in srgb, var(--rc) 20%, var(--border));
-    background: color-mix(in srgb, var(--rc) 5%, white);
-    transition: border-color 0.15s, box-shadow 0.15s, opacity 0.2s;
-    cursor: default;
+    background: color-mix(in srgb, var(--rc) 6%, var(--surface));
+    transition: border-color 0.15s, box-shadow 0.15s, opacity 0.2s, transform 0.15s;
+    cursor: default; position: relative;
   }
-  .routine-item.current {
+  .act-item.current {
     border-color: var(--rc);
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--rc) 15%, transparent);
   }
-  .routine-item.done { opacity: 0.55; }
-  .routine-item.dragging { opacity: 0.5; transform: scale(0.98); }
-  .routine-item.drag-over {
+  .act-item.done { opacity: 0.5; }
+  .act-item.dragging { opacity: 0.5; transform: scale(0.98); }
+  .act-item.drag-over {
     border-color: var(--blue);
     box-shadow: 0 0 0 4px rgba(91,141,239,.2);
   }
 
-  .ri-drag {
+  .act-drag {
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem; color: var(--text-muted); cursor: grab;
-    user-select: none; line-height: 1;
+    font-size: 1.15rem; color: var(--text-muted); cursor: grab; user-select: none;
+    padding: 4px;
   }
-  .ri-drag:active { cursor: grabbing; }
-  .routine-item.done .ri-drag { cursor: default; opacity: 0.3; }
+  .act-drag:active { cursor: grabbing; }
+  .act-item.done .act-drag { cursor: default; opacity: 0.2; }
 
-  .ri-icon {
-    width: 52px; height: 52px; border-radius: 14px;
-    display: grid; place-items: center; font-size: 1.8rem;
+  .act-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    display: grid; place-items: center; font-size: 2rem;
     background: color-mix(in srgb, var(--rc) 14%, var(--surface));
     flex-shrink: 0;
   }
 
-  .ri-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-  .ri-name { font-family: var(--font-head); font-weight: 800; font-size: 1rem; }
-  .ri-sub { font-size: 0.82rem; color: var(--text-soft); }
-  .ri-notes { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+  .act-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .act-name { font-family: var(--font-head); font-weight: 900; font-size: 1.02rem; line-height: 1.2; }
+  .act-sub { font-size: 0.8rem; color: var(--text-soft); }
+  .act-notes { font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
 
-  /* Per-item time bar */
-  .item-time-bar {
-    height: 6px; border-radius: 999px; background: var(--bg-alt); overflow: hidden; margin-top: 4px;
-  }
-  .item-time-bar-fill {
-    height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, var(--rc), color-mix(in srgb, var(--rc) 60%, white));
-    transition: width 0.5s ease;
-  }
+  .act-time-bar { height: 5px; border-radius: 999px; background: var(--bg-alt); overflow: hidden; margin-top: 4px; }
+  .act-time-bar-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
 
-  .ri-actions { display: flex; gap: 6px; align-items: center; }
-  .ri-btn {
-    width: 36px !important; height: 36px !important; min-height: 36px !important;
-    padding: 0 !important; border-radius: 10px !important; font-size: 1rem;
-    font-weight: 900; flex-shrink: 0;
-    background: var(--surface-2) !important; border: 1px solid var(--border) !important;
+  .act-actions { display: flex; gap: 6px; align-items: center; }
+  .act-btn {
+    width: 40px !important; height: 40px !important; min-height: 40px !important;
+    padding: 0 !important; border-radius: 12px !important;
+    font-size: 1.1rem; font-weight: 900; flex-shrink: 0;
+    background: var(--surface-2) !important; border: 1.5px solid var(--border) !important;
     box-shadow: var(--shadow-sm) !important; color: var(--text-soft) !important;
-    transition: background 0.13s, color 0.13s, border-color 0.13s !important;
+    transition: background 0.13s, color 0.13s, border-color 0.13s, transform 0.1s !important;
   }
-  .ri-complete:hover { background: var(--mint) !important; color: #fff !important; border-color: var(--mint) !important; }
-  .ri-edit:hover { background: var(--sun) !important; color: #5a3c00 !important; border-color: var(--sun) !important; }
-  .ri-remove:hover { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
+  .act-btn:active { transform: scale(0.92) !important; }
+  .act-complete:hover { background: var(--mint) !important; color: #fff !important; border-color: var(--mint) !important; }
+  .act-edit:hover { background: var(--sun) !important; color: #5a3c00 !important; border-color: var(--sun) !important; }
+  .act-remove:hover { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
 
-  /* ── Stats row ──────────────────────────────────────────────────────────── */
-  .routine-reports {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 12px; margin-top: 20px;
-  }
-  .routine-reports article {
-    display: flex; flex-direction: column; gap: 4px;
-    padding: 16px; border-radius: 18px;
-    background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm);
-  }
-  .routine-reports span {
-    font-family: var(--font-head); font-size: 1.5rem; font-weight: 900; color: var(--blue-ink);
-  }
-  .routine-reports strong { color: var(--text-soft); font-size: 0.82rem; }
-
-  /* ── Responsive ─────────────────────────────────────────────────────────── */
-  @media (max-width: 900px) {
+  /* ── Responsive ───────────────────────────────────────────────────────── */
+  @media (max-width: 960px) {
     .routine-layout { grid-template-columns: 1fr; }
-    .routine-form-panel { position: static; }
+    .form-panel { position: static; }
+    .fd-strip { grid-template-columns: 1fr 40px 1fr; }
+    .fd-card { min-height: 200px; }
   }
-  @media (max-width: 700px) {
+  @media (max-width: 640px) {
     .fd-strip { grid-template-columns: 1fr; }
-    .fd-arrow { display: none; }
+    .fd-divider { display: none; }
+    .fd-card { min-height: auto; padding: 20px; }
+    .fd-icon-wrap { width: 80px; height: 80px; }
+    .fd-icon { font-size: 3rem; }
     .day-head { flex-direction: column; align-items: flex-start; }
     .day-meta { align-items: flex-start; }
-    .routine-reports { grid-template-columns: repeat(2, 1fr); }
-    .routine-item { grid-template-columns: 24px 44px minmax(0, 1fr); }
-    .ri-actions { grid-column: 3; justify-content: flex-end; }
-    .routine-item.done .ri-actions { display: none; }
+    .act-item { grid-template-columns: 24px 48px minmax(0,1fr); }
+    .act-actions { grid-column: 3; justify-content: flex-end; }
+    .act-item.done .act-actions { display: none; }
   }
-  @media (max-width: 420px) {
-    .routine-reports { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 400px) {
+    .emoji-grid { grid-template-columns: repeat(4, 1fr); }
   }
 </style>

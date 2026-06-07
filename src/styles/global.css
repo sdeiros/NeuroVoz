@@ -273,38 +273,44 @@ input[type="submit"]:focus,
   z-index: 9999;
   display: grid !important;
   place-items: center;
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   padding: 0 !important;
   background: linear-gradient(135deg, var(--blue), var(--mint));
-  border: 1px solid rgba(255, 255, 255, 0.38);
+  border: 2px solid rgba(255, 255, 255, 0.38);
   border-radius: 999px;
-  box-shadow: 0 24px 62px rgba(28, 78, 239, 0.24);
+  box-shadow: 0 8px 32px rgba(28, 78, 239, 0.28);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
 }
-.nv-timer-widget:hover { transform: scale(1.04); box-shadow: 0 22px 50px rgba(16,24,40,0.24); }
-.nv-timer-widget:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.nv-timer-widget:hover { transform: scale(1.06); box-shadow: 0 14px 40px rgba(16,24,40,0.28); }
+.nv-timer-widget:active { transform: scale(0.97); }
+.nv-timer-widget:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
 .nv-timer-widget span { font-size: 1.4rem; }
 
 /* Ensure hidden attribute actually hides the floating widget (overrides author display) */
 .nv-timer-widget[hidden] { display: none !important; visibility: hidden !important; pointer-events: none !important; }
 
 .nv-timer-widget.nv-routine-widget {
-  width: min(320px, calc(100vw - 28px));
+  width: min(340px, calc(100vw - 28px));
   height: auto;
-  min-height: 72px !important;
+  min-height: 76px !important;
   display: grid !important;
-  grid-template-columns: 46px minmax(0, 1fr) auto;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
   grid-template-rows: auto auto;
   align-items: center;
   justify-items: start;
-  column-gap: 10px;
+  column-gap: 12px;
   row-gap: 0;
-  padding: 12px 14px !important;
-  border-radius: 20px !important;
+  padding: 14px 16px !important;
+  border-radius: 22px !important;
   color: #fff !important;
   text-align: left !important;
+  animation: widget-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes widget-slide-in {
+  from { transform: translateY(24px) scale(0.96); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 .nv-routine-widget-text strong,
 .nv-routine-widget-text small {
@@ -316,26 +322,28 @@ input[type="submit"]:focus,
 .nv-routine-widget-text strong {
   color: #fff;
   font-family: var(--font-head);
-  font-size: 0.98rem;
-  line-height: 1.15;
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 900;
 }
 .nv-routine-widget-text small {
   color: rgba(255,255,255,0.88);
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 /* "Depois" pill in widget */
 .nv-widget-next {
   display: inline-flex; align-items: center; gap: 4px;
-  background: rgba(255,255,255,0.18);
-  border: 1px solid rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
   border-radius: 999px;
-  padding: 3px 10px 3px 6px;
-  font-size: 0.75rem; font-weight: 800;
+  padding: 4px 10px 4px 7px;
+  font-size: 0.76rem; font-weight: 800;
   color: #fff; white-space: nowrap;
   grid-column: 3; grid-row: 1;
-  max-width: 100px; overflow: hidden; text-overflow: ellipsis;
+  max-width: 110px; overflow: hidden; text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 .nv-widget-next-arrow { opacity: 0.7; font-size: 0.85rem; }
 .nv-widget-next[hidden] { display: none; }
@@ -343,28 +351,29 @@ input[type="submit"]:focus,
 /* Progress bar in widget */
 .nv-widget-progress-wrap {
   grid-column: 2 / 4; grid-row: 2;
-  width: 100%; padding-top: 6px;
+  width: 100%; padding-top: 7px;
 }
 .nv-widget-progress-wrap[hidden] { display: none; }
 .nv-widget-progress-track {
-  position: relative; height: 4px; border-radius: 999px;
-  background: rgba(255,255,255,0.25); overflow: hidden; width: 100%;
+  position: relative; height: 5px; border-radius: 999px;
+  background: rgba(255,255,255,0.22); overflow: hidden; width: 100%;
 }
 .nv-widget-progress-fill {
   position: absolute; top: 0; left: 0; height: 100%;
   border-radius: 999px; transition: width 0.5s ease;
-  min-width: 0;
+  min-width: 0; background: rgba(255,255,255,0.9);
 }
 
 /* Icon: span 2 rows */
 .nv-routine-widget #nv-timer-widget-icon {
   grid-row: 1 / 3; grid-column: 1;
-  width: 46px; height: 46px;
+  width: 52px; height: 52px;
   display: grid; place-items: center;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.2);
-  font-size: 1.55rem;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.22);
+  font-size: 1.7rem;
   align-self: center;
+  flex-shrink: 0;
 }
 /* Text: row 1 col 2 */
 .nv-routine-widget-text {
@@ -532,12 +541,17 @@ input[type="submit"]:focus,
   z-index: 140;
   display: grid;
   place-items: center;
-  background: rgba(10, 20, 38, 0.92);
+  background: rgba(10, 20, 38, 0.90);
   overflow: hidden;
   color: #fff;
+  cursor: pointer;
 }
 .nv-timer-celebration[hidden] { display: none; }
-.nv-timer-celebration.active { animation: fadeUp 0.4s ease both; }
+.nv-timer-celebration.active { animation: fadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.nv-timer-celebration.dismissing {
+  animation: celebration-dismiss 0.55s cubic-bezier(0.4, 0, 0.2, 1) both !important;
+  pointer-events: none;
+}
 .nv-timer-celebration .rain-item {
   position: absolute;
   top: -12%;
@@ -547,14 +561,36 @@ input[type="submit"]:focus,
 .nv-timer-celebration .celebration-message {
   position: relative;
   z-index: 1;
-  padding: 30px 28px;
-  border-radius: 28px;
-  background: rgba(15, 23, 42, 0.82);
+  padding: 36px 40px 32px;
+  border-radius: 32px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   text-align: center;
-  box-shadow: 0 18px 50px rgba(0,0,0,0.28);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+  animation: msg-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
-.nv-timer-celebration .celebration-message strong { display: block; font-size: 2rem; margin-bottom: 10px; }
-  .nv-timer-celebration .celebration-message p { margin: 0; font-size: 1.05rem; color: #d1d5db; }
+.nv-timer-celebration .celebration-message strong { display: block; font-family: var(--font-head); font-size: 2.2rem; margin-bottom: 10px; }
+.nv-timer-celebration .celebration-message p { margin: 0; font-size: 1.05rem; color: #d1d5db; }
+.celebration-tap-hint {
+  display: block; margin-top: 18px;
+  font-size: 0.82rem; color: rgba(255,255,255,0.5);
+  font-weight: 700; letter-spacing: 0.04em;
+  animation: hint-pulse 2s ease-in-out 1s infinite;
+}
+@keyframes hint-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes msg-pop {
+  from { transform: scale(0.88) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes celebration-dismiss {
+  0% { opacity: 1; transform: scale(1); }
+  30% { transform: scale(1.04); }
+  100% { opacity: 0; transform: scale(0.94); }
+}
 
 @media (max-width: 520px) {
   .nv-timer-widget.nv-routine-widget {
