@@ -569,17 +569,33 @@ import Base from '../layouts/Base.astro';
         itemBarHtml = `<div class="act-time-bar"><div class="act-time-bar-fill" style="width:${p2}%;background:${item.color||'#5b8def'}"></div></div>`;
       }
 
-      const timeLabel = item.timeStart
-        ? `${item.timeStart}${item.timeEnd ? ' – '+item.timeEnd : ''}`
-        : '';
-      const statusLabel = item.completed ? '✅ Feita' : isCurrent ? '🔵 Agora' : '';
+      // Time rows: Início / Fim + completion timestamp
+      let timeHtml = '';
+      if (item.timeStart) {
+        timeHtml += `<div class="act-time-row"><span class="act-time-lbl">Início</span><span class="act-time-val">${escHtml(item.timeStart)}</span></div>`;
+      }
+      if (item.timeEnd) {
+        timeHtml += `<div class="act-time-row"><span class="act-time-lbl">Fim</span><span class="act-time-val">${escHtml(item.timeEnd)}</span></div>`;
+      }
+
+      const completedAt = item.completedAt
+        ? new Date(item.completedAt).toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})
+        : null;
+
+      let statusHtml = '';
+      if (item.completed) {
+        statusHtml = `<div class="act-status done-status">✅ Feita${completedAt ? `<span class="act-completed-at"> às ${completedAt}</span>` : ''}</div>`;
+      } else if (isCurrent) {
+        statusHtml = `<div class="act-status current-status">🔵 Agora</div>`;
+      }
 
       li.innerHTML = `
-        <div class="act-drag" aria-label="Arrastar" title="Arrastar para reordenar">⠿</div>
+        <div class="act-drag" aria-label="Arrastar" title="Arrastar para reordenar"><span class="drag-dots"></span></div>
         <div class="act-icon">${escHtml(item.icon||'📍')}</div>
         <div class="act-info">
           <div class="act-name">${escHtml(item.name)}</div>
-          ${timeLabel || statusLabel ? `<div class="act-sub">${timeLabel ? escHtml(timeLabel) : ''}${statusLabel ? (timeLabel ? ' · ' : '') + statusLabel : ''}</div>` : ''}
+          ${timeHtml ? `<div class="act-times">${timeHtml}</div>` : ''}
+          ${statusHtml}
           ${item.notes ? `<div class="act-notes">${escHtml(item.notes)}</div>` : ''}
           ${itemBarHtml}
         </div>
@@ -1060,16 +1076,28 @@ import Base from '../layouts/Base.astro';
   .rf-name-input { flex: 1; }
 
   /* Color swatches */
-  .rf-color-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .rf-color-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .rf-color-swatch {
-    width: 30px; height: 30px; border-radius: 50%;
-    border: 3px solid transparent; cursor: pointer;
-    transition: transform 0.15s, border-color 0.15s;
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 3px solid transparent;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    cursor: pointer;
+    transition: transform 0.15s, outline-color 0.15s;
     flex-shrink: 0;
+    /* Ensure background-color from inline style is not overridden */
+    appearance: none; -webkit-appearance: none;
   }
-  .rf-color-swatch:hover { transform: scale(1.15); }
-  .rf-color-swatch.active { border-color: var(--text) !important; transform: scale(1.18); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text); }
-  .rf-color-custom { width: 30px; height: 30px; padding: 2px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; }
+  .rf-color-swatch:hover { transform: scale(1.18); }
+  .rf-color-swatch.active { outline-color: var(--text); transform: scale(1.2); }
+  .rf-color-custom {
+    width: 32px; height: 32px; padding: 0;
+    border-radius: 50%; border: 2px solid var(--border);
+    cursor: pointer; background: none;
+    overflow: hidden;
+  }
+  .rf-color-custom::-webkit-color-swatch-wrapper { padding: 0; border-radius: 50%; }
+  .rf-color-custom::-webkit-color-swatch { border: none; border-radius: 50%; }
 
   .rf-actions { margin-top: 6px; }
   .rf-submit { width: 100%; font-size: 1rem !important; padding: 12px 20px !important; border-radius: 14px !important; font-weight: 900 !important; }
@@ -1109,7 +1137,7 @@ import Base from '../layouts/Base.astro';
   .act-item {
     display: grid;
     grid-template-columns: 28px 56px minmax(0, 1fr) auto;
-    gap: 12px; align-items: center;
+    gap: 12px; align-items: start;
     padding: 14px 14px 14px 10px;
     border-radius: 20px;
     border: 2px solid color-mix(in srgb, var(--rc) 20%, var(--border));
@@ -1130,11 +1158,24 @@ import Base from '../layouts/Base.astro';
 
   .act-drag {
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.15rem; color: var(--text-muted); cursor: grab; user-select: none;
-    padding: 4px;
+    width: 28px; cursor: grab; user-select: none;
+    align-self: stretch;
   }
   .act-drag:active { cursor: grabbing; }
   .act-item.done .act-drag { cursor: default; opacity: 0.2; }
+
+  /* CSS drag dots — 6-dot grip icon */
+  .drag-dots {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+    width: 12px;
+  }
+  .drag-dots::before, .drag-dots::after {
+    content: '';
+    display: block;
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--text-muted);
+    box-shadow: 0 7px 0 var(--text-muted), 0 14px 0 var(--text-muted);
+  }
 
   .act-icon {
     width: 56px; height: 56px; border-radius: 16px;
@@ -1143,15 +1184,32 @@ import Base from '../layouts/Base.astro';
     flex-shrink: 0;
   }
 
-  .act-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .act-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding-top: 2px; }
   .act-name { font-family: var(--font-head); font-weight: 900; font-size: 1.02rem; line-height: 1.2; }
-  .act-sub { font-size: 0.8rem; color: var(--text-soft); }
-  .act-notes { font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+
+  .act-times { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 2px; }
+  .act-time-row { display: flex; align-items: center; gap: 4px; }
+  .act-time-lbl {
+    font-size: 0.72rem; font-weight: 900; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-muted);
+    font-family: var(--font-head);
+  }
+  .act-time-val {
+    font-size: 0.82rem; font-weight: 700; color: var(--text-soft);
+    background: var(--bg-alt); padding: 1px 7px; border-radius: 6px;
+  }
+
+  .act-status { font-size: 0.78rem; font-weight: 800; margin-top: 2px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .done-status { color: var(--mint-ink); }
+  .current-status { color: var(--blue-ink); }
+  .act-completed-at { color: var(--text-muted); font-weight: 700; }
+
+  .act-notes { font-size: 0.78rem; color: var(--text-muted); font-style: italic; margin-top: 2px; }
 
   .act-time-bar { height: 5px; border-radius: 999px; background: var(--bg-alt); overflow: hidden; margin-top: 4px; }
   .act-time-bar-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
 
-  .act-actions { display: flex; gap: 6px; align-items: center; }
+  .act-actions { display: flex; gap: 6px; align-items: flex-start; padding-top: 2px; }
   .act-btn {
     width: 40px !important; height: 40px !important; min-height: 40px !important;
     padding: 0 !important; border-radius: 12px !important;
@@ -1181,7 +1239,7 @@ import Base from '../layouts/Base.astro';
     .day-head { flex-direction: column; align-items: flex-start; }
     .day-meta { align-items: flex-start; }
     .act-item { grid-template-columns: 24px 48px minmax(0,1fr); }
-    .act-actions { grid-column: 3; justify-content: flex-end; }
+    .act-actions { grid-column: 3; justify-content: flex-end; padding-top: 0; }
     .act-item.done .act-actions { display: none; }
   }
   @media (max-width: 400px) {
