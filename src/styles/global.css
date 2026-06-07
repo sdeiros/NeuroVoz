@@ -1,8 +1,3 @@
-/* ===========================================================
-   NeuroVoz — Design System Global
-   Paleta: azul suave, verde menta, branco, tons pastel
-   =========================================================== */
-
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900&family=Quicksand:wght@500;600;700&display=swap');
 
 :root {
@@ -201,10 +196,7 @@ button { font-family: var(--font-body); cursor: pointer; }
   background: var(--bg-alt); color: var(--blue-ink);
 }
 
-/* ===========================================================
-   Global button reset and card-style for interactive controls
-   Removes native UA appearance and makes buttons look like cards
-   =========================================================== */
+
 button,
 input[type="button"],
 input[type="submit"],
@@ -254,7 +246,6 @@ input[type="submit"]:active,
   box-shadow: var(--shadow-sm) !important;
 }
 
-/* Preserve visible focus for accessibility while avoiding native outlines */
 button:focus,
 input[type="button"]:focus,
 input[type="submit"]:focus,
@@ -574,7 +565,7 @@ input[type="submit"]:focus,
 .nv-timer-celebration .celebration-message p { margin: 0; font-size: 1.05rem; color: #d1d5db; }
 .celebration-tap-hint {
   display: block; margin-top: 18px;
-  font-size: 0.82rem; color: rgba(255,255,255,0.5);
+  font-size: 0.82rem; color: rgba(255, 247, 247, 0.5);
   font-weight: 700; letter-spacing: 0.04em;
   animation: hint-pulse 2s ease-in-out 1s infinite;
 }

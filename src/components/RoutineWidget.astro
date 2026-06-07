@@ -1,0 +1,667 @@
+---
+/**
+ * RoutineWidget — Central inteligente do dia (v3)
+ *
+ * Espelha em tempo real a lista de tarefas usada em `dia.astro`.
+ * Mesma fonte (`localStorage["neurovoz.tasks.v1"]`) e mesmo evento
+ * (`nv:tasks:updated`). Sem estado paralelo, sem persistência duplicada.
+ *
+ * Três níveis de interação:
+ *   1. Compacto   → ícone + título contextual + contador (mini player)
+ *   2. Expandido  → resumo do dia (atual, próxima, últimas, progresso)
+ *   3. Modal      → SOMENTE via botão "Ver todas as tarefas"
+ *
+ * Posicionamento:
+ *   - Desktop/tablet → flutuante fixo no canto inferior direito
+ *   - Mobile         → barra inferior tipo mini player, respeitando safe-area
+ *
+ * Sempre visível, em todas as páginas (montado no Base.astro).
+ */
+---
+<aside
+  id="nv-rw"
+  class="nv-rw"
+  data-state="collapsed"
+  role="region"
+  aria-label="Central do dia"
+>
+  {/* ── Nível 1: header clicável (compacto / mini player) ───────────── */}
+  <button
+    type="button"
+    class="nv-rw__head"
+    data-nv-toggle
+    aria-expanded="false"
+    aria-controls="nv-rw-body"
+  >
+    <span class="nv-rw__icon-wrap" aria-hidden="true">
+      <svg class="nv-rw__ring" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r="19" class="nv-rw__ring-bg"></circle>
+        <circle cx="22" cy="22" r="19" class="nv-rw__ring-fg" data-nv-ring></circle>
+      </svg>
+      <span class="nv-rw__icon" data-nv-icon>📝</span>
+    </span>
+
+    <span class="nv-rw__text">
+      <strong class="nv-rw__title" data-nv-title>Tarefas do Dia</strong>
+      <small class="nv-rw__sub"   data-nv-sub>Nenhuma tarefa por enquanto</small>
+    </span>
+
+    <span class="nv-rw__counter" data-nv-counter aria-label="Tarefas pendentes">0</span>
+
+    <span class="nv-rw__chev" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="16" height="16">
+        <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+  </button>
+
+  {/* ── Nível 2: corpo expandido (mesmo widget, cresce) ─────────────── */}
+  <div class="nv-rw__body" id="nv-rw-body" hidden>
+    <div class="nv-rw__progress" aria-hidden="true">
+      <span data-nv-bar style="width:0%"></span>
+    </div>
+
+    <div class="nv-rw__stats" role="status" aria-live="polite">
+      <span><b data-nv-pending>0</b><small>pendentes</small></span>
+      <span><b data-nv-done>0</b><small>concluídas</small></span>
+      <span><b data-nv-total>0</b><small>no total</small></span>
+    </div>
+
+    <div class="nv-rw__rows">
+      <div class="nv-rw__row" data-nv-row="now" hidden>
+        <span class="nv-rw__tag">Agora</span>
+        <div class="nv-rw__row-text">
+          <strong data-nv-now-title>—</strong>
+          <small  data-nv-now-msg>—</small>
+        </div>
+        <button type="button" class="nv-rw__chk" data-nv-now-check aria-label="Concluir esta tarefa">✓</button>
+      </div>
+
+      <div class="nv-rw__row" data-nv-row="next" hidden>
+        <span class="nv-rw__tag nv-rw__tag--soft">Depois</span>
+        <div class="nv-rw__row-text">
+          <strong data-nv-next-title>—</strong>
+          <small  data-nv-next-msg>—</small>
+        </div>
+      </div>
+
+      <div class="nv-rw__recent" data-nv-recent hidden>
+        <p class="nv-rw__recent-label">Últimas adicionadas</p>
+        <ul data-nv-recent-list></ul>
+      </div>
+    </div>
+
+    <div class="nv-rw__actions">
+      <a class="nv-rw__btn nv-rw__btn--ghost" href="/dia">Abrir página do dia</a>
+      <button type="button" class="nv-rw__btn nv-rw__btn--primary" data-nv-open-modal>
+        Ver todas as tarefas
+      </button>
+    </div>
+  </div>
+</aside>
+
+<style>
+  :root {
+    --nvw-bg: rgba(255, 255, 255, 0.78);
+    --nvw-bg-strong: #ffffff;
+    --nvw-text: #0f172a;
+    --nvw-muted: #64748b;
+    --nvw-border: rgba(15, 23, 42, 0.08);
+    --nvw-border-strong: rgba(15, 23, 42, 0.14);
+    --nvw-primary: #5b8def;
+    --nvw-primary-strong: #3b6fe0;
+    --nvw-primary-soft: rgba(91, 141, 239, 0.12);
+    --nvw-success: #16a34a;
+    --nvw-warning: #d97706;
+    --nvw-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+    --nvw-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.18);
+    --nvw-radius: 18px;
+    --nvw-blur: saturate(160%) blur(14px);
+  }
+
+  /* ───── Container (sempre visível) ─────────────────────────────── */
+  .nv-rw {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 70;
+    width: min(340px, calc(100vw - 24px));
+    background: var(--nvw-bg);
+    -webkit-backdrop-filter: var(--nvw-blur);
+    backdrop-filter: var(--nvw-blur);
+    color: var(--nvw-text);
+    border: 1px solid var(--nvw-border);
+    border-radius: 999px;
+    box-shadow: var(--nvw-shadow);
+    overflow: hidden;
+    transition: box-shadow .2s ease, transform .2s ease, width .3s cubic-bezier(.2,.7,.2,1), border-radius .25s ease, opacity .2s ease;
+    contain: layout paint;
+  }
+  .nv-rw[hidden] { display: none !important; }
+  .nv-rw[data-empty="true"] { display: none !important; }
+  .nv-rw[data-state="expanded"] {
+    box-shadow: var(--nvw-shadow-lg);
+    border-radius: var(--nvw-radius);
+    width: min(380px, calc(100vw - 24px));
+  }
+
+  /* ───── Mobile: vira mini player ───────────────────────────────── */
+  @media (max-width: 640px) {
+    .nv-rw {
+      left: auto;
+      right: max(8px, env(safe-area-inset-right));
+      bottom: max(8px, env(safe-area-inset-bottom));
+      width: min(320px, calc(100vw - 16px));
+    }
+    .nv-rw[data-state="expanded"] {
+      left: max(8px, env(safe-area-inset-left));
+      right: max(8px, env(safe-area-inset-right));
+      width: auto;
+      border-radius: 16px;
+    }
+  }
+
+  /* ───── Header (nível compacto) ────────────────────────────────── */
+  .nv-rw__head {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+  }
+  .nv-rw__head:focus-visible {
+    outline: 3px solid var(--nvw-primary-soft);
+    outline-offset: -3px;
+  }
+
+  .nv-rw__icon-wrap {
+    position: relative;
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .nv-rw__ring { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .nv-rw__ring-bg { fill: none; stroke: var(--nvw-border-strong); stroke-width: 3; }
+  .nv-rw__ring-fg {
+    fill: none;
+    stroke: var(--nvw-primary);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 119.4;          /* 2π·19 ≈ 119.4 */
+    stroke-dashoffset: 119.4;
+    transition: stroke-dashoffset .5s cubic-bezier(.2,.7,.2,1);
+  }
+  .nv-rw__icon { font-size: 1.25rem; line-height: 1; }
+
+  .nv-rw__text { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .nv-rw__title {
+    font-size: 0.95rem; font-weight: 700; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .nv-rw__sub {
+    font-size: 0.78rem; color: var(--nvw-muted); line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .nv-rw__counter {
+    font-size: 0.78rem; font-weight: 700;
+    padding: 4px 10px; border-radius: 999px;
+    background: var(--nvw-primary-soft); color: var(--nvw-primary-strong);
+    white-space: nowrap;
+  }
+
+  .nv-rw__chev {
+    color: var(--nvw-muted);
+    transition: transform .25s ease;
+    display: grid; place-items: center;
+    width: 24px; height: 24px;
+  }
+  .nv-rw[data-state="expanded"] .nv-rw__chev { transform: rotate(180deg); }
+
+  /* ───── Corpo expandido (nível 2) ──────────────────────────────── */
+  .nv-rw__body {
+    border-top: 1px solid var(--nvw-border);
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 12px;
+    animation: nv-rw-grow .25s cubic-bezier(.2,.7,.2,1);
+    max-height: min(70vh, 520px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .nv-rw__body[hidden] {
+    display: none !important;
+  }
+  @keyframes nv-rw-grow {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .nv-rw__progress {
+    height: 6px; border-radius: 999px;
+    background: var(--nvw-border); overflow: hidden;
+  }
+  .nv-rw__progress > span {
+    display: block; height: 100%;
+    background: linear-gradient(90deg, var(--nvw-primary), #7aa6ff);
+    transition: width .5s cubic-bezier(.2,.7,.2,1);
+  }
+
+  .nv-rw__stats {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;
+  }
+  .nv-rw__stats > span {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 8px 6px;
+    background: var(--nvw-bg-strong);
+    border: 1px solid var(--nvw-border);
+    border-radius: 12px;
+  }
+  .nv-rw__stats b { font-size: 1.05rem; font-weight: 800; }
+  .nv-rw__stats small { font-size: 0.72rem; color: var(--nvw-muted); }
+
+  .nv-rw__rows { display: flex; flex-direction: column; gap: 8px; }
+  .nv-rw__row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--nvw-bg-strong);
+    border: 1px solid var(--nvw-border);
+    border-radius: 12px;
+  }
+  .nv-rw__row[data-nv-row="now"] {
+    background: linear-gradient(180deg, var(--nvw-primary-soft), var(--nvw-bg-strong));
+    border-color: transparent;
+  }
+  .nv-rw__tag {
+    font-size: 0.7rem; font-weight: 700;
+    padding: 3px 8px; border-radius: 999px;
+    background: var(--nvw-primary); color: #fff;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .nv-rw__tag--soft {
+    background: rgba(15,23,42,0.08); color: var(--nvw-muted);
+  }
+  .nv-rw__row-text { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .nv-rw__row-text strong {
+    font-size: 0.9rem; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .nv-rw__row-text small {
+    font-size: 0.76rem; color: var(--nvw-muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .nv-rw__chk {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid var(--nvw-primary); background: transparent;
+    color: var(--nvw-primary); font-weight: 700;
+    cursor: pointer;
+    display: grid; place-items: center;
+    transition: background .15s, color .15s, transform .12s;
+  }
+  .nv-rw__chk:hover { background: var(--nvw-primary); color: #fff; }
+  .nv-rw__chk:active { transform: scale(.94); }
+
+  .nv-rw__recent { padding: 4px 2px 0; }
+  .nv-rw__recent-label {
+    margin: 0 0 6px; font-size: 0.74rem;
+    color: var(--nvw-muted); text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .nv-rw__recent ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .nv-rw__recent li {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.85rem; padding: 4px 2px;
+    color: var(--nvw-text);
+  }
+  .nv-rw__recent li .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--nvw-primary); flex-shrink: 0;
+  }
+  .nv-rw__recent li.is-done { color: var(--nvw-muted); text-decoration: line-through; }
+  .nv-rw__recent li.is-done .dot { background: var(--nvw-success); }
+
+  .nv-rw__actions { display: flex; gap: 8px; }
+  .nv-rw__btn {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center;
+    min-height: 40px; padding: 8px 12px;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; font-size: 0.88rem; cursor: pointer;
+    text-decoration: none;
+    transition: background .15s, color .15s, transform .12s, border-color .15s;
+  }
+  .nv-rw__btn:active { transform: translateY(1px); }
+  .nv-rw__btn--primary { background: var(--nvw-primary); color: #fff; }
+  .nv-rw__btn--primary:hover { background: var(--nvw-primary-strong); }
+  .nv-rw__btn--ghost {
+    background: transparent; color: var(--nvw-text); border-color: var(--nvw-border-strong);
+  }
+  .nv-rw__btn--ghost:hover { background: rgba(15,23,42,0.05); }
+
+  /* ───── Estado vazio (no expandido) ────────────────────────────── */
+  .nv-rw__empty {
+    text-align: center; padding: 12px 8px;
+    color: var(--nvw-muted); font-size: 0.88rem;
+  }
+
+  /* ───── Acessibilidade / motion ───────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    .nv-rw, .nv-rw__body, .nv-rw__ring-fg, .nv-rw__progress > span, .nv-rw__chev {
+      animation: none !important; transition: none !important;
+    }
+  }
+
+  /* ───── Tema escuro (segue o resto do projeto) ─────────────────── */
+  :global(.dark) .nv-rw {
+    --nvw-bg: rgba(20, 28, 48, 0.7);
+    --nvw-bg-strong: #131a2e;
+    --nvw-text: #e6ecff;
+    --nvw-muted: #94a3b8;
+    --nvw-border: rgba(255, 255, 255, 0.08);
+    --nvw-border-strong: rgba(255, 255, 255, 0.14);
+  }
+</style>
+
+<script>
+  /**
+   * Lógica do widget — vanilla TS.
+   * Usa a MESMA chave/evento de `dia.astro`. Não cria persistência paralela.
+   */
+  interface Task {
+    id: string;
+    title: string;
+    desc?: string;
+    start?: string;   // "HH:MM"
+    end?: string;     // "HH:MM"
+    done: boolean;
+    completedAt?: number;
+    createdAt: number;
+  }
+
+  const STORE_KEY = "neurovoz.tasks.v1";
+
+  const $ = <T extends Element>(sel: string, root: ParentNode = document) =>
+    root.querySelector(sel) as T | null;
+
+  const loadTasks = (): Task[] => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  };
+  const saveTasks = (tasks: Task[]) => {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(tasks)); } catch {}
+    window.dispatchEvent(new CustomEvent("nv:tasks:updated", { detail: { tasks } }));
+  };
+
+  const parseHM = (s?: string): number | null => {
+    if (!s) return null;
+    const [h, m] = s.split(":").map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
+    const d = new Date(); d.setHours(h, m, 0, 0); return d.getTime();
+  };
+
+  const fmtDuration = (ms: number): string => {
+    const total = Math.max(0, Math.round(ms / 60000));
+    const h = Math.floor(total / 60), m = total % 60;
+    if (h <= 0) return `${m} min`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}min`;
+  };
+
+  type TimeState =
+    | { kind: "none" }
+    | { kind: "upcoming"; msUntilStart: number }
+    | { kind: "current";  msUntilEnd: number; progress: number }
+    | { kind: "overtime" };
+
+  const getTimeState = (t: Task, now = Date.now()): TimeState => {
+    const start = parseHM(t.start), end = parseHM(t.end);
+    if (start == null && end == null) return { kind: "none" };
+    if (start != null && now < start) return { kind: "upcoming", msUntilStart: start - now };
+    if (end != null && start != null && now <= end) {
+      const total = Math.max(1, end - start);
+      return { kind: "current", msUntilEnd: end - now, progress: Math.min(1, (now - start) / total) };
+    }
+    if (end != null && now > end) return { kind: "overtime" };
+    if (start != null && now >= start) return { kind: "current", msUntilEnd: 0, progress: 1 };
+    return { kind: "none" };
+  };
+
+  // Tarefa "atual" = primeira pendente em curso; fallback = próxima upcoming; fallback = primeira pendente
+  const pickCurrentAndNext = (tasks: Task[]) => {
+    const pending = tasks.filter(t => !t.done);
+    const withStart = pending.filter(t => parseHM(t.start) != null);
+
+    let current: Task | undefined;
+    let next: Task | undefined;
+
+    const now = Date.now();
+    const inProgress = withStart
+      .filter(t => {
+        const s = parseHM(t.start)!, e = parseHM(t.end);
+        return now >= s && (e == null || now <= e);
+      })
+      .sort((a, b) => parseHM(a.start)! - parseHM(b.start)!);
+
+    const upcoming = withStart
+      .filter(t => parseHM(t.start)! > now)
+      .sort((a, b) => parseHM(a.start)! - parseHM(b.start)!);
+
+    if (inProgress[0]) {
+      current = inProgress[0];
+      next = upcoming[0] ?? pending.find(t => t !== current && !parseHM(t.start));
+    } else if (upcoming[0]) {
+      current = upcoming[0]; // mostra como "próxima a começar"
+      next = upcoming[1];
+    } else {
+      current = pending[0];
+      next = pending[1];
+    }
+    return { current, next };
+  };
+
+  const messageFor = (t: Task | undefined): string => {
+    if (!t) return "Tudo concluído por hoje";
+    const st = getTimeState(t);
+    if (st.kind === "upcoming") return `Começa em ${fmtDuration(st.msUntilStart)}`;
+    if (st.kind === "current" && st.msUntilEnd > 0) return `Termina em ${fmtDuration(st.msUntilEnd)}`;
+    if (st.kind === "overtime") return "Marque como concluída quando terminar";
+    if (t.start && t.end) return `${t.start}–${t.end}`;
+    if (t.start) return `Começa ${t.start}`;
+    return "Quando puder";
+  };
+
+  // ───── Elementos ─────────────────────────────────────────────────
+  const root = $<HTMLElement>("#nv-rw");
+  if (!root) throw new Error("nv-rw root missing");
+
+  const head        = $<HTMLButtonElement>("[data-nv-toggle]", root)!;
+  const body        = $<HTMLElement>("#nv-rw-body", root)!;
+  const ring        = $<SVGCircleElement>("[data-nv-ring]", root)!;
+  const elIcon      = $<HTMLElement>("[data-nv-icon]", root)!;
+  const elTitle     = $<HTMLElement>("[data-nv-title]", root)!;
+  const elSub       = $<HTMLElement>("[data-nv-sub]", root)!;
+  const elCounter   = $<HTMLElement>("[data-nv-counter]", root)!;
+  const elBar       = $<HTMLElement>("[data-nv-bar]", root)!;
+  const elPending   = $<HTMLElement>("[data-nv-pending]", root)!;
+  const elDone      = $<HTMLElement>("[data-nv-done]", root)!;
+  const elTotal     = $<HTMLElement>("[data-nv-total]", root)!;
+
+  const rowNow      = $<HTMLElement>('[data-nv-row="now"]',  root)!;
+  const rowNext     = $<HTMLElement>('[data-nv-row="next"]', root)!;
+  const elNowTitle  = $<HTMLElement>("[data-nv-now-title]", root)!;
+  const elNowMsg    = $<HTMLElement>("[data-nv-now-msg]",   root)!;
+  const btnNowCheck = $<HTMLButtonElement>("[data-nv-now-check]", root)!;
+  const elNextTitle = $<HTMLElement>("[data-nv-next-title]", root)!;
+  const elNextMsg   = $<HTMLElement>("[data-nv-next-msg]",   root)!;
+
+  const elRecent    = $<HTMLElement>("[data-nv-recent]",      root)!;
+  const elRecentList= $<HTMLUListElement>("[data-nv-recent-list]", root)!;
+
+  const btnOpenModal= $<HTMLButtonElement>("[data-nv-open-modal]", root)!;
+
+  const RING_C = 2 * Math.PI * 19;
+  ring.style.strokeDasharray  = String(RING_C);
+  ring.style.strokeDashoffset = String(RING_C);
+
+  let currentNowId: string | null = null;
+
+  const render = () => {
+    const tasks = loadTasks();
+    const total = tasks.length;
+    const done  = tasks.filter(t => t.done).length;
+    const pend  = total - done;
+    const pct   = total ? done / total : 0;
+
+    // Esconde o widget quando não há nenhuma tarefa
+    if (total === 0) {
+      root.dataset.empty = "true";
+      setExpanded(false);
+      return;
+    }
+    root.dataset.empty = "false";
+
+    // Anel + barra + contadores
+    ring.style.strokeDashoffset = String(RING_C * (1 - pct));
+    elBar.style.width = `${Math.round(pct * 100)}%`;
+    elPending.textContent = String(pend);
+    elDone.textContent    = String(done);
+    elTotal.textContent   = String(total);
+    // Contador compacto: pendentes restantes (ou ✓ se tudo concluído)
+    elCounter.textContent = pend > 0 ? String(pend) : "✓";
+
+    const { current, next } = pickCurrentAndNext(tasks);
+    currentNowId = current && !current.done ? current.id : null;
+
+    // Header (nível compacto)
+    if (total === 0) {
+      elIcon.textContent  = "🌱";
+      elTitle.textContent = "Tarefas do Dia";
+      elSub.textContent   = "Adicione sua primeira tarefa";
+    } else if (pend === 0) {
+      elIcon.textContent  = "🎉";
+      elTitle.textContent = "Tudo pronto por hoje";
+      elSub.textContent   = `${done} concluída${done === 1 ? "" : "s"}`;
+    } else if (current) {
+      const st = getTimeState(current);
+      elIcon.textContent  = st.kind === "current" ? "📍"
+                          : st.kind === "upcoming" ? "⏳"
+                          : st.kind === "overtime" ? "🕊️"
+                          : "📝";
+      elTitle.textContent = current.title;
+      elSub.textContent   = messageFor(current);
+    } else {
+      elIcon.textContent  = "📝";
+      elTitle.textContent = "Tarefas do Dia";
+      elSub.textContent   = `${pend} pendente${pend === 1 ? "" : "s"} • ${done} concluída${done === 1 ? "" : "s"}`;
+    }
+
+    // Linha "Agora"
+    if (current) {
+      rowNow.hidden = false;
+      elNowTitle.textContent = current.title;
+      elNowMsg.textContent   = messageFor(current);
+      btnNowCheck.hidden = current.done;
+    } else {
+      rowNow.hidden = true;
+    }
+
+    // Linha "Depois"
+    if (next) {
+      rowNext.hidden = false;
+      elNextTitle.textContent = next.title;
+      elNextMsg.textContent   = messageFor(next);
+    } else {
+      rowNext.hidden = true;
+    }
+
+    // Últimas adicionadas (4 mais recentes por createdAt desc)
+    const recent = [...tasks].sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
+    if (recent.length === 0) {
+      elRecent.hidden = true;
+      elRecentList.innerHTML = "";
+    } else {
+      elRecent.hidden = false;
+      elRecentList.innerHTML = recent.map(t =>
+        `<li class="${t.done ? "is-done" : ""}"><span class="dot"></span>${escapeHTML(t.title)}</li>`
+      ).join("");
+    }
+  };
+
+  const escapeHTML = (s: string) =>
+    s.replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]!));
+
+  // ───── Toggle compacto ↔ expandido ─────────────────────────────
+  let isExpanded = false;
+
+  const setExpanded = (expanded: boolean) => {
+    const nextExpanded = root.dataset.empty === "true" ? false : expanded;
+    isExpanded = nextExpanded;
+    root.dataset.state = nextExpanded ? "expanded" : "collapsed";
+    head.setAttribute("aria-expanded", String(nextExpanded));
+    body.hidden = !nextExpanded;
+    body.setAttribute("aria-hidden", String(!nextExpanded));
+  };
+
+  head.addEventListener("click", () => {
+    setExpanded(!isExpanded);
+  });
+
+  document.addEventListener("pointerdown", (event) => {
+    if (!isExpanded) return;
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+    if (root.contains(target)) return;
+    setExpanded(false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && isExpanded) {
+      setExpanded(false);
+    }
+  });
+
+  setExpanded(false);
+
+  // ───── Concluir a tarefa atual rapidamente ─────────────────────
+  btnNowCheck.addEventListener("click", () => {
+    if (!currentNowId) return;
+    const tasks = loadTasks();
+    const idx = tasks.findIndex(t => t.id === currentNowId);
+    if (idx < 0) return;
+    tasks[idx] = { ...tasks[idx], done: true, completedAt: Date.now() };
+    saveTasks(tasks);
+    window.dispatchEvent(new CustomEvent("nv:task:completed", {
+      detail: { task: tasks[idx] }
+    }));
+    render();
+  });
+
+  // ───── Abrir o modal (único caminho permitido) ─────────────────
+  btnOpenModal.addEventListener("click", () => {
+    setExpanded(false);
+    window.dispatchEvent(new CustomEvent("nv:modal:open"));
+  });
+
+  // ───── Reagir a mudanças vindas de `dia.astro` ou outras abas ──
+  window.addEventListener("nv:tasks:updated", () => render());
+  window.addEventListener("storage", (e) => {
+    if (e.key === STORE_KEY) render();
+  });
+
+  // Atualiza textos temporais a cada 30s
+  setInterval(render, 30_000);
+
+  // Primeiro render
+  render();
+</script>

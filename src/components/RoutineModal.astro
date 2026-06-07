@@ -1,0 +1,529 @@
+---
+/**
+ * RoutineModal — painel completo de tarefas.
+ *
+ * Abre APENAS quando o widget dispara `nv:modal:open` (ou via tecla Escape
+ * para fechar). Reflete a mesma lista de `dia.astro` (localStorage
+ * "neurovoz.tasks.v1") em tempo real: busca, filtros, estatísticas,
+ * progresso e conclusão direta.
+ *
+ * Não cria, edita ou apaga estado paralelo — todas as ações usam a mesma
+ * chave de persistência e disparam `nv:tasks:updated`.
+ */
+---
+<div
+  id="nv-rm"
+  class="nv-rm"
+  hidden
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="nv-rm-title"
+>
+  <div class="nv-rm__backdrop" data-nv-rm-close></div>
+
+  <div class="nv-rm__sheet" role="document">
+    <header class="nv-rm__head">
+      <div>
+        <p class="nv-rm__eyebrow" id="nv-rm-date">—</p>
+        <h2 class="nv-rm__title" id="nv-rm-title">Tarefas do Dia</h2>
+      </div>
+      <div class="nv-rm__head-meta">
+        <span class="nv-rm__chip" data-nv-rm-counter>0/0</span>
+        <button type="button" class="nv-rm__close" data-nv-rm-close aria-label="Fechar">✕</button>
+      </div>
+    </header>
+
+    <div class="nv-rm__progress" aria-hidden="true">
+      <span data-nv-rm-bar style="width:0%"></span>
+    </div>
+
+    <div class="nv-rm__stats" role="status" aria-live="polite">
+      <span><b data-nv-rm-pending>0</b><small>pendentes</small></span>
+      <span><b data-nv-rm-done>0</b><small>concluídas</small></span>
+      <span><b data-nv-rm-total>0</b><small>no total</small></span>
+    </div>
+
+    <div class="nv-rm__toolbar">
+      <label class="nv-rm__search">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input
+          type="search"
+          data-nv-rm-search
+          placeholder="Buscar tarefas…"
+          aria-label="Buscar tarefas"
+        />
+      </label>
+      <div class="nv-rm__filters" role="tablist" aria-label="Filtrar tarefas">
+        <button class="is-active" data-nv-rm-filter="all"     type="button" role="tab" aria-selected="true">Todas</button>
+        <button                    data-nv-rm-filter="pending" type="button" role="tab" aria-selected="false">Pendentes</button>
+        <button                    data-nv-rm-filter="done"    type="button" role="tab" aria-selected="false">Concluídas</button>
+      </div>
+    </div>
+
+    <ul class="nv-rm__list" data-nv-rm-list aria-label="Lista de tarefas"></ul>
+
+    <div class="nv-rm__empty" data-nv-rm-empty hidden>
+      <div class="nv-rm__empty-emoji" aria-hidden="true">🌱</div>
+      <p data-nv-rm-empty-msg>Nenhuma tarefa por aqui ainda.</p>
+    </div>
+
+    <footer class="nv-rm__foot">
+      <a class="nv-rm__btn nv-rm__btn--ghost" href="/dia">Adicionar nova tarefa</a>
+      <button type="button" class="nv-rm__btn nv-rm__btn--primary" data-nv-rm-close>Fechar</button>
+    </footer>
+  </div>
+</div>
+
+<style>
+  .nv-rm {
+    position: fixed; inset: 0; z-index: 90;
+    display: grid; place-items: center;
+    padding: 16px;
+  }
+  .nv-rm[hidden] { display: none; }
+
+  .nv-rm__backdrop {
+    position: absolute; inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    animation: nv-rm-fade .2s ease;
+  }
+  .nv-rm__sheet {
+    position: relative;
+    width: 100%; max-width: 640px;
+    max-height: min(86vh, 760px);
+    display: flex; flex-direction: column;
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 22px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+    animation: nv-rm-rise .25s cubic-bezier(.2,.7,.2,1);
+  }
+  @keyframes nv-rm-fade { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes nv-rm-rise {
+    from { opacity: 0; transform: translateY(10px) scale(.98); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* Header ----------------------------------------------------------- */
+  .nv-rm__head {
+    padding: 16px 18px 12px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  }
+  .nv-rm__eyebrow {
+    margin: 0 0 2px;
+    font-size: 0.78rem; color: #64748b;
+    text-transform: capitalize; letter-spacing: 0.02em;
+  }
+  .nv-rm__title { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.01em; }
+  .nv-rm__head-meta { display: flex; align-items: center; gap: 8px; }
+  .nv-rm__chip {
+    font-size: 0.78rem; font-weight: 700;
+    padding: 5px 12px; border-radius: 999px;
+    background: rgba(91, 141, 239, 0.12); color: #3b6fe0;
+  }
+  .nv-rm__close {
+    width: 36px; height: 36px;
+    border: none; background: transparent;
+    color: #64748b; font-size: 1.05rem; cursor: pointer;
+    border-radius: 10px;
+    transition: background .15s, color .15s;
+  }
+  .nv-rm__close:hover { background: rgba(15,23,42,0.06); color: #0f172a; }
+
+  /* Progress + stats ------------------------------------------------- */
+  .nv-rm__progress {
+    height: 6px; margin: 0 18px;
+    border-radius: 999px; background: rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+  }
+  .nv-rm__progress > span {
+    display: block; height: 100%;
+    background: linear-gradient(90deg, #5b8def, #7aa6ff);
+    transition: width .5s cubic-bezier(.2,.7,.2,1);
+  }
+  .nv-rm__stats {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    padding: 12px 18px 0; text-align: center;
+  }
+  .nv-rm__stats > span {
+    display: flex; flex-direction: column; padding: 6px 4px;
+    background: rgba(15, 23, 42, 0.03); border-radius: 12px;
+  }
+  .nv-rm__stats b { font-size: 1rem; font-weight: 800; }
+  .nv-rm__stats small { font-size: 0.72rem; color: #64748b; }
+
+  /* Toolbar ---------------------------------------------------------- */
+  .nv-rm__toolbar {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    padding: 12px 18px;
+  }
+  .nv-rm__search {
+    position: relative; flex: 1 1 240px;
+    display: flex; align-items: center;
+  }
+  .nv-rm__search > svg {
+    position: absolute; left: 12px; color: #64748b; pointer-events: none;
+  }
+  .nv-rm__search input {
+    width: 100%; min-height: 40px; padding: 8px 12px 8px 38px;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    border-radius: 12px; font: inherit;
+    background: #fff; color: inherit;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .nv-rm__search input:focus {
+    outline: none; border-color: #5b8def;
+    box-shadow: 0 0 0 4px rgba(91, 141, 239, 0.12);
+  }
+  .nv-rm__filters {
+    display: inline-flex; padding: 4px; gap: 2px;
+    background: rgba(15, 23, 42, 0.04);
+    border-radius: 999px;
+  }
+  .nv-rm__filters button {
+    border: none; background: transparent; cursor: pointer;
+    font: inherit; font-weight: 600; color: #64748b;
+    padding: 7px 12px; border-radius: 999px;
+    transition: background .15s, color .15s;
+  }
+  .nv-rm__filters button:hover { color: #0f172a; }
+  .nv-rm__filters button.is-active {
+    background: #5b8def; color: #fff;
+    box-shadow: 0 4px 12px rgba(91,141,239,0.30);
+  }
+
+  /* Lista ------------------------------------------------------------ */
+  .nv-rm__list {
+    list-style: none; margin: 0; padding: 0 18px 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    overflow-y: auto; flex: 1;
+  }
+  .nv-rm__item {
+    --accent: #5b8def;
+    display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-left: 4px solid var(--accent);
+    border-radius: 14px;
+    animation: nv-rm-in .2s ease both;
+  }
+  .nv-rm__item.is-done { opacity: 0.6; }
+  .nv-rm__item.is-done .nv-rm__item-title {
+    text-decoration: line-through; color: #64748b;
+  }
+  .nv-rm__check {
+    appearance: none; -webkit-appearance: none;
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid var(--accent); background: transparent;
+    cursor: pointer; margin-top: 2px;
+    display: grid; place-items: center;
+    transition: background .15s, transform .12s;
+  }
+  .nv-rm__check:checked { background: var(--accent); }
+  .nv-rm__check:checked::after {
+    content: ""; width: 9px; height: 5px;
+    border-left: 2px solid #fff; border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+  .nv-rm__item-title { margin: 0 0 2px; font-weight: 700; font-size: 0.95rem; word-break: break-word; }
+  .nv-rm__item-desc  { margin: 0; color: #64748b; font-size: 0.86rem; word-break: break-word; }
+  .nv-rm__item-meta {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; font-size: 0.76rem;
+  }
+  .nv-rm__chip-meta {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 999px;
+    background: rgba(15, 23, 42, 0.04); color: #64748b;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+  }
+  .nv-rm__chip-meta.is-now      { background: rgba(91,141,239,0.12); color: #3b6fe0; border-color: transparent; }
+  .nv-rm__chip-meta.is-upcoming { background: rgba(120,120,140,0.08); }
+  .nv-rm__chip-meta.is-overtime { background: rgba(217,119,6,0.12); color: #d97706; border-color: transparent; }
+
+  @keyframes nv-rm-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* Empty ------------------------------------------------------------ */
+  .nv-rm__empty {
+    text-align: center; padding: 24px 16px; color: #64748b;
+  }
+  .nv-rm__empty-emoji { font-size: 2rem; margin-bottom: 4px; }
+
+  /* Footer ----------------------------------------------------------- */
+  .nv-rm__foot {
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding: 12px 18px;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+    background: rgba(15, 23, 42, 0.02);
+  }
+  .nv-rm__btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 40px; padding: 8px 16px;
+    border-radius: 12px; border: 1px solid transparent;
+    font: inherit; font-weight: 600; cursor: pointer;
+    text-decoration: none;
+    transition: background .15s, color .15s, border-color .15s, transform .12s;
+  }
+  .nv-rm__btn:active { transform: translateY(1px); }
+  .nv-rm__btn--primary { background: #5b8def; color: #fff; }
+  .nv-rm__btn--primary:hover { background: #3b6fe0; }
+  .nv-rm__btn--ghost {
+    background: transparent; color: #0f172a;
+    border-color: rgba(15, 23, 42, 0.14);
+  }
+  .nv-rm__btn--ghost:hover { background: rgba(15,23,42,0.05); }
+
+  @media (max-width: 520px) {
+    .nv-rm { padding: 0; }
+    .nv-rm__sheet { max-height: 100vh; border-radius: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nv-rm__sheet, .nv-rm__backdrop, .nv-rm__item, .nv-rm__progress > span {
+      animation: none !important; transition: none !important;
+    }
+  }
+
+  :global(.dark) .nv-rm__sheet {
+    background: #131a2e; color: #e6ecff;
+    border-color: rgba(255,255,255,0.08);
+  }
+  :global(.dark) .nv-rm__head { border-color: rgba(255,255,255,0.06); }
+  :global(.dark) .nv-rm__item { background: #1a2240; border-color: rgba(255,255,255,0.06); }
+  :global(.dark) .nv-rm__foot {
+    background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06);
+  }
+  :global(.dark) .nv-rm__search input { background: #1a2240; border-color: rgba(255,255,255,0.14); }
+  :global(.dark) .nv-rm__close:hover { background: rgba(255,255,255,0.08); color: #fff; }
+</style>
+
+<script>
+  interface Task {
+    id: string;
+    title: string;
+    desc?: string;
+    start?: string;
+    end?: string;
+    done: boolean;
+    completedAt?: number;
+    createdAt: number;
+  }
+  type Filter = "all" | "pending" | "done";
+
+  const STORE_KEY = "neurovoz.tasks.v1";
+  const $ = <T extends Element>(s: string, r: ParentNode = document) => r.querySelector(s) as T | null;
+
+  const loadTasks = (): Task[] => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      const p = raw ? JSON.parse(raw) : [];
+      return Array.isArray(p) ? p : [];
+    } catch { return []; }
+  };
+  const saveTasks = (tasks: Task[]) => {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(tasks)); } catch {}
+    window.dispatchEvent(new CustomEvent("nv:tasks:updated", { detail: { tasks } }));
+  };
+
+  const parseHM = (s?: string): number | null => {
+    if (!s) return null;
+    const [h, m] = s.split(":").map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
+    const d = new Date(); d.setHours(h, m, 0, 0); return d.getTime();
+  };
+  const fmtDuration = (ms: number): string => {
+    const total = Math.max(0, Math.round(ms / 60000));
+    const h = Math.floor(total / 60), m = total % 60;
+    if (h <= 0) return `${m} min`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}min`;
+  };
+  const todayLabel = () =>
+    new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+
+  const PALETTE = ["#5b8def","#22c55e","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#ec4899","#14b8a6"];
+  const colorFor = (t: Task) => {
+    const s = (t.title || "").toLowerCase();
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return PALETTE[Math.abs(h) % PALETTE.length];
+  };
+
+  type TimeState =
+    | { kind: "none" }
+    | { kind: "upcoming"; msUntilStart: number }
+    | { kind: "current";  msUntilEnd: number; progress: number }
+    | { kind: "overtime" };
+  const getTimeState = (t: Task, now = Date.now()): TimeState => {
+    const start = parseHM(t.start), end = parseHM(t.end);
+    if (start == null || end == null) return { kind: "none" };
+    if (now < start) return { kind: "upcoming", msUntilStart: start - now };
+    if (now <= end) {
+      const total = Math.max(1, end - start);
+      return { kind: "current", msUntilEnd: end - now, progress: Math.min(1, (now - start) / total) };
+    }
+    return { kind: "overtime" };
+  };
+
+  const escapeHTML = (s: string) =>
+    s.replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]!));
+
+  // ───── Elementos ─────────────────────────────────────────────────
+  const root = $<HTMLElement>("#nv-rm");
+  if (!root) throw new Error("nv-rm root missing");
+
+  const elDate     = $<HTMLElement>("#nv-rm-date", root)!;
+  const elCounter  = $<HTMLElement>("[data-nv-rm-counter]", root)!;
+  const elBar      = $<HTMLElement>("[data-nv-rm-bar]", root)!;
+  const elPending  = $<HTMLElement>("[data-nv-rm-pending]", root)!;
+  const elDone     = $<HTMLElement>("[data-nv-rm-done]", root)!;
+  const elTotal    = $<HTMLElement>("[data-nv-rm-total]", root)!;
+  const elList     = $<HTMLUListElement>("[data-nv-rm-list]", root)!;
+  const elEmpty    = $<HTMLElement>("[data-nv-rm-empty]", root)!;
+  const elEmptyMsg = $<HTMLElement>("[data-nv-rm-empty-msg]", root)!;
+  const elSearch   = $<HTMLInputElement>("[data-nv-rm-search]", root)!;
+
+  let filter: Filter = "all";
+  let search = "";
+
+  // ───── Render ────────────────────────────────────────────────────
+  const itemHTML = (t: Task): string => {
+    const accent = colorFor(t);
+    const st = getTimeState(t);
+    let chips = "";
+    if (t.start && t.end) chips += `<span class="nv-rm__chip-meta">🕒 ${t.start}–${t.end}</span>`;
+    else if (t.start)     chips += `<span class="nv-rm__chip-meta">🕒 Começa ${t.start}</span>`;
+    else if (t.end)       chips += `<span class="nv-rm__chip-meta">🕒 Termina ${t.end}</span>`;
+
+    if (!t.done) {
+      if (st.kind === "upcoming") chips += `<span class="nv-rm__chip-meta is-upcoming">Começa em ${fmtDuration(st.msUntilStart)}</span>`;
+      if (st.kind === "current")  chips += `<span class="nv-rm__chip-meta is-now">Termina em ${fmtDuration(st.msUntilEnd)}</span>`;
+      if (st.kind === "overtime") chips += `<span class="nv-rm__chip-meta is-overtime">Marque como concluída quando terminar</span>`;
+    } else {
+      chips += `<span class="nv-rm__chip-meta">✅ Concluída</span>`;
+    }
+
+    return `
+      <li class="nv-rm__item ${t.done ? "is-done" : ""}" style="--accent:${accent}" data-id="${t.id}">
+        <input class="nv-rm__check" type="checkbox" ${t.done ? "checked" : ""} aria-label="Marcar como concluída"/>
+        <div>
+          <p class="nv-rm__item-title">${escapeHTML(t.title)}</p>
+          ${t.desc ? `<p class="nv-rm__item-desc">${escapeHTML(t.desc)}</p>` : ""}
+          ${chips ? `<div class="nv-rm__item-meta">${chips}</div>` : ""}
+        </div>
+      </li>`;
+  };
+
+  const filtered = (tasks: Task[]): Task[] => {
+    const q = search.trim().toLowerCase();
+    return tasks
+      .filter(t => filter === "all" ? true : filter === "done" ? t.done : !t.done)
+      .filter(t => !q || t.title.toLowerCase().includes(q) || (t.desc ?? "").toLowerCase().includes(q))
+      .sort((a, b) => {
+        if (a.done !== b.done) return a.done ? 1 : -1;
+        const aS = parseHM(a.start), bS = parseHM(b.start);
+        if (aS != null && bS != null) return aS - bS;
+        if (aS != null) return -1;
+        if (bS != null) return 1;
+        return a.createdAt - b.createdAt;
+      });
+  };
+
+  const render = () => {
+    const tasks = loadTasks();
+    const total = tasks.length;
+    const done  = tasks.filter(t => t.done).length;
+    const pend  = total - done;
+    elTotal.textContent   = String(total);
+    elDone.textContent    = String(done);
+    elPending.textContent = String(pend);
+    elCounter.textContent = `${done}/${total}`;
+    elBar.style.width = total ? `${Math.round((done/total)*100)}%` : "0%";
+    elDate.textContent = todayLabel();
+
+    const list = filtered(tasks);
+    elList.innerHTML = list.map(itemHTML).join("");
+    if (total === 0) {
+      elEmpty.hidden = false;
+      elEmptyMsg.textContent = "Nenhuma tarefa por aqui ainda.";
+    } else if (list.length === 0) {
+      elEmpty.hidden = false;
+      elEmptyMsg.textContent = "Nada encontrado com esse filtro.";
+    } else {
+      elEmpty.hidden = true;
+    }
+  };
+
+  // ───── Eventos ────────────────────────────────────────────────────
+  elSearch.addEventListener("input", () => { search = elSearch.value; render(); });
+  root.querySelectorAll<HTMLButtonElement>("[data-nv-rm-filter]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      root.querySelectorAll<HTMLButtonElement>("[data-nv-rm-filter]").forEach(b => {
+        b.classList.remove("is-active"); b.setAttribute("aria-selected", "false");
+      });
+      btn.classList.add("is-active"); btn.setAttribute("aria-selected", "true");
+      filter = (btn.dataset.nvRmFilter as Filter) || "all";
+      render();
+    });
+  });
+
+  // Toggle direto a partir do checkbox da linha
+  elList.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const li = target.closest<HTMLLIElement>("li.nv-rm__item");
+    if (!li) return;
+    if (target.matches(".nv-rm__check")) {
+      const id = li.dataset.id!;
+      const tasks = loadTasks();
+      const idx = tasks.findIndex(t => t.id === id);
+      if (idx < 0) return;
+      const wasDone = tasks[idx].done;
+      tasks[idx] = {
+        ...tasks[idx],
+        done: !wasDone,
+        completedAt: !wasDone ? Date.now() : undefined,
+      };
+      saveTasks(tasks);
+      if (!wasDone) {
+        window.dispatchEvent(new CustomEvent("nv:task:completed", {
+          detail: { task: tasks[idx] }
+        }));
+      }
+      render();
+    }
+  });
+
+  // Abrir / fechar
+  const open  = () => {
+    root.hidden = false;
+    root.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    render();
+    setTimeout(() => elSearch.focus(), 30);
+  };
+  const close = () => {
+    root.hidden = true;
+    root.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  };
+  root.addEventListener("click", (e) => {
+    if ((e.target as HTMLElement).hasAttribute("data-nv-rm-close")) close();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !root.hidden) close();
+  });
+
+  window.addEventListener("nv:modal:open", open);
+  window.addEventListener("nv:tasks:updated", () => { if (!root.hidden) render(); });
+  window.addEventListener("storage", (e) => {
+    if (e.key === STORE_KEY && !root.hidden) render();
+  });
+</script>

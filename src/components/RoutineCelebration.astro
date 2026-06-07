@@ -1,0 +1,106 @@
+---
+/**
+ * RoutineCelebration — micro celebração ao concluir uma tarefa.
+ *
+ * Sem pontos, XP, moedas, níveis, rankings ou recompensas numéricas.
+ * Apenas um toast curto, gentil e acessível. Escuta o evento
+ * `nv:task:completed` disparado pelo widget, pelo modal ou por `dia.astro`.
+ */
+---
+<div
+  id="nv-cel"
+  class="nv-cel"
+  aria-live="polite"
+  aria-atomic="true"
+  role="status"
+></div>
+
+<style>
+  .nv-cel {
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .nv-cel__toast {
+    pointer-events: auto;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px;
+    background: rgba(15, 23, 42, 0.92);
+    color: #fff;
+    border-radius: 999px;
+    font-weight: 600; font-size: 0.92rem;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+    backdrop-filter: saturate(160%) blur(8px);
+    animation: nv-cel-in .25s cubic-bezier(.2,.7,.2,1),
+               nv-cel-out .3s ease 1.8s forwards;
+  }
+
+  .nv-cel__toast .nv-cel__emoji {
+    font-size: 1.05rem;
+    animation: nv-cel-pop .5s ease;
+  }
+
+  @keyframes nv-cel-in {
+    from { opacity: 0; transform: translateY(8px) scale(.96); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes nv-cel-out {
+    to { opacity: 0; transform: translateY(-6px) scale(.98); }
+  }
+  @keyframes nv-cel-pop {
+    0%   { transform: scale(.6); }
+    60%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nv-cel__toast, .nv-cel__emoji { animation: none !important; }
+  }
+
+  @media (max-width: 640px) {
+    .nv-cel { bottom: calc(env(safe-area-inset-bottom, 0px) + 90px); }
+  }
+</style>
+
+<script>
+  const MESSAGES: Array<{ emoji: string; text: string }> = [
+    { emoji: "✨", text: "Muito bem!" },
+    { emoji: "🎉", text: "Tarefa concluída!" },
+    { emoji: "✅", text: "Concluído!" },
+    { emoji: "🌿", text: "No seu ritmo, ótimo trabalho." },
+    { emoji: "🌟", text: "Mais uma feita!" },
+    { emoji: "💙", text: "Que bom te ver avançando." },
+  ];
+
+  const layer = document.getElementById("nv-cel");
+  if (!layer) throw new Error("nv-cel root missing");
+
+  let lastShownAt = 0;
+
+  const show = () => {
+    const now = Date.now();
+    if (now - lastShownAt < 600) return; // evita spam em conclusões rápidas
+    lastShownAt = now;
+
+    const msg = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
+    const toast = document.createElement("div");
+    toast.className = "nv-cel__toast";
+    toast.innerHTML =
+      `<span class="nv-cel__emoji" aria-hidden="true">${msg.emoji}</span>` +
+      `<span>${msg.text}</span>`;
+    layer.appendChild(toast);
+
+    // Remove após a animação de saída (in 0.25s + delay 1.8s + out 0.3s)
+    setTimeout(() => toast.remove(), 2400);
+  };
+
+  window.addEventListener("nv:task:completed", show);
+</script>

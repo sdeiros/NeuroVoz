@@ -32,20 +32,133 @@ import { categories } from "../data/vocabulary";
     </div>
   </section>
 
-  <div id="student-required-modal" class="modal-overlay" hidden>
-    <div class="modal-dialog">
-      <h3>Nome e idade obrigatórios</h3>
-      <p>
-        Para gerar qualquer arquivo do histórico, é preciso informar o nome e a
-        idade da criança. Atualize os dados antes de exportar.
-      </p>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-primary" id="btn-modal-config"
-          >Atualizar Dados</button
-        >
-        <button type="button" class="btn btn-ghost" id="btn-modal-close"
-          >Fechar</button
-        >
+  <!-- ── Modal: Configurar/Editar Aluno ─────────────────────────────────── -->
+  <div id="student-modal" class="sm-overlay" hidden aria-modal="true" role="dialog" aria-labelledby="sm-title">
+    <div class="sm-backdrop" id="sm-backdrop"></div>
+    <div class="sm-sheet">
+      <div class="sm-header">
+        <div class="sm-header-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+        <div>
+          <h2 id="sm-title" class="sm-title">Dados do Aluno</h2>
+          <p class="sm-subtitle">Essas informações aparecem nos relatórios exportados.</p>
+        </div>
+        <button class="sm-close" id="sm-close" aria-label="Fechar" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="sm-form" class="sm-body" novalidate autocomplete="off">
+        <div class="sm-field" id="sm-field-name">
+          <label class="sm-label" for="sm-input-name">
+            Nome completo <span class="sm-required" aria-hidden="true">*</span>
+          </label>
+          <div class="sm-input-wrap">
+            <span class="sm-input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </span>
+            <input class="sm-input" id="sm-input-name" type="text" placeholder="Ex: Ana Beatriz Silva" maxlength="80" required aria-required="true"/>
+          </div>
+          <p class="sm-error" id="sm-error-name" aria-live="polite" hidden>O nome é obrigatório.</p>
+        </div>
+        <div class="sm-row">
+          <div class="sm-field" id="sm-field-age">
+            <label class="sm-label" for="sm-input-age">
+              Idade <span class="sm-required" aria-hidden="true">*</span>
+            </label>
+            <div class="sm-input-wrap">
+              <span class="sm-input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              </span>
+              <input class="sm-input" id="sm-input-age" type="number" placeholder="Ex: 8" min="1" max="30" required aria-required="true"/>
+              <span class="sm-input-suffix">anos</span>
+            </div>
+            <p class="sm-error" id="sm-error-age" aria-live="polite" hidden>Informe a idade em números.</p>
+          </div>
+          <div class="sm-field">
+            <label class="sm-label" for="sm-input-turma">Turma / Série</label>
+            <div class="sm-input-wrap">
+              <span class="sm-input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              </span>
+              <input class="sm-input" id="sm-input-turma" type="text" placeholder="Ex: 3º ano A" maxlength="40"/>
+            </div>
+          </div>
+        </div>
+        <div class="sm-field">
+          <label class="sm-label" for="sm-input-obs">Observações</label>
+          <textarea class="sm-input sm-textarea" id="sm-input-obs" placeholder="Informações relevantes para o relatório pedagógico (opcional)..." rows="3" maxlength="300"></textarea>
+          <p class="sm-hint">Máx. 300 caracteres</p>
+        </div>
+        <div class="sm-footer">
+          <button type="button" class="sm-btn sm-btn-ghost" id="sm-cancel">Cancelar</button>
+          <button type="submit" class="sm-btn sm-btn-primary" id="sm-submit">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            Salvar dados
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Modal: Aluno obrigatório para exportar ──────────────────────────── -->
+  <div id="student-required-modal" class="sm-overlay" hidden aria-modal="true" role="alertdialog" aria-labelledby="srm-title">
+    <div class="sm-backdrop" id="srm-backdrop"></div>
+    <div class="sm-sheet sm-sheet-sm">
+      <div class="sm-notice-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+        </svg>
+      </div>
+      <h2 id="srm-title" class="sm-title" style="text-align:center;margin-top:12px">Dados incompletos</h2>
+      <p class="sm-subtitle" style="text-align:center;margin-top:6px">Para exportar o relatório é preciso informar o <strong>nome</strong> e a <strong>idade</strong> do aluno.</p>
+      <div class="sm-footer sm-footer-center" style="margin-top:24px">
+        <button type="button" class="sm-btn sm-btn-ghost" id="btn-modal-close">Agora não</button>
+        <button type="button" class="sm-btn sm-btn-primary" id="btn-modal-config">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Preencher dados
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: Confirmação de limpeza ──────────────────────────────────── -->
+  <div id="clear-confirm-modal" class="sm-overlay" hidden aria-modal="true" role="alertdialog" aria-labelledby="ccm-title">
+    <div class="sm-backdrop" id="ccm-backdrop"></div>
+    <div class="sm-sheet sm-sheet-sm">
+      <div class="sm-notice-icon sm-notice-icon--danger" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+        </svg>
+      </div>
+      <h2 id="ccm-title" class="sm-title" style="text-align:center;margin-top:12px">Limpar todo o histórico?</h2>
+      <p class="sm-subtitle" style="text-align:center;margin-top:6px">Essa ação <strong>não pode ser desfeita</strong>. Todo o histórico de comunicação, rotina e tarefas do Plano do Dia serão apagados permanentemente.</p>
+      <div class="sm-footer sm-footer-center" style="margin-top:24px">
+        <button type="button" class="sm-btn sm-btn-ghost" id="ccm-cancel">Cancelar</button>
+        <button type="button" class="sm-btn sm-btn-danger" id="ccm-confirm">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          Sim, limpar tudo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: Alerta genérico ─────────────────────────────────────────── -->
+  <div id="alert-modal" class="sm-overlay" hidden aria-modal="true" role="alertdialog" aria-labelledby="am-title">
+    <div class="sm-backdrop" id="am-backdrop"></div>
+    <div class="sm-sheet sm-sheet-sm">
+      <div class="sm-notice-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+        </svg>
+      </div>
+      <h2 id="am-title" class="sm-title" style="text-align:center;margin-top:12px">Aviso</h2>
+      <p id="am-msg" class="sm-subtitle" style="text-align:center;margin-top:6px"></p>
+      <div class="sm-footer sm-footer-center" style="margin-top:24px">
+        <button type="button" class="sm-btn sm-btn-primary" id="am-ok">Entendi</button>
       </div>
     </div>
   </div>
@@ -183,10 +296,25 @@ import { categories } from "../data/vocabulary";
     <div class="container">
       <h2 class="section-title" style="font-size:1.6rem">Rotina do Dia</h2>
       <div class="grid grid-4" id="routine-kpis">
-        <div class="kpi card"><span class="kpi-num" id="routine-kpi-total">0</span><span class="kpi-label">Eventos hoje</span></div>
+        <div class="kpi card"><span class="kpi-num" id="routine-kpi-total">0</span><span class="kpi-label">Tarefas no dia</span></div>
         <div class="kpi card"><span class="kpi-num" id="routine-kpi-done">0</span><span class="kpi-label">Concluídas</span></div>
         <div class="kpi card"><span class="kpi-num" id="routine-kpi-alarms">0</span><span class="kpi-label">Alarmes disparados</span></div>
         <div class="kpi card"><span class="kpi-num" id="routine-kpi-countdowns">0</span><span class="kpi-label">Contagens regressivas</span></div>
+      </div>
+      <!-- Barra de progresso do dia -->
+      <div class="routine-progress-wrap" id="routine-progress-wrap" style="margin-top:14px;display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:0.88rem;font-weight:700;color:var(--text-soft)">Progresso do dia</span>
+          <span id="routine-progress-pct" style="font-size:0.88rem;font-weight:800;color:var(--blue)">0%</span>
+        </div>
+        <div style="height:10px;border-radius:999px;background:var(--bg-alt);overflow:hidden">
+          <span id="routine-progress-bar" style="display:block;height:100%;width:0%;background:linear-gradient(90deg,#5b8def,#5cc9b0);border-radius:999px;transition:width .6s ease"></span>
+        </div>
+      </div>
+      <!-- Tarefas pendentes do dia -->
+      <div id="routine-pending-section" style="margin-top:18px;display:none">
+        <h3 style="font-size:1rem;color:var(--text-soft);margin-bottom:10px">⏳ Pendentes hoje</h3>
+        <div id="routine-pending-list" class="timeline-list"></div>
       </div>
       <div id="routine-history-list" class="timeline-list" style="margin-top:18px"></div>
       <p id="routine-history-empty" class="empty-state">Nenhuma atividade da rotina registrada ainda. Use o <a href="/dia">Plano do Dia</a> para começar.</p>
@@ -222,65 +350,121 @@ import { categories } from "../data/vocabulary";
     localStorage.setItem("nv-student", JSON.stringify(s));
     renderStudent();
   }
+  // ── Helpers de modal genérico ─────────────────────────────────────────────
+  function openModal(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.removeAttribute("hidden");
+    el.classList.add("sm-entering");
+    requestAnimationFrame(() => el.classList.remove("sm-entering"));
+    // foco no primeiro elemento focável
+    setTimeout(() => {
+      const first = el.querySelector("button, input, textarea, select, [tabindex]");
+      if (first) first.focus();
+    }, 60);
+  }
+  function closeModal(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add("sm-leaving");
+    el.addEventListener("animationend", () => {
+      el.setAttribute("hidden", "");
+      el.classList.remove("sm-leaving");
+    }, { once: true });
+  }
+  function showAlert(msg) {
+    document.getElementById("am-msg").textContent = msg;
+    openModal("alert-modal");
+  }
+
+  // ── Modal de aluno ────────────────────────────────────────────────────────
+  function openStudentModal() {
+    const cur = loadStudent() || {};
+    document.getElementById("sm-input-name").value = cur.name || "";
+    document.getElementById("sm-input-age").value  = cur.age  || "";
+    document.getElementById("sm-input-turma").value = cur.turma || "";
+    document.getElementById("sm-input-obs").value  = cur.observacao || "";
+    // limpa erros anteriores
+    ["sm-error-name", "sm-error-age"].forEach(id => document.getElementById(id).hidden = true);
+    ["sm-field-name", "sm-field-age"].forEach(id => document.getElementById(id).classList.remove("sm-field--error"));
+    openModal("student-modal");
+    setTimeout(() => document.getElementById("sm-input-name").focus(), 80);
+  }
+
+  document.getElementById("sm-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const nameVal = document.getElementById("sm-input-name").value.trim();
+    const ageVal  = document.getElementById("sm-input-age").value.trim();
+    let valid = true;
+
+    if (!nameVal) {
+      document.getElementById("sm-error-name").hidden = false;
+      document.getElementById("sm-field-name").classList.add("sm-field--error");
+      document.getElementById("sm-input-name").focus();
+      valid = false;
+    } else {
+      document.getElementById("sm-error-name").hidden = true;
+      document.getElementById("sm-field-name").classList.remove("sm-field--error");
+    }
+
+    if (!ageVal || !/^[0-9]+$/.test(ageVal)) {
+      document.getElementById("sm-error-age").hidden = false;
+      document.getElementById("sm-field-age").classList.add("sm-field--error");
+      if (valid) document.getElementById("sm-input-age").focus();
+      valid = false;
+    } else {
+      document.getElementById("sm-error-age").hidden = true;
+      document.getElementById("sm-field-age").classList.remove("sm-field--error");
+    }
+
+    if (!valid) return;
+
+    saveStudent({
+      name: nameVal,
+      age: ageVal,
+      turma: document.getElementById("sm-input-turma").value.trim(),
+      observacao: document.getElementById("sm-input-obs").value.trim(),
+    });
+    closeModal("student-modal");
+  });
+
+  document.getElementById("sm-close").addEventListener("click",  () => closeModal("student-modal"));
+  document.getElementById("sm-cancel").addEventListener("click", () => closeModal("student-modal"));
+  document.getElementById("sm-backdrop").addEventListener("click", () => closeModal("student-modal"));
+
+  // Fechar com Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    ["student-modal", "student-required-modal", "clear-confirm-modal", "alert-modal"].forEach(id => {
+      if (!document.getElementById(id)?.hasAttribute("hidden")) closeModal(id);
+    });
+  });
+
   function renderStudent() {
     const s = loadStudent();
-    const nameEl = document.getElementById("student-name");
-    const ageEl = document.getElementById("student-age");
+    const nameEl  = document.getElementById("student-name");
+    const ageEl   = document.getElementById("student-age");
     const turmaEl = document.getElementById("student-turma");
-    const btn = document.getElementById("btn-config-student");
-    if (!nameEl || !ageEl || !turmaEl || !btn) return;
+    const noteEl  = document.getElementById("student-note");
+    const btn     = document.getElementById("btn-config-student");
+    if (!nameEl || !btn) return;
     if (!s || !s.name) {
-      nameEl.textContent = "—";
-      ageEl.textContent = "Nenhum aluno configurado";
+      nameEl.textContent  = "—";
+      ageEl.textContent   = "Nenhum aluno configurado";
       turmaEl.textContent = "";
-      document.getElementById("student-note").textContent = "";
-      btn.textContent = "Configurar aluno";
+      noteEl.textContent  = "";
+      btn.textContent     = "Configurar aluno";
     } else {
-      nameEl.textContent = s.name;
-      ageEl.textContent = `Idade: ${s.age ? s.age + " anos" : "Não informada"}`;
-      turmaEl.textContent = `Turma/Série: ${s.turma || "Não informada"}`;
-      document.getElementById("student-note").textContent = s.observacao
-        ? `Observação: ${s.observacao}`
-        : "";
-      btn.textContent = "Editar aluno";
+      nameEl.textContent  = s.name;
+      ageEl.textContent   = `Idade: ${s.age ? s.age + " anos" : "Não informada"}`;
+      turmaEl.textContent = s.turma ? `Turma/Série: ${s.turma}` : "";
+      noteEl.textContent  = s.observacao ? `Observação: ${s.observacao}` : "";
+      btn.textContent     = "Editar aluno";
     }
-    btn.removeEventListener("click", configureStudent);
-    btn.addEventListener("click", configureStudent);
+    btn.onclick = openStudentModal;
   }
-  function configureStudent() {
-    const cur = loadStudent() || {};
-    let name = cur.name || "";
-    let age = cur.age || "";
-    let turma = cur.turma || "";
-    let observacao = cur.observacao || "";
 
-    while (true) {
-      name = prompt("Nome do aluno (obrigatório):", name);
-      if (name === null) return;
-      name = name.trim();
-      if (name) break;
-      alert("O nome do aluno é obrigatório.");
-    }
-
-    while (true) {
-      age = prompt("Idade (apenas números, obrigatório):", age);
-      if (age === null) return;
-      age = age.trim();
-      if (age && /^[0-9]+$/.test(age)) break;
-      alert("Informe a idade do aluno usando apenas números.");
-    }
-
-    turma = prompt("Turma / Sala:", turma);
-    if (turma === null) turma = cur.turma || "";
-    observacao = prompt("Observação (opcional):", observacao);
-    if (observacao === null) observacao = cur.observacao || "";
-    saveStudent({
-      name,
-      age,
-      turma: turma.trim(),
-      observacao: observacao.trim(),
-    });
-  }
+  function configureStudent() { openStudentModal(); }
   function studentExportLabel() {
     const s = loadStudent();
     if (!s || !s.name) return "Aluno não configurado";
@@ -320,7 +504,92 @@ import { categories } from "../data/vocabulary";
   }
   let history = load();
 
+  // ── Lê tarefas do Plano do Dia (neurovoz.tasks.v1) ──────────────────────────
+  function loadDayTasks() {
+    try {
+      const raw = localStorage.getItem("neurovoz.tasks.v1");
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) { return []; }
+  }
+
+  // ── Backfill: sincroniza tarefas já concluídas → nv-routine-history ──────────
+  // Garante que tarefas marcadas antes de abrir o histórico apareçam aqui.
+  function backfillRoutineFromDayTasks() {
+    const tasks = loadDayTasks();
+    // Lê diretamente do localStorage para evitar recursão com loadRoutineHistory()
+    let entries = [];
+    try {
+      const raw = localStorage.getItem("nv-routine-history");
+      const parsed = raw ? JSON.parse(raw) : [];
+      entries = Array.isArray(parsed) ? parsed : [];
+    } catch (e) { entries = []; }
+    const knownIds = new Set(entries.map((e) => e.taskId));
+    const EMOJI_RULES = [
+      { emoji: "❤️", keywords: ["psicolog","medic","dentist","terapia","terapeut","hospital","exame","consulta","remedio","saude","vacina","fono","neuro"] },
+      { emoji: "🍽️", keywords: ["comer","lanch","recreio","almoc","jantar","cafe","refeic","merenda","cozinhar"] },
+      { emoji: "🏫", keywords: ["atividade","escola","aula","professor","prof","licao","tarefa de casa","estud","prova","colegio","faculdade"] },
+      { emoji: "💼", keywords: ["reuniao","escritorio","trabalho","expediente","cliente","projeto"] },
+      { emoji: "🛒", keywords: ["comprar","mercado","supermercado","farmacia","buscar","feira","padaria"] },
+      { emoji: "🏃", keywords: ["corrida","correr","academia","treino","exercicio","caminhada","yoga","pilates","natacao","bike"] },
+      { emoji: "🛁", keywords: ["banho","tomar banho","higiene","escovar"] },
+      { emoji: "💧", keywords: ["agua","beber agua","hidrat"] },
+      { emoji: "😴", keywords: ["dormir","sono","soneca","descansar","cochilo"] },
+      { emoji: "🧘", keywords: ["meditar","meditac","respirar","mindfulness"] },
+      { emoji: "📞", keywords: ["ligar","telefon","chamada","ligacao","videochamada"] },
+      { emoji: "💬", keywords: ["mensagem","responder","whats","conversar"] },
+      { emoji: "🎉", keywords: ["festa","aniversario","comemora","celebra"] },
+      { emoji: "🎮", keywords: ["jogar","game","videogame","brincar"] },
+      { emoji: "🚗", keywords: ["dirigir","carro","viagem","viajar","onibus","uber","transporte","metro"] },
+      { emoji: "🐶", keywords: ["cachorro","cao","passear com","gato","pet","animal"] },
+      { emoji: "🧹", keywords: ["limpar","limpeza","arrumar","organizar","lavar","louca","roupa"] },
+      { emoji: "📚", keywords: ["ler","leitura","livro"] },
+      { emoji: "💊", keywords: ["remedio","medicament","tomar remedio"] },
+      { emoji: "💰", keywords: ["pagar","conta","boleto","banco","dinheiro"] },
+      { emoji: "🎵", keywords: ["musica","tocar","instrumento","violao","piano"] },
+      { emoji: "✍️", keywords: ["escrever","anotar","diario"] },
+    ];
+    const normalize = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const pickEmoji = (title, desc) => {
+      const text = " " + normalize(`${title} ${desc ?? ""}`) + " ";
+      for (const { emoji, keywords } of EMOJI_RULES) {
+        for (const k of keywords) { if (text.includes(k)) return emoji; }
+      }
+      return "📝";
+    };
+    const dayKey = (ts) => {
+      const d = new Date(ts);
+      return new Date(ts - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    };
+    const hhmm = (ts) => new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+    let changed = false;
+    tasks.forEach((t) => {
+      if (!t.done || knownIds.has(t.id)) return;
+      const completedTs = t.completedAt || t.createdAt || Date.now();
+      const date = dayKey(completedTs);
+      const icon = pickEmoji(t.title, t.desc);
+      entries.push({
+        id: `${t.id}@${date}`,
+        taskId: t.id,
+        type: "completed",
+        name: t.title,
+        icon,
+        date,
+        time: t.start || "",
+        completedAt: hhmm(completedTs),
+        label: `${t.title} — concluída`,
+      });
+      changed = true;
+    });
+    if (changed) {
+      try { localStorage.setItem("nv-routine-history", JSON.stringify(entries)); } catch {}
+    }
+    return entries;
+  }
+
   function loadRoutineHistory() {
+    backfillRoutineFromDayTasks();
     try {
       return JSON.parse(localStorage.getItem("nv-routine-history") || "[]");
     } catch (e) {
@@ -344,19 +613,56 @@ import { categories } from "../data/vocabulary";
 
   function renderRoutineHistory() {
     const all = loadRoutineHistory();
+    const dayTasks = loadDayTasks();
     const list = document.getElementById("routine-history-list");
     const empty = document.getElementById("routine-history-empty");
     if (!list || !empty) return;
     const today = new Date().toISOString().slice(0, 10);
     const todayItems = all.filter((e) => e.date === today);
+    const todayDone = todayItems.filter((e) => e.type === "completed").length;
+    // Total de tarefas do Plano do Dia como fonte de verdade para o dia atual
+    const totalDayTasks = dayTasks.length;
     const totalEl = document.getElementById("routine-kpi-total");
     const doneEl = document.getElementById("routine-kpi-done");
     const alEl = document.getElementById("routine-kpi-alarms");
     const cdEl = document.getElementById("routine-kpi-countdowns");
-    if (totalEl) totalEl.textContent = String(todayItems.length);
-    if (doneEl) doneEl.textContent = String(todayItems.filter((e) => e.type === "completed").length);
+    if (totalEl) totalEl.textContent = String(totalDayTasks || todayItems.length);
+    if (doneEl) doneEl.textContent = String(todayDone);
     if (alEl) alEl.textContent = String(todayItems.filter((e) => e.type === "alarm").length);
     if (cdEl) cdEl.textContent = String(todayItems.filter((e) => e.type === "countdown").length);
+
+    // ── Barra de progresso do dia ──────────────────────────────────────────────
+    const progressWrap = document.getElementById("routine-progress-wrap");
+    const progressBar = document.getElementById("routine-progress-bar");
+    const progressPct = document.getElementById("routine-progress-pct");
+    if (totalDayTasks > 0 && progressWrap && progressBar && progressPct) {
+      const pct = Math.round((todayDone / totalDayTasks) * 100);
+      progressWrap.style.display = "block";
+      progressBar.style.width = pct + "%";
+      progressPct.textContent = pct + "%";
+    } else if (progressWrap) {
+      progressWrap.style.display = "none";
+    }
+
+    // ── Tarefas pendentes do dia ───────────────────────────────────────────────
+    const pendingSection = document.getElementById("routine-pending-section");
+    const pendingList = document.getElementById("routine-pending-list");
+    const doneTaskIds = new Set(all.filter(e => e.type === "completed").map(e => e.taskId));
+    const pendingTasks = dayTasks.filter((t) => !t.done && !doneTaskIds.has(t.id));
+    if (pendingTasks.length > 0 && pendingSection && pendingList) {
+      pendingSection.style.display = "block";
+      pendingList.innerHTML = pendingTasks.map((t) => {
+        const timeLabel = t.start ? (t.end ? `${t.start}–${t.end}` : `Começa ${t.start}`) : "Sem horário";
+        return `<div class="tl-item" style="border-left-color:#94a3b8;opacity:0.8">
+          <span class="tl-time" style="color:#94a3b8">${t.start || "--:--"}</span>
+          <span class="tl-icon">📝</span>
+          <span class="tl-content"><strong>${t.title}</strong>${t.desc ? `<span class="tl-sentence">${t.desc}</span>` : ""}<span class="tl-sentence">${timeLabel}</span></span>
+          <span class="tl-cat" style="background:#94a3b81a;color:#64748b">⏳ Pendente</span>
+        </div>`;
+      }).join("");
+    } else if (pendingSection) {
+      pendingSection.style.display = "none";
+    }
 
     if (!all.length) {
       list.innerHTML = "";
@@ -647,16 +953,17 @@ import { categories } from "../data/vocabulary";
 
   // Limpar
   document.getElementById("btn-clear").addEventListener("click", () => {
-    if (
-      confirm(
-        "Tem certeza? Isso apagará permanentemente todo o histórico de comunicação e da rotina.",
-      )
-    ) {
-      localStorage.removeItem("nv-history");
-      localStorage.removeItem("nv-routine-history");
-      history = [];
-      renderAll();
-    }
+    openModal("clear-confirm-modal");
+  });
+  document.getElementById("ccm-cancel").addEventListener("click", () => closeModal("clear-confirm-modal"));
+  document.getElementById("ccm-backdrop").addEventListener("click", () => closeModal("clear-confirm-modal"));
+  document.getElementById("ccm-confirm").addEventListener("click", () => {
+    closeModal("clear-confirm-modal");
+    localStorage.removeItem("nv-history");
+    localStorage.removeItem("nv-routine-history");
+    localStorage.removeItem("neurovoz.tasks.v1");
+    history = [];
+    renderAll();
   });
 
   function hasExportData() {
@@ -664,28 +971,24 @@ import { categories } from "../data/vocabulary";
     return history.length > 0 || routine.length > 0;
   }
 
-  function showStudentRequiredModal() {
-    const modal = document.getElementById("student-required-modal");
-    modal?.removeAttribute("hidden");
-  }
-
-  function hideStudentRequiredModal() {
-    const modal = document.getElementById("student-required-modal");
-    modal?.setAttribute("hidden", "");
-  }
+  function showStudentRequiredModal() { openModal("student-required-modal"); }
+  function hideStudentRequiredModal() { closeModal("student-required-modal"); }
 
   document.getElementById("btn-modal-config").addEventListener("click", () => {
-    hideStudentRequiredModal();
-    configureStudent();
+    closeModal("student-required-modal");
+    setTimeout(() => openStudentModal(), 240);
   });
-  document
-    .getElementById("btn-modal-close")
-    .addEventListener("click", hideStudentRequiredModal);
+  document.getElementById("btn-modal-close").addEventListener("click", hideStudentRequiredModal);
+  document.getElementById("srm-backdrop").addEventListener("click", hideStudentRequiredModal);
+
+  // Alert modal
+  document.getElementById("am-ok").addEventListener("click", () => closeModal("alert-modal"));
+  document.getElementById("am-backdrop").addEventListener("click", () => closeModal("alert-modal"));
 
   // CSV
   document.getElementById("btn-csv").addEventListener("click", () => {
     if (!hasExportData()) {
-      alert("Não há dados para exportar.");
+      showAlert("Não há dados para exportar.");
       return;
     }
     if (!studentInfoComplete()) {
@@ -712,9 +1015,28 @@ import { categories } from "../data/vocabulary";
     }
     // Append routine history if present
     const routine = loadRoutineHistory();
+    const dayTasks = loadDayTasks();
+    if (dayTasks && dayTasks.length) {
+      rows.push([]);
+      rows.push(["Plano do Dia — Estado Atual"]);
+      rows.push(["Título", "Descrição", "Início", "Término", "Status", "Concluída em"]);
+      dayTasks.forEach((t) => {
+        const completedAt = t.done && t.completedAt
+          ? new Date(t.completedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+          : "";
+        rows.push([
+          t.title || "",
+          (t.desc || "").replace(/,/g, ";"),
+          t.start || "",
+          t.end || "",
+          t.done ? "Concluída" : "Pendente",
+          completedAt,
+        ]);
+      });
+    }
     if (routine && routine.length) {
       rows.push([]);
-      rows.push(["Rotina do Dia"]);
+      rows.push(["Rotina do Dia — Histórico"]);
       rows.push(["Data", "Hora", "Atividade", "Tipo", "Detalhe"]);
       routine.forEach((e) => {
         rows.push([
@@ -740,7 +1062,7 @@ import { categories } from "../data/vocabulary";
   // Relatório PDF (impressão)
   document.getElementById("btn-pdf").addEventListener("click", () => {
     if (!hasExportData()) {
-      alert("Não há dados para o relatório.");
+      showAlert("Não há dados para o relatório.");
       return;
     }
     if (!studentInfoComplete()) {
@@ -777,6 +1099,9 @@ import { categories } from "../data/vocabulary";
     const pdfTitle = `Relatório Pedagógico — ${studentFileSegment()} — ${new Date().toISOString().slice(0, 10)}`;
     const win = window.open("", "_blank");
     const routineHistoryAll = loadRoutineHistory();
+    const dayTasksAll = loadDayTasks();
+    const dayTasksDone = dayTasksAll.filter((t) => t.done).length;
+    const dayTasksPct = dayTasksAll.length ? Math.round((dayTasksDone / dayTasksAll.length) * 100) : 0;
     const routineByDate = {};
     routineHistoryAll.forEach((e) => {
       const d = e.date || "sem-data";
@@ -901,8 +1226,28 @@ import { categories } from "../data/vocabulary";
           <span>NeuroVoz</span>
         </div>
         <div class="pdf-content">
-          <h2 style="margin-top:0">Rotina do Dia — Histórico de Atividades</h2>
-          <p class="sub">Inclui atividades concluídas, alarmes disparados no horário e contagens regressivas. Os dados ficam armazenados localmente no dispositivo.</p>
+          <h2 style="margin-top:0">Plano do Dia — Estado Atual</h2>
+          <p class="sub" style="margin-bottom:12px">Tarefas cadastradas no Plano do Dia (pendentes e concluídas). Dados armazenados localmente.</p>
+          ${dayTasksAll.length ? `
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding:10px 14px;background:#f4f8ff;border-radius:10px;border:1px solid #dbe7f1">
+              <span style="font-weight:700;color:#2a4d8f">${dayTasksDone} de ${dayTasksAll.length} concluídas (${dayTasksPct}%)</span>
+              <div style="flex:1;height:8px;border-radius:999px;background:#dbe7f1;overflow:hidden">
+                <span style="display:block;height:100%;width:${dayTasksPct}%;background:linear-gradient(90deg,#5b8def,#5cc9b0);border-radius:999px"></span>
+              </div>
+            </div>
+            <table>
+              <thead><tr><th>Tarefa</th><th>Horário</th><th>Status</th></tr></thead>
+              <tbody>
+                ${dayTasksAll.map((t) => {
+                  const horario = t.start ? (t.end ? `${t.start}–${t.end}` : t.start) : "—";
+                  const status = t.done ? "✅ Concluída" : "⏳ Pendente";
+                  return `<tr><td>${t.title}${t.desc ? `<br><span style="font-size:11px;color:#8898b2">${t.desc}</span>` : ""}</td><td style="white-space:nowrap">${horario}</td><td style="white-space:nowrap;color:${t.done ? "#2ecc71" : "#64748b"}">${status}</td></tr>`;
+                }).join("")}
+              </tbody>
+            </table>
+          ` : '<p class="no-data">Nenhuma tarefa cadastrada no Plano do Dia.</p>'}
+          <h2>Rotina do Dia — Histórico de Atividades</h2>
+          <p class="sub">Inclui atividades concluídas, alarmes disparados no horário e contagens regressivas.</p>
           ${routineHistoryAll.length
             ? Object.entries(routineByDate)
                 .sort((a, b) => (a[0] < b[0] ? 1 : -1))
@@ -927,6 +1272,23 @@ import { categories } from "../data/vocabulary";
       </body></html>`);
     win.document.title = pdfTitle;
     win.document.close();
+  });
+
+  // Atualização em tempo real do histórico da rotina
+  // (eventos disparados pelo Plano do Dia na mesma aba, e storage entre abas)
+  window.addEventListener("nv:routine-history:updated", renderRoutineHistory);
+  window.addEventListener("nv:task:completed", renderRoutineHistory);
+  window.addEventListener("storage", (e) => {
+    if (e.key === "nv-routine-history") renderRoutineHistory();
+    if (e.key === "neurovoz.tasks.v1") {
+      // Tarefas do Plano do Dia atualizadas em outra aba — re-sincroniza
+      renderRoutineHistory();
+    }
+    if (e.key === "nv-history") {
+      history = load();
+      renderDashboard();
+      renderTimeline();
+    }
   });
 
   renderAll();
@@ -1127,37 +1489,284 @@ import { categories } from "../data/vocabulary";
     font-weight: 800;
   }
 
-  .modal-overlay {
+  .modal-overlay { display: none; } /* obsoleto — mantido por segurança */
+
+  /* ── Sistema de modais ─────────────────────────────────────────────────── */
+  .sm-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(20, 30, 55, 0.72);
+    z-index: 200;
     display: grid;
     place-items: center;
-    padding: 24px;
-    z-index: 30;
+    padding: 20px;
   }
-  .modal-dialog {
-    background: #fff;
-    border-radius: 24px;
-    max-width: 420px;
+  .sm-overlay[hidden] { display: none !important; }
+
+  .sm-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 18, 38, 0.52);
+    backdrop-filter: blur(6px) saturate(140%);
+    -webkit-backdrop-filter: blur(6px) saturate(140%);
+    animation: sm-fade-in 0.2s ease both;
+  }
+
+  .sm-sheet {
+    position: relative;
+    z-index: 1;
     width: 100%;
-    padding: 28px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.14);
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow:
+      0 0 0 1px rgba(15, 30, 70, 0.07),
+      0 8px 24px rgba(15, 30, 70, 0.10),
+      0 32px 72px rgba(15, 30, 70, 0.16);
+    overflow: hidden;
+    animation: sm-rise-in 0.28s cubic-bezier(0.22, 0.68, 0, 1.2) both;
   }
-  .modal-dialog h3 {
-    margin-top: 0;
-    color: #1f3c7b;
-  }
-  .modal-dialog p {
-    margin: 16px 0 24px;
-    color: #4d5e7d;
-  }
-  .modal-actions {
+  .sm-sheet-sm { max-width: 400px; padding: 32px 28px; text-align: center; }
+
+  @keyframes sm-fade-in { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes sm-rise-in { from { opacity: 0; transform: translateY(18px) scale(0.97) } to { opacity: 1; transform: none } }
+  @keyframes sm-fade-out { to { opacity: 0 } }
+  @keyframes sm-drop-out { to { opacity: 0; transform: translateY(12px) scale(0.97) } }
+
+  .sm-overlay.sm-leaving .sm-backdrop { animation: sm-fade-out 0.18s ease both; }
+  .sm-overlay.sm-leaving .sm-sheet    { animation: sm-drop-out 0.18s ease both; }
+
+  /* Header */
+  .sm-header {
     display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 22px 22px 0 22px;
   }
+  .sm-header-icon {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #5b8def 0%, #5cc9b0 100%);
+    display: grid;
+    place-items: center;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(91,141,239,0.32);
+  }
+  .sm-header-icon svg { width: 22px; height: 22px; }
+  .sm-header > div:not(.sm-header-icon):not(.sm-close) { flex: 1; }
+  .sm-close {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: rgba(15,23,42,0.06);
+    border-radius: 10px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    color: #64748b;
+    transition: background 0.15s, color 0.15s;
+    margin-top: -2px;
+  }
+  .sm-close:hover { background: rgba(15,23,42,0.11); color: #0f172a; }
+
+  .sm-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+  .sm-subtitle {
+    margin: 4px 0 0;
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.45;
+  }
+
+  /* Body / Form */
+  .sm-body {
+    padding: 20px 22px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .sm-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .sm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sm-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #374151;
+    letter-spacing: 0.01em;
+  }
+  .sm-required { color: #ef4444; margin-left: 2px; }
+
+  .sm-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .sm-input-icon {
+    position: absolute;
+    left: 12px;
+    color: #94a3b8;
+    pointer-events: none;
+    display: grid;
+    place-items: center;
+    line-height: 0;
+  }
+  .sm-input-suffix {
+    position: absolute;
+    right: 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #94a3b8;
+    pointer-events: none;
+  }
+  .sm-input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 14px 10px 36px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 0.95rem;
+    color: #0f172a;
+    background: #f8fafc;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    outline: none;
+  }
+  .sm-input:focus {
+    border-color: #5b8def;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(91,141,239,0.14);
+  }
+  .sm-input::placeholder { color: #cbd5e1; }
+  .sm-input[type="number"] { padding-right: 44px; -moz-appearance: textfield; }
+  .sm-input[type="number"]::-webkit-outer-spin-button,
+  .sm-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .sm-textarea { min-height: 88px; resize: vertical; padding: 10px 14px; line-height: 1.5; }
+  .sm-hint { font-size: 0.75rem; color: #94a3b8; margin: 0; padding-left: 2px; }
+
+  .sm-field--error .sm-input { border-color: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,0.1); }
+  .sm-error {
+    font-size: 0.78rem;
+    color: #ef4444;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-left: 2px;
+  }
+  .sm-error[hidden] { display: none !important; }
+
+  /* Footer */
+  .sm-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 22px 20px;
+    border-top: 1px solid #f1f5f9;
+  }
+  .sm-footer-center { justify-content: center; padding: 0; border-top: none; }
+  .sm-sheet-sm .sm-footer { justify-content: center; }
+
+  /* Buttons */
+  .sm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 42px;
+    padding: 9px 20px;
+    border-radius: 11px;
+    border: 1.5px solid transparent;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.16s, box-shadow 0.16s, border-color 0.16s, color 0.16s;
+  }
+  .sm-btn:active { transform: scale(0.97); }
+  .sm-btn-primary {
+    background: linear-gradient(135deg, #5b8def, #4a7de8);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(91,141,239,0.34);
+  }
+  .sm-btn-primary:hover { background: linear-gradient(135deg, #4a7de8, #3b6fe0); box-shadow: 0 6px 18px rgba(91,141,239,0.44); }
+  .sm-btn-ghost {
+    background: transparent;
+    color: #475569;
+    border-color: #e2e8f0;
+  }
+  .sm-btn-ghost:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+  .sm-btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(239,68,68,0.30);
+  }
+  .sm-btn-danger:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); box-shadow: 0 6px 18px rgba(239,68,68,0.40); }
+
+  /* Notice icon (modais de alerta/confirmação) */
+  .sm-notice-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 1px solid #bfdbfe;
+    display: grid;
+    place-items: center;
+    margin: 0 auto;
+    color: #3b82f6;
+  }
+  .sm-notice-icon--danger {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border-color: #fecaca;
+    color: #ef4444;
+  }
+
+  /* Dark mode */
+  :global(.dark) .sm-sheet {
+    background: #131a2e;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.07),
+      0 8px 24px rgba(0,0,0,0.35),
+      0 32px 72px rgba(0,0,0,0.45);
+  }
+  :global(.dark) .sm-title { color: #e6ecff; }
+  :global(.dark) .sm-subtitle { color: #94a3b8; }
+  :global(.dark) .sm-label { color: #cbd5e1; }
+  :global(.dark) .sm-input {
+    background: #1a2240;
+    border-color: rgba(255,255,255,0.10);
+    color: #e6ecff;
+  }
+  :global(.dark) .sm-input:focus {
+    background: #1e2845;
+    border-color: #5b8def;
+    box-shadow: 0 0 0 4px rgba(91,141,239,0.18);
+  }
+  :global(.dark) .sm-input::placeholder { color: #475569; }
+  :global(.dark) .sm-footer { border-color: rgba(255,255,255,0.07); }
+  :global(.dark) .sm-close { background: rgba(255,255,255,0.07); color: #94a3b8; }
+  :global(.dark) .sm-close:hover { background: rgba(255,255,255,0.12); color: #e6ecff; }
+  :global(.dark) .sm-btn-ghost { color: #94a3b8; border-color: rgba(255,255,255,0.10); }
+  :global(.dark) .sm-btn-ghost:hover { background: rgba(255,255,255,0.06); color: #e6ecff; }
+  :global(.dark) .sm-notice-icon { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.2); }
+  :global(.dark) .sm-notice-icon--danger { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.2); }
+  :global(.dark) .sm-sheet-sm { background: #131a2e; }
 
   [hidden] {
     display: none !important;
