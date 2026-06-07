@@ -749,6 +749,16 @@ import Base from '../layouts/Base.astro';
   const timeStartInput = document.getElementById('rf-time-start');
   const alarmRow = document.getElementById('rf-alarm-row');
 
+  // Pre-fill start time with current time for new activities
+  function setCurrentTime() {
+    if (!timeStartInput.value) {
+      const now = new Date();
+      timeStartInput.value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      alarmRow.hidden = false;
+    }
+  }
+  setCurrentTime();
+
   nameInput?.addEventListener('input', () => {
     const g = guessIcon(nameInput.value);
     if (g) iconInput.placeholder = g;
@@ -796,10 +806,11 @@ import Base from '../layouts/Base.astro';
 
     saveRoutine(acts);
     cancelEdit();
+    setCurrentTime();
     render();
   });
 
-  document.getElementById('form-cancel-btn')?.addEventListener('click', cancelEdit);
+  document.getElementById('form-cancel-btn')?.addEventListener('click', () => { cancelEdit(); setCurrentTime(); });
 
   document.getElementById('routine-theme')?.addEventListener('change', (e) => {
     saveSettings({ ...loadSettings(), theme: e.target.value });

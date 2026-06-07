@@ -47,6 +47,16 @@ const {
         <strong id="nv-routine-widget-title">Plano do Dia</strong>
         <small id="nv-routine-widget-subtitle">Abra para ver a rotina</small>
       </span>
+      <span class="nv-widget-next" id="nv-widget-next" hidden>
+        <span class="nv-widget-next-arrow">→</span>
+        <span id="nv-widget-next-icon">⏳</span>
+        <span id="nv-widget-next-name"></span>
+      </span>
+      <span class="nv-widget-progress-wrap" id="nv-widget-progress-wrap" hidden>
+        <span class="nv-widget-progress-track">
+          <span class="nv-widget-progress-fill" id="nv-widget-progress-fill"></span>
+        </span>
+      </span>
     </button>
 
     <div id="nv-timer-modal" class="nv-timer-modal" hidden aria-hidden="true">
@@ -184,8 +194,18 @@ const {
       }
 
       function routineTargetMs(activity) {
-        if (!activity?.time) return null;
-        const [hour, minute] = String(activity.time).split(':').map(Number);
+        if (!activity?.timeStart) return null;
+        const t = activity.timeStart;
+        const [hour, minute] = String(t).split(':').map(Number);
+        if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
+        const d = new Date();
+        d.setHours(hour, minute, 0, 0);
+        return d.getTime();
+      }
+
+      function routineEndMs(activity) {
+        if (!activity?.timeEnd) return null;
+        const [hour, minute] = String(activity.timeEnd).split(':').map(Number);
         if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
         const d = new Date();
         d.setHours(hour, minute, 0, 0);
@@ -400,45 +420,103 @@ const {
         const hasRoutine = activities.length > 0;
         if (!hasRoutine || settings.hidden) {
           widget?.setAttribute('hidden', '');
-          modal?.setAttribute('hidden', '');
           return;
         }
 
         const active = current || next || activities[0];
         const activeTarget = routineTargetMs(active);
-        const liveCountdown = activeTarget !== null ? routineFormatUntil(active) : null;
+        const activeEnd = routineEndMs(active);
 
         widget?.removeAttribute('hidden');
         widget?.classList.add('nv-routine-widget');
+
+        // ── Widget icon + text ─────────────────────────────────────────────
         widgetIcon.textContent = active?.icon || '📍';
         widgetTitle.textContent = active?.name || 'Plano do Dia';
-        const humanRemaining = activeTarget !== null ? routineFormatHumanRemaining(active) : '';
-        widgetSubtitle.textContent = humanRemaining
-          || (next ? `Próxima: ${next.name} • ${routineFormatHumanRemaining(next) || routineFormatUntil(next)}` : `${done} de ${activities.length} concluídas`);
-        widget.style.setProperty('background', active?.color || 'linear-gradient(135deg, var(--blue), var(--mint))', 'important');
 
+        // Subtitle: time-remaining when timed, else summary
+        let subtitle = '';
+        if (activeTarget !== null) {
+          subtitle = routineFormatHumanRemaining(active);
+        }
+        if (!subtitle) {
+          subtitle = next
+            ? `A seguir: ${next.icon || '⏳'} ${next.name}`
+            : `${done} de ${activities.length} concluídas`;
+        }
+        widgetSubtitle.textContent = subtitle;
+
+        // ── Widget "depois" pill ───────────────────────────────────────────
+        const nextWrap = document.getElementById('nv-widget-next');
+        const nextNameEl = document.getElementById('nv-widget-next-name');
+        const nextIconEl = document.getElementById('nv-widget-next-icon');
+        if (next && nextWrap) {
+          nextWrap.hidden = false;
+          if (nextIconEl) nextIconEl.textContent = next.icon || '⏳';
+          if (nextNameEl) nextNameEl.textContent = next.name;
+        } else if (nextWrap) {
+          nextWrap.hidden = true;
+        }
+
+        // ── Widget progress bar ────────────────────────────────────────────
+        const progressWrap = document.getElementById('nv-widget-progress-wrap');
+        const progressFill = document.getElementById('nv-widget-progress-fill');
+        if (progressWrap && progressFill) {
+          progressWrap.hidden = false;
+          // If current activity has start+end, show time-elapsed bar; else completion bar
+          if (active && activeTarget !== null && activeEnd !== null) {
+            const now2 = Date.now();
+            const elapsed = Math.max(0, Math.min(1, (now2 - activeTarget) / (activeEnd - activeTarget)));
+            progressFill.style.width = `${elapsed * 100}%`;
+            progressFill.style.background = 'rgba(255,255,255,0.9)';
+          } else {
+            progressFill.style.width = `${progress}%`;
+            progressFill.style.background = 'rgba(255,255,255,0.9)';
+          }
+        }
+
+        // Widget background tinted by activity color
+        const bgColor = active?.color
+          ? `linear-gradient(135deg, ${active.color}, color-mix(in srgb, ${active.color} 60%, #4fd1b5))`
+          : 'linear-gradient(135deg, var(--blue), var(--mint))';
+        widget.style.setProperty('background', bgColor, 'important');
+
+        // ── Modal ──────────────────────────────────────────────────────────
         document.getElementById('nv-timer-modal-title').textContent = 'Plano do Dia';
         modalIcon.textContent = active?.icon || '📍';
         modalActivity.textContent = active?.name || 'Rotina visual';
-        modalTheme.textContent = next ? `Depois: ${next.icon || '⏳'} ${next.name}` : 'Depois: plano finalizado';
-        // Cronômetro exato HH:MM:SS quando há horário definido
-        modalRemaining.textContent = activeTarget !== null
-          ? routineFormatClock(active)
-          : (next ? routineFormatUntil(next) : 'Tudo concluído');
+        modalTheme.textContent = next ? `Depois: ${next.icon || '⏳'} ${next.name}` : 'Plano finalizado';
+
+        // Big time: elapsed HH:MM:SS if timed, otherwise done/total
+        if (activeTarget !== null) {
+          modalRemaining.textContent = routineFormatClock(active);
+        } else if (next && routineTargetMs(next) !== null) {
+          modalRemaining.textContent = routineFormatClock(next);
+        } else {
+          modalRemaining.textContent = `${done}/${activities.length}`;
+        }
+
         const statusBase = current && !current.completed
-          ? `Em andamento • ${done} de ${activities.length} concluídas`
+          ? `Em andamento · ${done} de ${activities.length} concluídas`
           : `${done} de ${activities.length} atividades concluídas`;
-        modalStatus.textContent = humanRemaining ? `${humanRemaining} • ${statusBase}` : statusBase;
-        barFill.style.width = `${progress}%`;
+        const humanRem = activeTarget !== null ? routineFormatHumanRemaining(active) : '';
+        modalStatus.textContent = humanRem ? `${humanRem} · ${statusBase}` : statusBase;
+
+        // Completion bar in modal: time-based if possible, else count-based
+        if (active && activeTarget !== null && activeEnd !== null) {
+          const elapsed = Math.max(0, Math.min(1, (Date.now() - activeTarget) / (activeEnd - activeTarget)));
+          barFill.style.width = `${elapsed * 100}%`;
+        } else {
+          barFill.style.width = `${progress}%`;
+        }
         barFill.style.background = active?.color || 'var(--blue)';
 
         routineSummary?.removeAttribute('hidden');
         routineModalList?.removeAttribute('hidden');
         routineModalHistory?.removeAttribute('hidden');
         if (routineModalNow) routineModalNow.textContent = current ? `${current.icon || '📍'} ${current.name}` : 'Nenhuma atividade atual';
-        if (routineModalNext) routineModalNext.textContent = next ? `${next.icon || '⏳'} ${next.name} (${routineFormatUntil(next)})` : 'Sem próxima atividade';
+        if (routineModalNext) routineModalNext.textContent = next ? `${next.icon || '⏳'} ${next.name}` : 'Sem próxima atividade';
 
-        // Mostra botão Concluir agora só quando existe uma atividade atual pendente
         if (current && !current.completed) {
           routineModalActions?.removeAttribute('hidden');
           if (routineModalComplete) routineModalComplete.textContent = `✅ Concluir "${current.name}"`;
@@ -454,7 +532,7 @@ const {
             <div class="nv-routine-modal-item ${item.completed ? 'done' : item.id === current?.id ? 'current' : ''}">
               <span>${escapeHtml(item.icon || '📍')}</span>
               <strong>${escapeHtml(item.name)}</strong>
-              <small>${escapeHtml(item.time || '--:--')} ${tag}</small>
+              <small>${escapeHtml(item.timeStart || item.time || '--:--')} ${tag}</small>
             </div>`;
           routineModalList.innerHTML = `
             ${current ? `<div class="nv-routine-modal-section"><strong>📍 Agora</strong>${renderItem(current, '🔵')}</div>` : ''}
@@ -464,7 +542,7 @@ const {
         }
         if (routineModalHistory) {
           const history = readJson(NV_ROUTINE_HISTORY_KEY, []).filter((entry) => entry.date === routineTodayKey()).slice(0, 6);
-          routineModalHistory.innerHTML = `<strong>Histórico do dia</strong>${history.length ? history.map((entry) => `<span>${escapeHtml(entry.completedAt || entry.time || '--:--')} — ${escapeHtml(entry.label || `${entry.name} concluído`)}</span>`).join('') : '<span>Nenhum registro ainda.</span>'}`;
+          routineModalHistory.innerHTML = `<strong>Histórico do dia</strong>${history.length ? history.map((entry) => `<span>${escapeHtml(entry.completedAt || entry.timeStart || entry.time || '--:--')} — ${escapeHtml(entry.label || `${entry.name} concluído`)}</span>`).join('') : '<span>Nenhum registro ainda.</span>'}`;
         }
       }
 
