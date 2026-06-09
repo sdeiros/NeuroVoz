@@ -985,12 +985,7 @@ const mobileNav = [
   onScroll();
   window.addEventListener("scroll", onScroll, { passive: true });
 
-  // Acessibilidade persistente
-  const savedFont = localStorage.getItem("nv-font");
-  const savedContrast = localStorage.getItem("nv-contrast");
-  if (savedFont && savedFont !== "normal")
-    root.setAttribute("data-fontscale", savedFont);
-  if (savedContrast === "high") root.setAttribute("data-contrast", "high");
+  // Acessibilidade persistente — preferências já aplicadas pelo Base.astro antes do paint
 
   const a11yToggle = document.getElementById("a11y-toggle");
   const a11yPanel = document.getElementById("a11y-panel");
@@ -1030,6 +1025,9 @@ const mobileNav = [
       if (v === "high") root.setAttribute("data-contrast", "high");
       else root.removeAttribute("data-contrast");
       localStorage.setItem("nv-contrast", v);
+      // Sincroniza theme-color da barra do sistema
+      const metaTheme = document.getElementById("meta-theme-color") as HTMLMetaElement | null;
+      if (metaTheme) metaTheme.setAttribute("content", v === "high" ? "#000000" : "#ffffff");
       syncChips();
     });
   });

@@ -23,7 +23,7 @@ const {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#ffffff" id="meta-theme-color" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -35,6 +35,21 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <!-- Aplica preferências de acessibilidade ANTES do primeiro paint para evitar flash -->
+    <script>
+      (function() {
+        try {
+          var contrast  = localStorage.getItem('nv-contrast');
+          var font      = localStorage.getItem('nv-font');
+          var root = document.documentElement;
+          if (contrast === 'high') root.setAttribute('data-contrast', 'high');
+          if (font && font !== 'normal') root.setAttribute('data-fontscale', font);
+          // Atualiza theme-color da barra do sistema conforme o tema
+          var meta = document.getElementById('meta-theme-color');
+          if (meta && contrast === 'high') meta.setAttribute('content', '#000000');
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <a href="#main" class="skip-link">Pular para o conteúdo principal</a>
