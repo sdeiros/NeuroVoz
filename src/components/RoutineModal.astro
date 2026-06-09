@@ -23,30 +23,78 @@
   <div class="nv-rm__backdrop" data-nv-rm-close></div>
 
   <div class="nv-rm__sheet" role="document">
+
+    <div class="nv-rm__handle" aria-hidden="true"></div>
+
+    <!-- ── Header ── -->
     <header class="nv-rm__head">
-      <div>
+      <div class="nv-rm__head-left">
         <p class="nv-rm__eyebrow" id="nv-rm-date">—</p>
         <h2 class="nv-rm__title" id="nv-rm-title">Tarefas do Dia</h2>
       </div>
-      <div class="nv-rm__head-meta">
-        <span class="nv-rm__chip" data-nv-rm-counter>0/0</span>
-        <button type="button" class="nv-rm__close" data-nv-rm-close aria-label="Fechar">✕</button>
+      <div class="nv-rm__head-right">
+        <!-- Circular progress ring -->
+        <div class="nv-rm__ring" aria-hidden="true">
+          <svg viewBox="0 0 44 44" width="44" height="44">
+            <circle class="nv-rm__ring-track" cx="22" cy="22" r="18"/>
+            <circle class="nv-rm__ring-fill" data-nv-rm-ring cx="22" cy="22" r="18"
+              stroke-dasharray="113.1"
+              stroke-dashoffset="113.1"/>
+          </svg>
+          <span class="nv-rm__ring-label" data-nv-rm-counter>0/0</span>
+        </div>
+        <button type="button" class="nv-rm__close" data-nv-rm-close aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
     </header>
 
+    <!-- ── Stats bar ── -->
+    <div class="nv-rm__stats" role="status" aria-live="polite">
+      <div class="nv-rm__stat nv-rm__stat--pending">
+        <div class="nv-rm__stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
+            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M10 6v4l2.5 2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <b data-nv-rm-pending>0</b>
+        <small>pendentes</small>
+      </div>
+      <div class="nv-rm__stat-divider" aria-hidden="true"></div>
+      <div class="nv-rm__stat nv-rm__stat--done">
+        <div class="nv-rm__stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
+            <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M6.5 10l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <b data-nv-rm-done>0</b>
+        <small>concluídas</small>
+      </div>
+      <div class="nv-rm__stat-divider" aria-hidden="true"></div>
+      <div class="nv-rm__stat nv-rm__stat--total">
+        <div class="nv-rm__stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
+            <path d="M4 6h12M4 10h12M4 14h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <b data-nv-rm-total>0</b>
+        <small>no total</small>
+      </div>
+    </div>
+
+    <!-- ── Progress bar ── -->
     <div class="nv-rm__progress" aria-hidden="true">
       <span data-nv-rm-bar style="width:0%"></span>
     </div>
 
-    <div class="nv-rm__stats" role="status" aria-live="polite">
-      <span><b data-nv-rm-pending>0</b><small>pendentes</small></span>
-      <span><b data-nv-rm-done>0</b><small>concluídas</small></span>
-      <span><b data-nv-rm-total>0</b><small>no total</small></span>
-    </div>
-
-    <div class="nv-rm__toolbar">
+    <!-- ── Search ── -->
+    <div class="nv-rm__search-wrap">
       <label class="nv-rm__search">
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
           <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
           <path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
@@ -57,252 +105,518 @@
           aria-label="Buscar tarefas"
         />
       </label>
-      <div class="nv-rm__filters" role="tablist" aria-label="Filtrar tarefas">
-        <button class="is-active" data-nv-rm-filter="all"     type="button" role="tab" aria-selected="true">Todas</button>
-        <button                    data-nv-rm-filter="pending" type="button" role="tab" aria-selected="false">Pendentes</button>
-        <button                    data-nv-rm-filter="done"    type="button" role="tab" aria-selected="false">Concluídas</button>
-      </div>
     </div>
 
+    <!-- ── Filters ── -->
+    <div class="nv-rm__filters" role="tablist" aria-label="Filtrar tarefas">
+      <button class="is-active" data-nv-rm-filter="all"     type="button" role="tab" aria-selected="true">
+        Todas <span class="nv-rm__filter-badge" data-nv-rm-badge-all>0</span>
+      </button>
+      <button data-nv-rm-filter="pending" type="button" role="tab" aria-selected="false">
+        Pendentes <span class="nv-rm__filter-badge" data-nv-rm-badge-pending>0</span>
+      </button>
+      <button data-nv-rm-filter="done"   type="button" role="tab" aria-selected="false">
+        Concluídas <span class="nv-rm__filter-badge" data-nv-rm-badge-done>0</span>
+      </button>
+    </div>
+
+    <!-- ── List ── -->
     <ul class="nv-rm__list" data-nv-rm-list aria-label="Lista de tarefas"></ul>
 
+    <!-- ── Empty state ── -->
     <div class="nv-rm__empty" data-nv-rm-empty hidden>
-      <div class="nv-rm__empty-emoji" aria-hidden="true">🌱</div>
-      <p data-nv-rm-empty-msg>Nenhuma tarefa por aqui ainda.</p>
+      <div class="nv-rm__empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="52" height="52" fill="none">
+          <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2" opacity=".15"/>
+          <path d="M22 32h20M32 22v20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity=".3"/>
+          <circle cx="32" cy="32" r="10" stroke="currentColor" stroke-width="2" opacity=".2"/>
+        </svg>
+      </div>
+      <p class="nv-rm__empty-title" data-nv-rm-empty-msg>Nenhuma tarefa por aqui ainda.</p>
+      <p class="nv-rm__empty-hint">Adicione tarefas para começar seu dia.</p>
     </div>
 
+    <!-- ── Footer ── -->
     <footer class="nv-rm__foot">
-      <a class="nv-rm__btn nv-rm__btn--ghost" href="/dia">Adicionar nova tarefa</a>
-      <button type="button" class="nv-rm__btn nv-rm__btn--primary" data-nv-rm-close>Fechar</button>
+      <button type="button" class="nv-rm__btn nv-rm__btn--ghost" data-nv-rm-close>Fechar</button>
+      <a class="nv-rm__btn nv-rm__btn--primary" href="/dia">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        Adicionar tarefa
+      </a>
     </footer>
+
   </div>
 </div>
 
 <style>
+  /* ── Isolamento: neutraliza o global.css que tem !important em button/input ── */
+  #nv-rm button,
+  #nv-rm input {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    min-height: unset !important;
+    background: unset !important;
+    border: unset !important;
+    border-radius: unset !important;
+    box-shadow: none !important;
+    padding: unset !important;
+    transform: none !important;
+    font-family: inherit !important;
+    color: inherit !important;
+    transition: none !important;
+  }
+  #nv-rm button:hover,
+  #nv-rm button:active {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  /* ── Overlay ── */
   .nv-rm {
     position: fixed; inset: 0; z-index: 90;
-    display: grid; place-items: center;
-    padding: 16px;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding: 0;
   }
   .nv-rm[hidden] { display: none; }
 
   .nv-rm__backdrop {
     position: absolute; inset: 0;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(4px);
-    animation: nv-rm-fade .2s ease;
+    background: rgba(10, 15, 35, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: nv-rm-fade .25s ease;
   }
+
+  /* ── Sheet ── */
   .nv-rm__sheet {
     position: relative;
-    width: 100%; max-width: 640px;
-    max-height: min(86vh, 760px);
+    width: 100%; max-width: 580px;
+    max-height: 92dvh;
     display: flex; flex-direction: column;
     background: #ffffff;
     color: #0f172a;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    border-radius: 22px;
-    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+    border-radius: 28px 28px 0 0;
+    box-shadow: 0 -12px 60px rgba(15, 23, 42, 0.22), 0 -2px 12px rgba(15, 23, 42, 0.08);
     overflow: hidden;
-    animation: nv-rm-rise .25s cubic-bezier(.2,.7,.2,1);
+    animation: nv-rm-up .32s cubic-bezier(.16,1,.3,1);
   }
+
   @keyframes nv-rm-fade { from { opacity: 0 } to { opacity: 1 } }
-  @keyframes nv-rm-rise {
-    from { opacity: 0; transform: translateY(10px) scale(.98); }
-    to   { opacity: 1; transform: none; }
+  @keyframes nv-rm-up {
+    from { transform: translateY(100%); opacity: 0.6; }
+    to   { transform: translateY(0);   opacity: 1; }
   }
 
-  /* Header ----------------------------------------------------------- */
+  /* ── Desktop: centered modal ── */
+  @media (min-width: 640px) {
+    .nv-rm {
+      align-items: center;
+      padding: 20px;
+    }
+    .nv-rm__sheet {
+      border-radius: 24px;
+      max-height: 88dvh;
+      animation: nv-rm-pop .28s cubic-bezier(.16,1,.3,1);
+    }
+  }
+  @keyframes nv-rm-pop {
+    from { transform: scale(.95) translateY(8px); opacity: 0; }
+    to   { transform: scale(1) translateY(0);     opacity: 1; }
+  }
+
+  /* ── Drag handle ── */
+  .nv-rm__handle {
+    width: 40px; height: 4px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.10);
+    margin: 12px auto 0;
+    flex-shrink: 0;
+  }
+  @media (min-width: 640px) { .nv-rm__handle { display: none; } }
+
+  /* ── Header ── */
   .nv-rm__head {
-    padding: 16px 18px 12px;
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 20px 16px;
+    flex-shrink: 0;
   }
-  .nv-rm__eyebrow {
-    margin: 0 0 2px;
-    font-size: 0.78rem; color: #64748b;
-    text-transform: capitalize; letter-spacing: 0.02em;
-  }
-  .nv-rm__title { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.01em; }
-  .nv-rm__head-meta { display: flex; align-items: center; gap: 8px; }
-  .nv-rm__chip {
-    font-size: 0.78rem; font-weight: 700;
-    padding: 5px 12px; border-radius: 999px;
-    background: rgba(91, 141, 239, 0.12); color: #3b6fe0;
-  }
-  .nv-rm__close {
-    width: 36px; height: 36px;
-    border: none; background: transparent;
-    color: #64748b; font-size: 1.05rem; cursor: pointer;
-    border-radius: 10px;
-    transition: background .15s, color .15s;
-  }
-  .nv-rm__close:hover { background: rgba(15,23,42,0.06); color: #0f172a; }
+  .nv-rm__head-left { display: flex; flex-direction: column; gap: 2px; }
+  .nv-rm__head-right { display: flex; align-items: center; gap: 10px; }
 
-  /* Progress + stats ------------------------------------------------- */
+  .nv-rm__eyebrow {
+    margin: 0;
+    font-size: 0.7rem; font-weight: 600;
+    color: #5b8def;
+    text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  .nv-rm__title {
+    margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;
+    color: #0f172a;
+  }
+
+  /* Circular progress ring */
+  .nv-rm__ring {
+    position: relative; width: 46px; height: 46px;
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .nv-rm__ring svg {
+    position: absolute; inset: 0;
+    transform: rotate(-90deg);
+  }
+  .nv-rm__ring-track {
+    fill: none; stroke: rgba(91,141,239,0.15); stroke-width: 3;
+  }
+  .nv-rm__ring-fill {
+    fill: none; stroke: #5b8def; stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset .6s cubic-bezier(.2,.7,.2,1);
+  }
+  .nv-rm__ring-label {
+    position: relative; z-index: 1;
+    font-size: 0.68rem; font-weight: 800; color: #3b6fe0;
+    letter-spacing: -0.01em;
+  }
+
+  .nv-rm__close {
+    width: 32px !important; height: 32px !important; flex-shrink: 0 !important;
+    border: 1.5px solid rgba(15, 23, 42, 0.10) !important;
+    background: rgba(15, 23, 42, 0.04) !important;
+    color: #94a3b8 !important; cursor: pointer !important;
+    border-radius: 9px !important;
+    display: grid !important; place-items: center !important;
+    transition: background .15s, color .15s !important;
+    padding: 0 !important; min-height: unset !important;
+    box-shadow: none !important;
+  }
+  .nv-rm__close:hover {
+    background: rgba(15,23,42,0.09) !important; color: #0f172a !important;
+    transform: none !important; box-shadow: none !important;
+  }
+
+  /* ── Stats ── */
+  .nv-rm__stats {
+    display: flex; align-items: center;
+    margin: 0 20px;
+    padding: 12px 16px;
+    background: rgba(15, 23, 42, 0.025);
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    border-radius: 16px;
+    flex-shrink: 0;
+  }
+  .nv-rm__stat {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    text-align: center;
+  }
+  .nv-rm__stat-icon {
+    width: 26px; height: 26px; border-radius: 8px;
+    display: grid; place-items: center;
+    margin-bottom: 2px;
+  }
+  .nv-rm__stat--pending .nv-rm__stat-icon { background: rgba(245,158,11,0.10); color: #d97706; }
+  .nv-rm__stat--done    .nv-rm__stat-icon { background: rgba(22,163,74,0.10);  color: #16a34a; }
+  .nv-rm__stat--total   .nv-rm__stat-icon { background: rgba(91,141,239,0.10); color: #5b8def; }
+
+  .nv-rm__stat b { font-size: 1.15rem; font-weight: 800; line-height: 1; color: #0f172a; }
+  .nv-rm__stat small { font-size: 0.68rem; color: #94a3b8; font-weight: 500; }
+  .nv-rm__stat--done b { color: #16a34a; }
+  .nv-rm__stat--pending b { color: #d97706; }
+
+  .nv-rm__stat-divider {
+    width: 1px; height: 36px;
+    background: rgba(15, 23, 42, 0.08);
+    flex-shrink: 0; margin: 0 8px;
+  }
+
+  /* ── Progress ── */
   .nv-rm__progress {
-    height: 6px; margin: 0 18px;
-    border-radius: 999px; background: rgba(15, 23, 42, 0.08);
-    overflow: hidden;
+    height: 3px; flex-shrink: 0;
+    background: rgba(15, 23, 42, 0.05);
+    margin-top: 14px;
   }
   .nv-rm__progress > span {
     display: block; height: 100%;
-    background: linear-gradient(90deg, #5b8def, #7aa6ff);
-    transition: width .5s cubic-bezier(.2,.7,.2,1);
+    background: linear-gradient(90deg, #5b8def 0%, #7aa6ff 60%, #22d3ee 100%);
+    transition: width .55s cubic-bezier(.2,.7,.2,1);
+    border-radius: 0 999px 999px 0;
   }
-  .nv-rm__stats {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-    padding: 12px 18px 0; text-align: center;
-  }
-  .nv-rm__stats > span {
-    display: flex; flex-direction: column; padding: 6px 4px;
-    background: rgba(15, 23, 42, 0.03); border-radius: 12px;
-  }
-  .nv-rm__stats b { font-size: 1rem; font-weight: 800; }
-  .nv-rm__stats small { font-size: 0.72rem; color: #64748b; }
 
-  /* Toolbar ---------------------------------------------------------- */
-  .nv-rm__toolbar {
-    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
-    padding: 12px 18px;
-  }
+  /* ── Search ── */
+  .nv-rm__search-wrap { padding: 12px 20px 0; flex-shrink: 0; }
   .nv-rm__search {
-    position: relative; flex: 1 1 240px;
-    display: flex; align-items: center;
+    position: relative; display: flex; align-items: center;
   }
   .nv-rm__search > svg {
-    position: absolute; left: 12px; color: #64748b; pointer-events: none;
+    position: absolute; left: 13px; color: #94a3b8; pointer-events: none;
   }
   .nv-rm__search input {
-    width: 100%; min-height: 40px; padding: 8px 12px 8px 38px;
-    border: 1px solid rgba(15, 23, 42, 0.14);
-    border-radius: 12px; font: inherit;
-    background: #fff; color: inherit;
-    transition: border-color .15s, box-shadow .15s;
+    width: 100% !important; height: 38px !important; padding: 0 12px 0 36px !important;
+    border: 1.5px solid rgba(15, 23, 42, 0.10) !important;
+    border-radius: 10px !important; font-family: inherit !important; font-size: 0.875rem !important;
+    background: rgba(15, 23, 42, 0.03) !important; color: #0f172a !important;
+    transition: border-color .15s, box-shadow .15s, background .15s !important;
+    box-shadow: none !important; min-height: unset !important;
   }
   .nv-rm__search input:focus {
-    outline: none; border-color: #5b8def;
-    box-shadow: 0 0 0 4px rgba(91, 141, 239, 0.12);
+    outline: none !important; border-color: #5b8def !important;
+    background: #fff !important;
+    box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.12) !important;
   }
+  .nv-rm__search input::placeholder { color: #cbd5e1; }
+
+  /* ── Filters ── */
   .nv-rm__filters {
-    display: inline-flex; padding: 4px; gap: 2px;
-    background: rgba(15, 23, 42, 0.04);
-    border-radius: 999px;
+    display: flex; gap: 6px;
+    padding: 10px 20px 8px;
+    flex-shrink: 0;
   }
   .nv-rm__filters button {
-    border: none; background: transparent; cursor: pointer;
-    font: inherit; font-weight: 600; color: #64748b;
-    padding: 7px 12px; border-radius: 999px;
-    transition: background .15s, color .15s;
+    flex: 1 !important;
+    display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 5px !important;
+    border: 1.5px solid rgba(15,23,42,0.09) !important;
+    background: rgba(15,23,42,0.03) !important; cursor: pointer !important;
+    font-size: 0.78rem !important; font-weight: 600 !important; color: #64748b !important;
+    padding: 7px 10px !important; border-radius: 10px !important;
+    transition: background .15s, color .15s, border-color .15s, box-shadow .15s !important;
+    white-space: nowrap !important; line-height: 1 !important;
+    min-height: unset !important; box-shadow: none !important;
+    transform: none !important;
   }
-  .nv-rm__filters button:hover { color: #0f172a; }
+  .nv-rm__filters button:hover {
+    color: #0f172a !important; background: rgba(15,23,42,0.06) !important;
+    border-color: rgba(15,23,42,0.18) !important; box-shadow: none !important;
+    transform: none !important;
+  }
   .nv-rm__filters button.is-active {
-    background: #5b8def; color: #fff;
-    box-shadow: 0 4px 12px rgba(91,141,239,0.30);
+    background: #0f172a !important; color: #fff !important; border-color: #0f172a !important;
+    box-shadow: none !important;
+  }
+  .nv-rm__filter-badge {
+    display: inline-flex !important; align-items: center !important; justify-content: center !important;
+    min-width: 18px !important; height: 18px !important; padding: 0 5px !important;
+    border-radius: 999px !important; font-size: 0.68rem !important; font-weight: 700 !important;
+    background: rgba(15,23,42,0.08) !important; color: inherit !important;
+    border: none !important; min-height: unset !important;
+  }
+  .nv-rm__filters button.is-active .nv-rm__filter-badge {
+    background: rgba(255,255,255,0.18) !important;
   }
 
-  /* Lista ------------------------------------------------------------ */
+  /* ── List ── */
   .nv-rm__list {
-    list-style: none; margin: 0; padding: 0 18px 12px;
+    list-style: none; margin: 0;
+    padding: 2px 20px 10px;
     display: flex; flex-direction: column; gap: 8px;
     overflow-y: auto; flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(15,23,42,0.10) transparent;
   }
+  .nv-rm__list::-webkit-scrollbar { width: 4px; }
+  .nv-rm__list::-webkit-scrollbar-track { background: transparent; }
+  .nv-rm__list::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.10); border-radius: 999px; }
+
   .nv-rm__item {
     --accent: #5b8def;
-    display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start;
-    padding: 12px;
-    background: #fff;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    border-left: 4px solid var(--accent);
-    border-radius: 14px;
+    display: flex !important; align-items: center !important; gap: 12px !important;
+    padding: 11px 14px !important;
+    background: #fff !important;
+    border: 1.5px solid rgba(15, 23, 42, 0.08) !important;
+    border-left: 3px solid var(--accent) !important;
+    border-radius: 14px !important;
     animation: nv-rm-in .2s ease both;
+    cursor: default !important;
+    transition: box-shadow .18s !important;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.05) !important;
+    list-style: none !important;
   }
-  .nv-rm__item.is-done { opacity: 0.6; }
+  .nv-rm__item:hover { box-shadow: 0 3px 14px rgba(15,23,42,0.09) !important; }
+  .nv-rm__item.is-done {
+    opacity: 0.45 !important;
+    border-left-color: #cbd5e1 !important;
+  }
   .nv-rm__item.is-done .nv-rm__item-title {
-    text-decoration: line-through; color: #64748b;
+    text-decoration: line-through; color: #94a3b8;
   }
-  .nv-rm__check {
-    appearance: none; -webkit-appearance: none;
-    width: 24px; height: 24px; border-radius: 50%;
-    border: 2px solid var(--accent); background: transparent;
-    cursor: pointer; margin-top: 2px;
-    display: grid; place-items: center;
-    transition: background .15s, transform .12s;
+
+  /* Checkbox — usa <button> para escapar do CSS global que tem !important em input */
+  .nv-rm__item .nv-rm__check {
+    flex-shrink: 0 !important;
+    width: 24px !important; height: 24px !important;
+    border-radius: 50% !important;
+    border: 2px solid var(--accent) !important;
+    background: transparent !important;
+    cursor: pointer !important; margin-top: 0 !important;
+    display: grid !important; place-items: center !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    min-height: unset !important;
+    transition: background .2s, box-shadow .2s, transform .12s !important;
+    box-shadow: none !important;
   }
-  .nv-rm__check:checked { background: var(--accent); }
-  .nv-rm__check:checked::after {
-    content: ""; width: 9px; height: 5px;
-    border-left: 2px solid #fff; border-bottom: 2px solid #fff;
-    transform: rotate(-45deg) translate(1px, -1px);
+  .nv-rm__item .nv-rm__check:hover {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 14%, transparent) !important;
+    transform: none !important;
   }
-  .nv-rm__item-title { margin: 0 0 2px; font-weight: 700; font-size: 0.95rem; word-break: break-word; }
-  .nv-rm__item-desc  { margin: 0; color: #64748b; font-size: 0.86rem; word-break: break-word; }
-  .nv-rm__item-meta {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; font-size: 0.76rem;
+  .nv-rm__item .nv-rm__check[aria-checked="true"] {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
   }
+  .nv-rm__item .nv-rm__check:active { transform: scale(.84) !important; }
+  .nv-rm__check-icon {
+    opacity: 0;
+    color: #fff;
+    transition: opacity .15s;
+  }
+  .nv-rm__item .nv-rm__check[aria-checked="true"] .nv-rm__check-icon {
+    opacity: 1;
+  }
+
+  .nv-rm__item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .nv-rm__item-title { margin: 0; font-weight: 700; font-size: 0.9rem; line-height: 1.3; word-break: break-word; color: #0f172a; }
+  .nv-rm__item-desc  { margin: 0; color: #64748b; font-size: 0.8rem; word-break: break-word; line-height: 1.4; }
+  .nv-rm__item-meta  { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+
   .nv-rm__chip-meta {
     display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px; border-radius: 999px;
-    background: rgba(15, 23, 42, 0.04); color: #64748b;
+    padding: 3px 9px; border-radius: 999px;
+    background: rgba(15, 23, 42, 0.05); color: #64748b;
     border: 1px solid rgba(15, 23, 42, 0.06);
+    font-size: 0.72rem; font-weight: 500;
   }
-  .nv-rm__chip-meta.is-now      { background: rgba(91,141,239,0.12); color: #3b6fe0; border-color: transparent; }
-  .nv-rm__chip-meta.is-upcoming { background: rgba(120,120,140,0.08); }
-  .nv-rm__chip-meta.is-overtime { background: rgba(217,119,6,0.12); color: #d97706; border-color: transparent; }
+  .nv-rm__chip-meta.is-now {
+    background: rgba(91,141,239,0.10); color: #3b6fe0;
+    border-color: rgba(91,141,239,0.18);
+    font-weight: 600;
+  }
+  .nv-rm__chip-meta.is-upcoming {
+    background: rgba(245,158,11,0.08); color: #b45309;
+    border-color: rgba(245,158,11,0.15);
+  }
+  .nv-rm__chip-meta.is-overtime {
+    background: rgba(239,68,68,0.08); color: #dc2626;
+    border-color: rgba(239,68,68,0.15);
+    font-weight: 600;
+  }
 
-  @keyframes nv-rm-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @keyframes nv-rm-in {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: none; }
+  }
 
-  /* Empty ------------------------------------------------------------ */
+  /* ── Empty state ── */
   .nv-rm__empty {
-    text-align: center; padding: 24px 16px; color: #64748b;
+    text-align: center; padding: 32px 20px 16px; color: #94a3b8;
+    flex-shrink: 0; display: none; flex-direction: column; align-items: center; gap: 6px;
   }
-  .nv-rm__empty-emoji { font-size: 2rem; margin-bottom: 4px; }
+  .nv-rm__empty[hidden] { display: none !important; }
+  .nv-rm__empty-icon { color: #cbd5e1; margin-bottom: 4px; }
+  .nv-rm__empty-title { font-size: 0.95rem; font-weight: 600; margin: 0; color: #64748b; }
+  .nv-rm__empty-hint { font-size: 0.82rem; margin: 0; color: #94a3b8; }
 
-  /* Footer ----------------------------------------------------------- */
+  /* ── Footer ── */
   .nv-rm__foot {
-    display: flex; gap: 8px; justify-content: flex-end;
-    padding: 12px 18px;
-    border-top: 1px solid rgba(15, 23, 42, 0.06);
-    background: rgba(15, 23, 42, 0.02);
+    display: grid; grid-template-columns: auto 1fr; gap: 8px;
+    padding: 12px 20px 18px;
+    border-top: 1px solid rgba(15, 23, 42, 0.07);
+    background: rgba(248,250,252,0.8);
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
   }
   .nv-rm__btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-height: 40px; padding: 8px 16px;
-    border-radius: 12px; border: 1px solid transparent;
-    font: inherit; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    min-height: 44px; padding: 10px 18px;
+    border-radius: 13px; border: 1.5px solid transparent;
+    font: inherit; font-size: 0.875rem; font-weight: 700; cursor: pointer;
     text-decoration: none;
-    transition: background .15s, color .15s, border-color .15s, transform .12s;
+    transition: background .15s, color .15s, border-color .15s, box-shadow .15s, transform .1s;
   }
-  .nv-rm__btn:active { transform: translateY(1px); }
-  .nv-rm__btn--primary { background: #5b8def; color: #fff; }
-  .nv-rm__btn--primary:hover { background: #3b6fe0; }
+  .nv-rm__btn:active { transform: scale(.97); }
+  .nv-rm__btn--primary {
+    background: linear-gradient(135deg, #5b8def 0%, #4477e8 100%);
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(91,141,239,0.35);
+  }
+  .nv-rm__btn--primary:hover {
+    background: linear-gradient(135deg, #4477e8 0%, #3366d6 100%);
+    box-shadow: 0 4px 18px rgba(91,141,239,0.45);
+  }
   .nv-rm__btn--ghost {
-    background: transparent; color: #0f172a;
-    border-color: rgba(15, 23, 42, 0.14);
+    background: transparent; color: #94a3b8;
+    border-color: rgba(15, 23, 42, 0.10);
   }
-  .nv-rm__btn--ghost:hover { background: rgba(15,23,42,0.05); }
+  .nv-rm__btn--ghost:hover {
+    background: rgba(15,23,42,0.04); color: #475569;
+    border-color: rgba(15,23,42,0.16);
+  }
 
+  /* ── Mobile ── */
   @media (max-width: 520px) {
-    .nv-rm { padding: 0; }
-    .nv-rm__sheet { max-height: 100vh; border-radius: 0; }
+    .nv-rm__sheet { max-height: 94dvh; }
+    .nv-rm__head { padding: 12px 16px 14px; }
+    .nv-rm__stats { margin: 0 16px; padding: 10px 12px; }
+    .nv-rm__search-wrap { padding: 10px 16px 0; }
+    .nv-rm__filters { padding: 8px 16px 6px; gap: 5px; }
+    .nv-rm__list { padding: 2px 16px 8px; }
+    .nv-rm__foot { padding: 10px 16px 16px; }
+    .nv-rm__stat b { font-size: 1rem; }
+    .nv-rm__stat-divider { margin: 0 6px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .nv-rm__sheet, .nv-rm__backdrop, .nv-rm__item, .nv-rm__progress > span {
+    .nv-rm__sheet, .nv-rm__backdrop, .nv-rm__item, .nv-rm__progress > span,
+    .nv-rm__ring-fill {
       animation: none !important; transition: none !important;
     }
   }
 
+  /* ── Dark mode ── */
+  :global(.dark) .nv-rm__backdrop { background: rgba(5, 8, 22, 0.65); }
   :global(.dark) .nv-rm__sheet {
-    background: #131a2e; color: #e6ecff;
-    border-color: rgba(255,255,255,0.08);
+    background: #111827; color: #e2e8f0;
+    box-shadow: 0 -12px 60px rgba(0,0,0,0.5), 0 -2px 12px rgba(0,0,0,0.3);
   }
-  :global(.dark) .nv-rm__head { border-color: rgba(255,255,255,0.06); }
-  :global(.dark) .nv-rm__item { background: #1a2240; border-color: rgba(255,255,255,0.06); }
+  :global(.dark) .nv-rm__title { color: #f1f5f9; }
+  :global(.dark) .nv-rm__stats {
+    background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.07);
+  }
+  :global(.dark) .nv-rm__stat b { color: #f1f5f9; }
+  :global(.dark) .nv-rm__stat small { color: #64748b; }
+  :global(.dark) .nv-rm__stat-divider { background: rgba(255,255,255,0.07); }
+  :global(.dark) .nv-rm__handle { background: rgba(255,255,255,0.12); }
+  :global(.dark) .nv-rm__progress { background: rgba(255,255,255,0.06); }
+  :global(.dark) .nv-rm__search input {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.10); color: #e2e8f0;
+  }
+  :global(.dark) .nv-rm__search input:focus { background: rgba(255,255,255,0.08); }
+  :global(.dark) .nv-rm__filters button {
+    border-color: rgba(255,255,255,0.09); color: #64748b;
+  }
+  :global(.dark) .nv-rm__filters button:hover { color: #94a3b8; background: rgba(255,255,255,0.05); }
+  :global(.dark) .nv-rm__filters button.is-active { background: #5b8def; color: #fff; }
+  :global(.dark) .nv-rm__item {
+    background: #1e293b; border-color: rgba(255,255,255,0.06);
+  }
+  :global(.dark) .nv-rm__item:hover { background: #263548; }
+  :global(.dark) .nv-rm__item-desc { color: #94a3b8; }
+  :global(.dark) .nv-rm__close {
+    background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.09); color: #64748b;
+  }
+  :global(.dark) .nv-rm__close:hover { background: rgba(255,255,255,0.12); color: #e2e8f0; }
   :global(.dark) .nv-rm__foot {
-    background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06);
+    background: rgba(17,24,39,0.9); border-color: rgba(255,255,255,0.07);
   }
-  :global(.dark) .nv-rm__search input { background: #1a2240; border-color: rgba(255,255,255,0.14); }
-  :global(.dark) .nv-rm__close:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  :global(.dark) .nv-rm__btn--ghost {
+    color: #64748b; border-color: rgba(255,255,255,0.10);
+  }
+  :global(.dark) .nv-rm__btn--ghost:hover { background: rgba(255,255,255,0.06); color: #94a3b8; }
+  :global(.dark) .nv-rm__chip-meta { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.07); color: #94a3b8; }
+  :global(.dark) .nv-rm__empty { color: #94a3b8; }
+  :global(.dark) .nv-rm__empty-icon { color: #334155; }
+  :global(.dark) .nv-rm__empty-title { color: #64748b; }
+  :global(.dark) .nv-rm__ring-track { stroke: rgba(91,141,239,0.12); }
+  :global(.dark) .nv-rm__filter-badge { background: rgba(255,255,255,0.10); }
 </style>
 
 <script>
@@ -382,6 +696,7 @@
 
   const elDate     = $<HTMLElement>("#nv-rm-date", root)!;
   const elCounter  = $<HTMLElement>("[data-nv-rm-counter]", root)!;
+  const elRing     = $<SVGCircleElement>("[data-nv-rm-ring]", root);
   const elBar      = $<HTMLElement>("[data-nv-rm-bar]", root)!;
   const elPending  = $<HTMLElement>("[data-nv-rm-pending]", root)!;
   const elDone     = $<HTMLElement>("[data-nv-rm-done]", root)!;
@@ -390,6 +705,9 @@
   const elEmpty    = $<HTMLElement>("[data-nv-rm-empty]", root)!;
   const elEmptyMsg = $<HTMLElement>("[data-nv-rm-empty-msg]", root)!;
   const elSearch   = $<HTMLInputElement>("[data-nv-rm-search]", root)!;
+  const elBadgeAll     = $<HTMLElement>("[data-nv-rm-badge-all]", root);
+  const elBadgePending = $<HTMLElement>("[data-nv-rm-badge-pending]", root);
+  const elBadgeDone    = $<HTMLElement>("[data-nv-rm-badge-done]", root);
 
   let filter: Filter = "all";
   let search = "";
@@ -406,15 +724,19 @@
     if (!t.done) {
       if (st.kind === "upcoming") chips += `<span class="nv-rm__chip-meta is-upcoming">Começa em ${fmtDuration(st.msUntilStart)}</span>`;
       if (st.kind === "current")  chips += `<span class="nv-rm__chip-meta is-now">Termina em ${fmtDuration(st.msUntilEnd)}</span>`;
-      if (st.kind === "overtime") chips += `<span class="nv-rm__chip-meta is-overtime">Marque como concluída quando terminar</span>`;
+      if (st.kind === "overtime") chips += `<span class="nv-rm__chip-meta is-overtime">Concluir quando terminar</span>`;
     } else {
       chips += `<span class="nv-rm__chip-meta">✅ Concluída</span>`;
     }
 
     return `
       <li class="nv-rm__item ${t.done ? "is-done" : ""}" style="--accent:${accent}" data-id="${t.id}">
-        <input class="nv-rm__check" type="checkbox" ${t.done ? "checked" : ""} aria-label="Marcar como concluída"/>
-        <div>
+        <button class="nv-rm__check" type="button" role="checkbox" aria-checked="${t.done}" aria-label="Marcar como concluída" data-act="toggle">
+          <svg class="nv-rm__check-icon" viewBox="0 0 10 7" width="10" height="7" aria-hidden="true" fill="none">
+            <path d="M1 3.5L3.5 6 9 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="nv-rm__item-body">
           <p class="nv-rm__item-title">${escapeHTML(t.title)}</p>
           ${t.desc ? `<p class="nv-rm__item-desc">${escapeHTML(t.desc)}</p>` : ""}
           ${chips ? `<div class="nv-rm__item-meta">${chips}</div>` : ""}
@@ -446,19 +768,36 @@
     elDone.textContent    = String(done);
     elPending.textContent = String(pend);
     elCounter.textContent = `${done}/${total}`;
+
+    // Progress bar
     elBar.style.width = total ? `${Math.round((done/total)*100)}%` : "0%";
+
+    // Circular ring: circumference = 2π*18 ≈ 113.1
+    if (elRing) {
+      const pct = total ? done / total : 0;
+      const circumference = 113.1;
+      elRing.style.strokeDashoffset = String(circumference - pct * circumference);
+    }
+
+    // Filter badges
+    if (elBadgeAll)     elBadgeAll.textContent     = String(total);
+    if (elBadgePending) elBadgePending.textContent  = String(pend);
+    if (elBadgeDone)    elBadgeDone.textContent     = String(done);
+
     elDate.textContent = todayLabel();
 
     const list = filtered(tasks);
     elList.innerHTML = list.map(itemHTML).join("");
+
+    const showEmpty = total === 0 || list.length === 0;
+    // Controle explícito via style para não depender do atributo [hidden]
+    elEmpty.style.display = showEmpty ? "flex" : "none";
+    elEmpty.hidden = !showEmpty;
+
     if (total === 0) {
-      elEmpty.hidden = false;
       elEmptyMsg.textContent = "Nenhuma tarefa por aqui ainda.";
     } else if (list.length === 0) {
-      elEmpty.hidden = false;
       elEmptyMsg.textContent = "Nada encontrado com esse filtro.";
-    } else {
-      elEmpty.hidden = true;
     }
   };
 
@@ -480,7 +819,8 @@
     const target = e.target as HTMLElement;
     const li = target.closest<HTMLLIElement>("li.nv-rm__item");
     if (!li) return;
-    if (target.matches(".nv-rm__check")) {
+    if (target.closest(".nv-rm__check")) {
+      const checkBtn = target.closest(".nv-rm__check");
       const id = li.dataset.id!;
       const tasks = loadTasks();
       const idx = tasks.findIndex(t => t.id === id);

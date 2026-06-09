@@ -503,23 +503,138 @@ import Base from "../layouts/Base.astro";
 
   /* ─────────── Responsivo ─────────── */
   @media (max-width: 560px) {
-    .td-row-main { flex-direction: column; }
-    .td-btn-primary { width: 100%; }
-    .td-toolbar { flex-direction: column; align-items: stretch; }
-    .td-filters { justify-content: center; }
-
-    .td-card {
-      grid-template-columns: auto 1fr;
-      grid-template-areas:
-        "emoji main"
-        "actions actions";
-      gap: 12px 14px; padding: 14px 16px;
+    /* ── Página ── */
+    .td-page {
+      padding: 12px 12px 100px;
     }
-    .td-drag { display: none; }
-    .td-emoji-tile { grid-area: emoji; }
-    .td-card-main { grid-area: main; }
-    .td-card-actions { grid-area: actions; justify-content: flex-end; border-top: 1px solid var(--td-border); padding-top: 10px; margin-top: 2px; }
-    .td-card-bar { grid-area: auto; }
+    .td-shell { gap: 14px; }
+
+    /* ── Header ── */
+    .td-header { padding: 0; }
+    .td-title { font-size: 1.55rem; margin: 10px 0 2px; }
+    .td-sub { font-size: 0.9rem; margin-bottom: 14px; }
+    .td-overview { padding: 12px 14px; gap: 10px; }
+    .td-stat { padding: 8px 6px; }
+    .td-stat b { font-size: 1.25rem; }
+    .td-stat small { font-size: 0.7rem; }
+    .td-progress { height: 6px; }
+
+    /* ── Composer ── */
+    .td-composer { padding: 12px; }
+
+    /* Input + botão na mesma linha, botão compacto */
+    .td-row-main {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .td-input-shell { flex: 1 1 0; min-width: 0; }
+    .td-input-title { min-height: 44px; font-size: 0.95rem; }
+    .td-btn-primary {
+      flex: 0 0 auto;
+      width: auto;
+      min-height: 44px;
+      padding: 10px 14px;
+      gap: 6px;
+      font-size: 0.9rem;
+    }
+    /* Esconde o texto do botão, mostra só o ícone no mobile */
+    .td-btn-primary span { display: none; }
+    .td-btn-primary svg { width: 22px !important; height: 22px !important; }
+
+    /* Detalhes avançados mais compactos */
+    .td-advanced { margin-top: 8px; }
+    .td-advanced > summary { font-size: 0.83rem; padding: 6px 4px 2px; }
+    .td-row-extra { gap: 8px; }
+
+    /* ── Toolbar ── */
+    .td-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .td-search { flex: 1 1 auto; }
+    .td-input-search { min-height: 42px; font-size: 0.93rem; }
+    .td-filters {
+      justify-content: stretch;
+      width: 100%;
+    }
+    .td-filter {
+      flex: 1;
+      text-align: center;
+      padding: 7px 8px;
+      font-size: 0.82rem;
+    }
+
+    /* ── Cards ── */
+    .td-card {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        "emoji main actions"
+        ".     bar  .      ";
+      gap: 0;
+      column-gap: 10px;
+      row-gap: 0;
+      padding: 10px 12px;
+    }
+    .td-drag { display: none !important; }
+    .td-emoji-tile {
+      grid-area: emoji;
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      align-self: center;
+      flex-shrink: 0;
+    }
+    .td-card-main {
+      grid-area: main;
+      align-self: center;
+      gap: 2px;
+      min-width: 0;
+    }
+    .td-card-title { font-size: 0.94rem; line-height: 1.25; }
+    .td-card-desc  { font-size: 0.8rem; }
+    .td-card-meta  { gap: 4px; margin-top: 3px; font-size: 0.7rem; }
+    .td-meta-chip  { padding: 2px 7px; }
+
+    /* Barra de progresso — abaixo do conteúdo principal */
+    .td-card-bar {
+      grid-area: bar;
+      margin-top: 7px;
+      height: 4px;
+    }
+
+    /* Ações alinhadas verticalmente ao centro-direita do card */
+    .td-card-actions {
+      grid-area: actions;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+      align-self: center;
+    }
+    .td-icon-btn {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      flex: 0 0 auto;
+    }
+    .td-icon-btn svg { width: 15px !important; height: 15px !important; }
+
+    /* ── Modal ── */
+    .td-modal { padding: 0; align-items: flex-end; }
+    .td-modal-sheet {
+      border-radius: 22px 22px 0 0;
+      max-width: 100%;
+      max-height: 90dvh;
+      overflow-y: auto;
+    }
+    .td-modal-foot { flex-wrap: wrap; gap: 8px; }
+    .td-modal-foot-right { gap: 6px; }
+    .td-btn { font-size: 0.9rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
