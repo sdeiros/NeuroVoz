@@ -16,17 +16,41 @@ import { categories } from "../data/vocabulary";
         automáticos e relatório pedagógico. Nenhum dado sai do seu dispositivo.
       </p>
 
-      <div class="student-info" id="student-info">
-        <div class="si-left">
-          <strong id="student-name">—</strong>
-          <span class="si-meta" id="student-age">Nenhum aluno configurado</span>
-          <span class="si-meta" id="student-turma"></span>
-          <span class="si-meta" id="student-note"></span>
+      <div class="student-kpi-card" id="student-info">
+        <div class="si-top">
+          <div class="si-left">
+            <strong id="student-name">—</strong>
+            <div class="si-metas">
+              <span class="si-meta" id="student-age">Nenhum aluno configurado</span>
+              <span class="si-meta" id="student-turma"></span>
+              <span class="si-meta" id="student-note"></span>
+            </div>
+          </div>
+          <div class="si-actions">
+            <button id="btn-config-student" class="btn btn-ghost"
+              >Configurar Aluno</button
+            >
+          </div>
         </div>
-        <div class="si-actions">
-          <button id="btn-config-student" class="btn btn-ghost"
-            >Configurar Aluno</button
-          >
+        <div class="si-divider"></div>
+        <!-- KPIs integrados -->
+        <div class="si-kpis" id="kpis">
+          <div class="si-kpi">
+            <span class="kpi-num" id="kpi-total">0</span>
+            <span class="kpi-label">Interações</span>
+          </div>
+          <div class="si-kpi">
+            <span class="kpi-num" id="kpi-today">0</span>
+            <span class="kpi-label">Hoje</span>
+          </div>
+          <div class="si-kpi">
+            <span class="kpi-num" id="kpi-words">0</span>
+            <span class="kpi-label">Palavras Distintas</span>
+          </div>
+          <div class="si-kpi">
+            <span class="kpi-num" id="kpi-top">—</span>
+            <span class="kpi-label">Mais Usada</span>
+          </div>
         </div>
       </div>
     </div>
@@ -165,25 +189,6 @@ import { categories } from "../data/vocabulary";
 
   <section class="section">
     <div class="container">
-      <!-- Indicadores rápidos -->
-      <div class="grid grid-4" id="kpis">
-        <div class="kpi card">
-          <span class="kpi-num" id="kpi-total">0</span><span class="kpi-label"
-            >Interações</span>
-        </div>
-        <div class="kpi card">
-          <span class="kpi-num" id="kpi-today">0</span><span class="kpi-label"
-            >Hoje</span>
-        </div>
-        <div class="kpi card">
-          <span class="kpi-num" id="kpi-words">0</span><span class="kpi-label"
-            >Palavras Distintas (total)</span>
-        </div>
-        <div class="kpi card">
-          <span class="kpi-num" id="kpi-top">—</span><span class="kpi-label"
-            >Mais Usada</span>
-        </div>
-      </div>
       <p class="kpi-note" id="kpi-vocab-note">
         Total de palavras distintas: 0 (Histórico: 0, Formação de Palavras: 0)
       </p>
@@ -449,13 +454,17 @@ import { categories } from "../data/vocabulary";
     const btn     = document.getElementById("btn-config-student");
     if (!nameEl || !btn) return;
     if (!s || !s.name) {
-      nameEl.textContent  = "—";
-      ageEl.textContent   = "Nenhum aluno configurado";
+      nameEl.textContent  = "Nenhum aluno configurado";
+      nameEl.style.fontWeight = "700";
+      nameEl.style.color = "var(--text-soft)";
+      ageEl.textContent   = "Toque em \"Configurar aluno\" para adicionar";
       turmaEl.textContent = "";
       noteEl.textContent  = "";
       btn.textContent     = "Configurar aluno";
     } else {
       nameEl.textContent  = s.name;
+      nameEl.style.fontWeight = "";
+      nameEl.style.color = "";
       ageEl.textContent   = `Idade: ${s.age ? s.age + " anos" : "Não informada"}`;
       turmaEl.textContent = s.turma ? `Turma/Série: ${s.turma}` : "";
       noteEl.textContent  = s.observacao ? `Observação: ${s.observacao}` : "";
@@ -825,15 +834,19 @@ import { categories } from "../data/vocabulary";
     const periods = { Madrugada: 0, Manhã: 0, Tarde: 0, Noite: 0 };
     all.forEach((h) => periods[period(h.time)]++);
     const maxP = Math.max(1, ...Object.values(periods));
-    const icons = { Madrugada: "🌙", Manhã: "🌅", Tarde: "☀️", Noite: "🌙" };
+    const total = Object.values(periods).reduce((a, b) => a + b, 0);
+    const icons = { Madrugada: "🌙", Manhã: "🌅", Tarde: "☀️", Noite: "🌛" };
     document.getElementById("chart-periodo").innerHTML = Object.entries(periods)
       .map(
-        ([p, v]) =>
-          `<div class="period-col">
-        <span class="period-bar" style="height:${(v / maxP) * 100}%"></span>
-        <span class="period-val">${v}</span>
-        <span class="period-name">${icons[p]} ${p}</span>
-      </div>`,
+        ([p, v]) => {
+          const pct = total === 0 ? 0 : Math.max(4, Math.round((v / maxP) * 100));
+          const trackStyle = total === 0 ? "opacity:0.35" : "";
+          return `<div class="period-col">
+            <span class="period-name"><span class="period-icon">${icons[p]}</span>${p}</span>
+            <span class="period-track" style="${trackStyle}"><span class="period-bar" style="width:${pct}%"></span></span>
+            <span class="period-val" style="${total === 0 ? 'color:var(--text-soft)' : ''}">${v}</span>
+          </div>`;
+        }
       )
       .join("");
   }
@@ -1298,56 +1311,71 @@ import { categories } from "../data/vocabulary";
 <style>
   .page-hero {
     background: linear-gradient(180deg, var(--bg-alt), var(--bg));
-    padding: 48px 0;
+    padding: 32px 0 24px;
   }
   .page-title {
-    font-size: clamp(1.8rem, 5vw, 2.6rem);
-    margin: 12px 0 10px;
+    font-size: clamp(1.5rem, 5vw, 2.6rem);
+    margin: 8px 0 8px;
+    line-height: 1.2;
   }
   .page-lead {
     color: var(--text-soft);
-    font-size: 1.08rem;
+    font-size: 0.97rem;
     max-width: 640px;
+    line-height: 1.5;
   }
 
+  /* ── KPI cards ── */
   .kpi {
     display: flex;
     flex-direction: column;
     gap: 4px;
     align-items: flex-start;
+    padding: 16px !important;
   }
   .kpi-num {
     font-family: var(--font-head);
     font-weight: 900;
     font-size: 2rem;
     color: var(--blue);
+    line-height: 1;
   }
   .kpi-label {
     color: var(--text-soft);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.82rem;
+    line-height: 1.3;
   }
   .kpi-note {
-    margin: 14px 0 0;
+    margin: 10px 0 0;
     color: var(--text-soft);
-    font-size: 0.94rem;
+    font-size: 0.84rem;
     max-width: 600px;
   }
 
+  /* ── Toolbar ── */
   .toolbar {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-top: 24px;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
   }
-  .filters,
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: end;
+  }
+  .filters .ctrl:last-child {
+    grid-column: 1 / -1;
+  }
   .actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: flex-end;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .actions .btn:last-child {
+    grid-column: 1 / -1;
   }
   .ctrl {
     display: flex;
@@ -1355,17 +1383,19 @@ import { categories } from "../data/vocabulary";
     gap: 4px;
     font-family: var(--font-head);
     font-weight: 700;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     color: var(--text-soft);
   }
   .ctrl input,
   .ctrl select {
-    padding: 8px 10px;
+    padding: 9px 10px;
     border-radius: 10px;
     border: 2px solid var(--border);
     background: var(--surface);
     color: var(--text);
     font-family: var(--font-body);
+    font-size: 0.9rem;
+    width: 100%;
   }
   .danger {
     color: #c0392b;
@@ -1374,10 +1404,11 @@ import { categories } from "../data/vocabulary";
     border-color: #c0392b;
   }
 
+  /* ── Dashboard grid ── */
   .dash-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 14px;
   }
   .chart-card h3 {
     font-size: 1.05rem;
@@ -1461,32 +1492,56 @@ import { categories } from "../data/vocabulary";
     color: var(--blue);
   }
 
+  /* ── Period chart — redesigned ── */
   .periods {
     display: flex;
-    gap: 14px;
-    align-items: flex-end;
-    height: 160px;
-    padding-top: 10px;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 4px;
+    height: auto;
   }
   .period-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 88px 1fr 32px;
     align-items: center;
-    justify-content: flex-end;
-    height: 100%;
+    gap: 10px;
+    height: auto;
+    justify-content: unset;
+  }
+  .period-name {
+    font-size: 0.85rem;
+    color: var(--text);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
     gap: 6px;
+    white-space: nowrap;
+  }
+  .period-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+  .period-track {
+    background: var(--bg-alt);
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
   }
   .period-bar {
-    width: 56px;
-    background: linear-gradient(180deg, var(--mint), var(--blue));
-    border-radius: 10px 10px 0 0;
-    min-height: 6px;
-    transition: height 0.5s ease;
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--blue), var(--mint));
+    min-width: 6px;
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
   }
   .period-val {
     font-family: var(--font-head);
     font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--blue);
+    text-align: right;
   }
 
   .modal-overlay { display: none; } /* obsoleto — mantido por segurança */
@@ -1771,12 +1826,6 @@ import { categories } from "../data/vocabulary";
   [hidden] {
     display: none !important;
   }
-  .period-name {
-    font-size: 0.8rem;
-    color: var(--text-soft);
-    font-weight: 600;
-  }
-
   .timeline-list {
     display: flex;
     flex-direction: column;
@@ -1836,36 +1885,85 @@ import { categories } from "../data/vocabulary";
     font-weight: 700;
   }
 
-  /* Student info */
-  .student-info {
+  /* ── Student + KPI unified card ── */
+  .student-kpi-card {
+    margin-top: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--blue);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .si-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    margin-top: 18px;
-    padding: 12px;
-    background: linear-gradient(180deg, var(--surface), var(--surface-2));
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow-sm);
+    padding: 14px 16px;
   }
-  .student-info .si-left {
+  .si-left {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
+    min-width: 0;
   }
-  .student-info strong {
+  .si-metas {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .student-kpi-card strong {
     font-family: var(--font-head);
     font-weight: 900;
-    font-size: 1.05rem;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .student-info .si-meta {
+  .si-meta {
     color: var(--text-soft);
-    font-weight: 700;
+    font-weight: 600;
+    font-size: 0.82rem;
   }
-  .student-info .si-actions {
+  .si-actions {
+    flex-shrink: 0;
+  }
+  .si-actions .btn {
+    font-size: 0.82rem;
+    padding: 7px 14px;
+    white-space: nowrap;
+  }
+  .si-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 16px;
+  }
+  .si-kpis {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .si-kpi {
     display: flex;
-    gap: 8px;
+    flex-direction: column;
+    gap: 3px;
+    padding: 14px 16px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .si-kpi:nth-child(2n) {
+    border-right: none;
+  }
+  .si-kpi:nth-child(3),
+  .si-kpi:nth-child(4) {
+    border-bottom: none;
+  }
+  .si-kpi .kpi-num {
+    font-size: 1.7rem;
+  }
+  .si-kpi .kpi-label {
+    font-size: 0.8rem;
   }
 
   @media (max-width: 760px) {
@@ -1874,6 +1972,54 @@ import { categories } from "../data/vocabulary";
     }
     .bar-row {
       grid-template-columns: 100px 1fr 30px;
+    }
+  }
+
+  /* ── Mobile-first improvements ── */
+  @media (max-width: 520px) {
+    .page-hero {
+      padding: 24px 0 18px;
+    }
+    .page-title {
+      font-size: 1.45rem;
+    }
+    .page-lead {
+      font-size: 0.9rem;
+    }
+
+    /* KPIs: 2 columns on mobile */
+    .grid.grid-4 {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 10px !important;
+    }
+    .kpi-num {
+      font-size: 1.7rem;
+    }
+
+    /* Actions grid */
+    .actions {
+      grid-template-columns: 1fr 1fr;
+    }
+    .actions .btn {
+      font-size: 0.8rem;
+      padding: 9px 8px;
+      text-align: center;
+    }
+
+    /* Timeline items tighter on mobile */
+    .tl-item {
+      padding: 10px 12px;
+      gap: 10px;
+    }
+
+    /* dash-grid single col on small phones */
+    .dash-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .chart-card h3 {
+      font-size: 0.95rem;
     }
   }
 </style>
